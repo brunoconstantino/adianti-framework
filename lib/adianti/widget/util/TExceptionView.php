@@ -1,53 +1,36 @@
 <?php
-Namespace Adianti\Widget\Util;
+namespace Adianti\Widget\Util;
 
 use Adianti\Widget\Container\TTable;
 use Adianti\Widget\Container\TScroll;
-use Adianti\Control\TWindow;
+use Adianti\Widget\Dialog\TMessage;
+use Adianti\Core\AdiantiCoreTranslator;
 
-use Gtk;
-use GtkLabel;
-use GdkColor;
+use Exception;
 
 /**
  * Exception visualizer
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TExceptionView extends TWindow
+class TExceptionView
 {
     /**
      * Constructor method
      */
-    function __construct($e)
+    function __construct(Exception $e)
     {
-        parent::__construct('Error Report');
-        parent::connect_simple('destroy', array('Gtk', 'main_quit'));
-        parent::setPosition(200,100);
-        parent::setSize(700,400);
-        $this->e = $e;
-        
-        $this->show();
-    }
-    
-    /**
-     * Shows the exception stack
-     */
-    function show()
-    {
-        $error_array = $this->e->getTrace();
+        $error_array = $e->getTrace();
         $table = new TTable;
         $row=$table->addRow();
-        $message = $this->e->getMessage();
-        $message = str_replace('<br>', "\n", $message);
-        $title = new GtkLabel;
-        $title->set_markup('<b>General Error: ' . $message .'</b>'."\n");
-        $row->addCell($title);
+        $row->addCell('<b>' . $e->getMessage(). '</b><br>');
+        $row=$table->addRow();
+        $row->addCell('&nbsp;');
         
         foreach ($error_array as $error)
         {
@@ -93,22 +76,22 @@ class TExceptionView extends TWindow
                     }
                 }
             }
-            $label = new GtkLabel;
-            $row->addCell($label);
-            
             $class = isset($error['class']) ? $error['class'] : '';
             $type  = isset($error['type'])  ? $error['type']  : '';
             
-            $label->set_markup('  <i>'.'<span foreground="#78BD4C">'.$class.'</span>'.
-                               '<span foreground="#600097">'.$type.'</span>'.
-                               '<span foreground="#5258A3">'.$error['function'].'</span>'.
-                               '('.'<span foreground="#894444">'.implode(',', $args).'</span>'.')</i>');
+            $row->addCell('&nbsp;&nbsp;<i>'.'<font color=green>'.$class.'</font>'.
+                                            '<font color=olive>'.$type.'</font>'.
+                                            '<font color=darkblue>'.$error['function'].'</font>'.
+                                            '('.'<font color=maroon>'.implode(',', $args).'</font>'.')</i>');
         }
         $scroll=new TScroll;
         $scroll->setSize(690,390);
         $scroll->add($table);
-        $scroll-> child->modify_bg(GTK::STATE_NORMAL, GdkColor::parse('#ffffff'));
-        parent::add($scroll);
-        parent::show();
+        
+        ob_start();
+        $table->show();
+        $content = ob_get_clean();
+        
+        new TMessage('error', $content, NULL, AdiantiCoreTranslator::translate('Exception'));
     }
 }

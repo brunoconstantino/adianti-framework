@@ -1,34 +1,46 @@
 <?php
-Namespace Adianti\Widget\Container;
+namespace Adianti\Widget\Container;
 
+use Adianti\Widget\Base\TElement;
 use Adianti\Widget\Container\TTableRow;
-
-use Gtk;
-use GtkTable;
-use GtkHBox;
 
 /**
  * Creates a table layout, with rows and columns
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TTable extends GtkTable
+class TTable extends TElement
 {
-    private $showed;
+    private $section;
     
     /**
      * Class Constructor
-     * @param $array Just for Gtk compability reasons
      */
-    public function __construct($array=NULL)
+    public function __construct()
     {
-        parent::__construct();
-        $this->showed = FALSE;
+        parent::__construct('table');
+        $this->section = null;
+    }
+
+    /**
+     * Add section
+     */
+    public function addSection($type)
+    {
+        if ($type == 'thead')
+        {
+            $this->section = new TElement('thead');
+        }
+        else if ($type == 'tbody')
+        {
+            $this->section = new TElement('tbody');
+        }
+        parent::add($this->section);
     }
     
     /**
@@ -37,8 +49,18 @@ class TTable extends GtkTable
      */
     public function addRow()
     {
+        // creates a new Table Row
         $row = new TTableRow;
-        $this->rows[] = $row;
+        
+        // add this row to the table element
+        if (isset($this->section))
+        {
+            $this->section->add($row);
+        }
+        else
+        {
+            parent::add($row);
+        }
         return $row;
     }
     
@@ -59,7 +81,8 @@ class TTable extends GtkTable
             {
                 if (is_array($arg))
                 {
-                    call_user_func_array(array($row, 'addMultiCell'), $arg);
+                    $inst = $row;
+                    call_user_func_array(array($inst, 'addMultiCell'), $arg);
                 }
                 else
                 {
@@ -71,51 +94,67 @@ class TTable extends GtkTable
     }
     
     /**
-     * Show the table and all aggregated rows
+     * Create a table from data array
+     * @param $array_data Array with raw data
+     * @param $table_properties Array of CSS properties for table
+     * @param $header_properties Array of CSS properties for header
+     * @param $body_properties Array of CSS properties for body
      */
-    public function show()
+    public static function fromData($array_data, $table_properties = null, $header_properties = null, $body_properties = null)
     {
-        if ($this->showed === FALSE)
+        $table = new self;
+        if ($table_properties)
         {
-            $i=0;
-            if ($this->rows)
+            foreach ($table_properties as $prop=>$value)
             {
-                foreach ($this->rows as $row)
-                {
-                    $c=0;
-                    if ($row->getCells())
-                    {
-                        foreach ($row->getCells() as $column)
-                        {
-                            $properties = $column->getProperties();
-                            $properties['colspan'] = isset($properties['colspan']) ? $properties['colspan'] -1 : 0;
-                            $hbox=new GtkHBox;
-                            $width  = -1;
-                            $height = -1;
-                            if (isset($properties['width']))
-                            {
-                                $width = $properties['width'];
-                            }
-                            if (isset($properties['height']))
-                            {
-                                $height = $properties['height'];
-                            }
-                            $hbox->set_size_request($width, $height);
-                            $hbox->set_border_width(1);
-                            $hbox->pack_start($column->getContent(), false, false);
-                            $column->getContent()->show();
-                            //$hbox->pack_start(new GtkHBox, true, true);
-                            parent::attach($hbox,$c,$c+1+$properties['colspan'],$i,$i+1, Gtk::FILL, 0, 0, 0);
-                            
-                            $c++;
-                        }
-                    }
-                    $i++;
-                }
+                $table->$prop = $value;
             }
-            $this->showed = TRUE;
         }
         
-        parent::show();
+        $header = array_keys(isset($array_data[0])?$array_data[0]:array());
+        
+        $thead = new TElement('thead');
+        $table->add($thead);
+        
+        $tr = new TTableRow;
+        $thead->add($tr);
+        foreach ($header as $cell)
+        {
+            $td = $tr->addCell((string) $cell);
+            if ($header_properties)
+            {
+                foreach ($header_properties as $prop=>$value)
+                {
+                    $td->$prop = $value;
+                }
+            }
+        }
+        
+        $tbody = new TElement('tbody');
+        $table->add($tbody);
+        
+        $i = 0;
+        foreach ($array_data as $row)
+        {
+            $tr = new TTableRow;
+            $tbody->add($tr);
+            $tr->{'class'} = ($i %2==0) ? 'odd': 'even';
+            
+            foreach ($row as $cell)
+            {
+                $td = $tr->addCell((string) $cell);
+                if ($body_properties)
+                {
+                    foreach ($body_properties as $prop=>$value)
+                    {
+                        $td->$prop = $value;
+                    }
+                }
+            }
+            
+            $i ++;
+        }
+        
+        return $table;
     }
 }

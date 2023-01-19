@@ -1,35 +1,52 @@
 <?php
-Namespace Adianti\Widget\Container;
+namespace Adianti\Widget\Container;
 
-use Gtk;
-use GtkNotebook;
-use GtkLabel;
+use Adianti\Control\TAction;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Container\TTable;
+use Adianti\Widget\Container\TFrame;
 
 /**
  * Notebook
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TNotebook extends GtkNotebook
+class TNotebook extends TElement
 {
-    private $contents;
+    private $width;
+    private $height;
+    private $currentPage;
+    private $pages;
+    private $counter;
+    private $id;
     private $tabAction;
+    private $tabsVisibility;
+    private $tabsSensibility;
+    private $container;
+    static private $noteCounter;
     
     /**
      * Class Constructor
-     * @param $width  Notebook's width
-     * @param $height Notebook's height
+     * @param $width   Notebook's width
+     * @param $height  Notebook's height
      */
-    public function __construct($width = 500, $height = 650)
+    public function __construct($width = null, $height = null)
     {
-        parent::__construct();
-        parent::set_size_request($width, $height+30);
-        parent::connect_after('switch-page', array($this, 'onSwitchPage'));
+        parent::__construct('div');
+        $this->id = 'tnotebook_' . mt_rand(1000000000, 1999999999);
+        $this->counter = ++ self::$noteCounter;
+        
+        // define some default values
+        $this->width = $width;
+        $this->height = $height;
+        $this->currentPage = 0;
+        $this->tabsVisibility = TRUE;
+        $this->tabsSensibility = TRUE;
     }
     
     /**
@@ -38,7 +55,24 @@ class TNotebook extends GtkNotebook
      */
     public function setTabsVisibility($visible)
     {
-        parent::set_show_tabs($visible);
+        $this->tabsVisibility = $visible;
+    }
+    
+    /**
+     * Define the tabs click sensibility
+     * @param $sensibility If the tabs will be sensible to click
+     */
+    public function setTabsSensibility($sensibility)
+    {
+        $this->tabsSensibility = $sensibility;
+    }
+    
+    /**
+     * Returns the element ID
+     */
+    public function getId()
+    {
+        return $this->id;
     }
     
     /**
@@ -48,15 +82,18 @@ class TNotebook extends GtkNotebook
      */
     public function setSize($width, $height)
     {
-        parent::set_size_request($width, $height+30);
+        // define the width and height
+        $this->width  = $width;
+        $this->height = $height;
     }
     
     /**
-     * Returns the Notebook size
+     * Returns the frame size
+     * @return array(width, height)
      */
     public function getSize()
     {
-        return parent::get_size_request();
+        return array($this->width, $this->height);
     }
     
     /**
@@ -65,7 +102,8 @@ class TNotebook extends GtkNotebook
      */
     public function setCurrentPage($i)
     {
-        parent::set_current_page($i);
+        // atribui a página corrente
+        $this->currentPage = $i;
     }
     
     /**
@@ -73,7 +111,17 @@ class TNotebook extends GtkNotebook
      */
     public function getCurrentPage()
     {
-        return parent::get_current_page();
+        return $this->currentPage;
+    }
+    
+    /**
+     * Add a tab to the notebook
+     * @param $title   tab's title
+     * @param $object  tab's content
+     */
+    public function appendPage($title, $object)
+    {
+        $this->pages[$title] = $object;
     }
 
     /**
@@ -81,7 +129,7 @@ class TNotebook extends GtkNotebook
      */
     public function getPageCount()
     {
-        return parent::get_n_pages();
+        return count($this->pages);
     }
     
     /**
@@ -95,45 +143,134 @@ class TNotebook extends GtkNotebook
     }
     
     /**
-     * Add a tab to the notebook
-     * @param $title   tab's title
-     * @param $object  tab's content
+     * Render the notebook
      */
-    public function appendPage($title, $object)
+    public function render()
     {
-        if (method_exists($object, 'set_border_width'))
+        // count the pages
+        $pages = $this->getPageCount();
+        
+        $this->container = new TElement('div');
+        if ($this->width)
         {
-            $object->set_border_width(4);
+            $this->container->{'style'} = ";min-width:{$this->width}px";
         }
-        parent::append_page($object, new GtkLabel($title));
-        $this->contents[] = $object;
-    }
-    
-    /**
-     * Switch page event
-     */
-    public function onSwitchPage()
-    {
-        if ($this-> window)
+        $this->container->{'class'} = 'tnotebook';
+        
+        $ul = new TElement('ul');
+        $ul->{'class'} = 'tabs';
+        $this->container->add($ul);
+        
+        $space = new TElement('div');
+        if ($this->width)
         {
-            if ($this->tabAction instanceof TAction)
+            $space->{'style'} = "min-width:{$this->width}px";
+        }
+        $space->{'class'} = 'spacer';
+        $this->container->add($space);
+        
+        $i = 0;
+        $id = $this->id;
+        
+        
+        if ($this->pages)
+        {
+            // iterate the tabs, showing them
+            foreach ($this->pages as $title => $content)
             {
-                $param = array('current_page' => $this->getCurrentPage() +1);
-                $callback = $this->tabAction->getAction();
-                call_user_func($callback, $param);
+                // verify if the current page is to be shown
+                $classe = ($i == $this->currentPage) ? 'active' : '';
+                
+                // add a cell for this tab
+                if ($this->tabsVisibility)
+                {
+                    $item = new TElement('li');
+                    $link = new TElement('a');
+                    $link->{'aria-controls'} = "home";
+                    $link->{'role'} = "tab";
+                    $link->{'data-toggle'} = "tab";
+                    $link->{'href'} = "#"."panel_{$id}_{$i}";
+                    
+                    if (!$this->tabsSensibility)
+                    {
+                        $link->{'style'} = "pointer-events:none";
+                    }
+                    
+                    $item->add($link);
+                    $link->add("$title");
+                    $item->{'class'} = $classe;
+                    $item->{'role'} = "presentation";
+                    $item->{'id'} = "tab_{$id}_{$i}";
+                    
+                    if ($this->tabAction)
+                    {
+                        $this->tabAction->setParameter('current_page', $i+1);
+                        $string_action = $this->tabAction->serialize(FALSE);
+                        $link-> onclick = "__adianti_ajax_exec('$string_action')";
+                    }
+                    
+                    $ul->add($item);
+                    $i ++;
+                }
             }
         }
+        
+        // creates a <div> around the content
+        $quadro = new TElement('div');
+        $quadro->{'class'} = 'frame tab-content';
+        
+        $width = $this->width;
+        $height= $this->height;// -30;
+        
+        if ($width)
+        {
+            $quadro->{'style'} .= ";min-width:{$width}px";
+        }
+        
+        if($height)
+        {
+            $quadro->{'style'} .= ";min-height:{$height}px";
+        }
+        
+        $i = 0;
+        // iterate the tabs again, now to show the content
+        if ($this->pages)
+        {
+            foreach ($this->pages as $title => $content)
+            {
+                $panelClass = ($i == $this->currentPage) ? 'active': '';
+                
+                // creates a <div> for the contents
+                $panel = new TElement('div');
+                $panel->{'role'}  = "tabpanel";
+                $panel->{'class'} = "tab-pane " . $panelClass;
+                $panel->{'id'}    = "panel_{$id}_{$i}"; // ID
+                $quadro->add($panel);
+                
+                // check if the content is an object
+                if (is_object($content))
+                {
+                    $panel->add($content);
+                }
+                
+                $i ++;
+            }
+        }
+        
+        $this->container->add($quadro);
+        return $this->container;
     }
     
     /**
-     * Show the notebook at the screen
+     * Show the notebook
      */
     public function show()
     {
-        foreach ($this->contents as $content)
+        if (empty($this->container))
         {
-            $content->show();
+            $this->container = $this->render();
         }
+        parent::add($this->container);
         parent::show();
     }
 }

@@ -118,7 +118,7 @@ class TTableWriterRTF implements ITableWriter
             $this->table->mergeCellRange($this->rowcounter, $this->colcounter,
                                          $this->rowcounter, $this->colcounter + $colspan -1);
         }
-        $this->colcounter ++;
+        $this->colcounter += $colspan;
     }
     
     /**

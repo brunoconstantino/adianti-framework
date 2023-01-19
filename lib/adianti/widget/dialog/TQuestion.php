@@ -1,99 +1,126 @@
 <?php
-Namespace Adianti\Widget\Dialog;
+namespace Adianti\Widget\Dialog;
 
+use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Control\TAction;
-
-use Gtk;
-use GtkHbox;
-use GtkDialog;
-use GtkTextView;
-use GtkTextTag;
-use GtkImage;
-use GtkScrolledWindow;
-use PangoFontDescription;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
+use Adianti\Widget\Util\TImage;
 
 /**
  * Question Dialog
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage dialog
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TQuestion extends GtkDialog
+class TQuestion
 {
+    private $id;
+    
     /**
      * Class Constructor
      * @param  $message    A string containint the question
      * @param  $action_yes Action taken for YES response
      * @param  $action_no  Action taken for NO  response
+     * @param  $title_msg  Dialog Title
      */
-    public function __construct($message, TAction $action_yes, TAction $action_no = NULL)
+    public function __construct($message, TAction $action_yes = NULL, TAction $action_no = NULL, $title_msg = '')
     {
-        $buttons = array(Gtk::STOCK_YES, Gtk::RESPONSE_YES);
-        if ($action_no instanceof TAction)
+        $this->id = 'tquestion_'.mt_rand(1000000000, 1999999999);
+        
+        $modal_wrapper = new TElement('div');
+        $modal_wrapper->{'class'} = 'modal';
+        $modal_wrapper->{'id'}    = $this->id;
+        $modal_wrapper->{'style'} = 'padding-top: 10%; z-index:4000';
+        $modal_wrapper->{'tabindex'} = '-1';
+        
+        $modal_dialog = new TElement('div');
+        $modal_dialog->{'class'} = 'modal-dialog';
+        
+        $modal_content = new TElement('div');
+        $modal_content->{'class'} = 'modal-content';
+        
+        $modal_header = new TElement('div');
+        $modal_header->{'class'} = 'modal-header';
+        
+        $image = new TImage("fa:fa fa-question-circle fa-5x blue");
+        $image->{'style'} = 'float:left; margin-right: 10px;';
+        
+        $close = new TElement('button');
+        $close->{'type'} = 'button';
+        $close->{'class'} = 'close';
+        $close->{'data-dismiss'} = 'modal';
+        $close->{'aria-hidden'} = 'true';
+        $close->add('×');
+        
+        $title = new TElement('h4');
+        $title->{'class'} = 'modal-title';
+        $title->{'style'} = 'display:inline';
+        $title->add( $title_msg ? $title_msg : AdiantiCoreTranslator::translate('Question') );
+        
+        $body = new TElement('div');
+        $body->{'class'} = 'modal-body';
+        $body->{'style'} = 'text-align:left';
+        $body->add($image);
+        
+        $span = new TElement('span');
+        $span->add($message);
+        $body->add($span);
+        
+        $footer = new TElement('div');
+        $footer->{'class'} = 'modal-footer';
+        
+        if ($action_yes)
         {
-            $buttons[] = Gtk::STOCK_NO;
-            $buttons[] = Gtk::RESPONSE_NO;
+            $button = new TElement('button');
+            $button->{'class'} = 'btn btn-default';
+            $button->{'data-toggle'}="modal";
+            $button->{'data-dismiss'} = 'modal';
+            $button->add(AdiantiCoreTranslator::translate('Yes'));
+            $button->{'onclick'} = '__adianti_load_page(\''.$action_yes->serialize() . '\')';
+            $footer->add($button);
         }
-        $buttons[] = Gtk::STOCK_CANCEL;
-        $buttons[] = Gtk::RESPONSE_CANCEL;
         
-        parent::__construct('', NULL, Gtk::DIALOG_MODAL, $buttons);
-        parent::set_position(Gtk::WIN_POS_CENTER);
-        parent::set_size_request(500, 300);
-        
-        $textview=new GtkTextView;
-        $textview->set_wrap_mode(Gtk::WRAP_WORD);
-        $textview->set_border_width(12);
-        $textbuffer=$textview->get_buffer();
-        
-        $tagtable=$textbuffer->get_tag_table();
-        $customTag = new GtkTextTag;
-        $tagtable->add($customTag);
-        $customTag->set_property('foreground', '#525252');
-
-        $tagBegin= $textbuffer->create_mark('tagBegin', $textbuffer->get_end_iter(), true);
-        $textbuffer->insert_at_cursor("\n   ".$message);
-        $tagEnd = $textbuffer->create_mark('tagEnd', $textbuffer->get_end_iter(), true);
-        $start  = $textbuffer->get_iter_at_mark($tagBegin);
-        $end    = $textbuffer->get_iter_at_mark($tagEnd);
-        $textbuffer->apply_tag($customTag, $start, $end);
-        
-        $textview->set_editable(FALSE);
-        $textview->set_cursor_visible(FALSE);
-        $pango = new PangoFontDescription('Sans 14');
-        $textview->modify_font($pango);
-        $image = GtkImage::new_from_stock(Gtk::STOCK_DIALOG_QUESTION, Gtk::ICON_SIZE_DIALOG);
-        
-        $scroll = new GtkScrolledWindow;
-        $scroll->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS);
-        $scroll->add($textview);
-        $hbox = new GtkHBox;
-        $this-> vbox->pack_start($hbox);
-        $hbox->pack_start($image, FALSE, FALSE);
-        $hbox->pack_start($scroll, TRUE, TRUE);
-        $this->show_all();
-        
-        $result = parent::run();
-        
-        if ($result == Gtk::RESPONSE_YES)
+        if ($action_no)
         {
-            parent::destroy();
-            call_user_func_array($action_yes->getAction(),
-                     array($action_yes->getParameters()));
-        }
-        else if ($result == Gtk::RESPONSE_NO)
-        {
-            parent::destroy();
-            call_user_func_array($action_no->getAction(),
-                     array($action_no->getParameters()));
+            $button = new TElement('button');
+            $button->{'class'} = 'btn btn-default';
+            $button->{'data-toggle'}="modal";
+            $button->{'data-dismiss'} = 'modal';
+            $button->add(AdiantiCoreTranslator::translate('No'));
+            $button->{'onclick'} = '__adianti_load_page(\''.$action_no->serialize() . '\')';
+            $footer->add($button);
         }
         else
         {
-            parent::destroy();
+            $button = new TElement('button');
+            $button->{'class'} = 'btn btn-default';
+            $button->{'data-dismiss'} = 'modal';
+            $button->add(AdiantiCoreTranslator::translate('No'));
+            $footer->add($button);
         }
+        
+        $button = new TElement('button');
+        $button->{'class'} = 'btn btn-default';
+        $button->{'data-dismiss'} = 'modal';
+        $button->add(AdiantiCoreTranslator::translate('Cancel'));
+        $footer->add($button);
+        
+        $modal_wrapper->add($modal_dialog);
+        $modal_dialog->add($modal_content);
+        $modal_content->add($modal_header);
+        $modal_header->add($close);
+        $modal_header->add($title);
+        
+        $modal_content->add($body);
+        $modal_content->add($footer);
+        
+        $modal_wrapper->show();
+        
+        TScript::create( "tdialog_start( '#{$this->id}' );");
     }
 }

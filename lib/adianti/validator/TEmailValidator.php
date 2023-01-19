@@ -1,5 +1,5 @@
 <?php
-Namespace Adianti\Validator;
+namespace Adianti\Validator;
 
 use Adianti\Validator\TFieldValidator;
 use Adianti\Core\AdiantiCoreTranslator;
@@ -8,10 +8,10 @@ use Exception;
 /**
  * Email validation
  *
- * @version    2.0
+ * @version    4.0
  * @package    validator
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TEmailValidator extends TFieldValidator
@@ -24,7 +24,9 @@ class TEmailValidator extends TFieldValidator
      */
     public function validate($label, $value, $parameters = NULL)
     {
-        if (!preg_match("/^(\w+((-\w+)|(\w.\w+))*)\@(\w+((\.|-)\w+)*\.\w+$)/",trim($value)))
+        $filter = filter_var(trim($value), FILTER_VALIDATE_EMAIL);
+        
+        if ($filter === FALSE)
         {
             throw new Exception(AdiantiCoreTranslator::translate('The field ^1 contains an invalid e-mail', $label));
         }

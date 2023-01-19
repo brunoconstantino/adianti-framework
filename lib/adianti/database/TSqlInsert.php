@@ -1,5 +1,5 @@
 <?php
-Namespace Adianti\Database;
+namespace Adianti\Database;
 
 use Adianti\Database\TSqlStatement;
 use Adianti\Database\TTransaction;
@@ -9,10 +9,10 @@ use Exception;
 /**
  * Provides an Interface to create an INSERT statement
  *
- * @version    2.0
+ * @version    4.0
  * @package    database
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 final class TSqlInsert extends TSqlStatement
@@ -51,7 +51,7 @@ final class TSqlInsert extends TSqlStatement
             {
                 if ($prepared)
                 {
-                    $preparedVar = ':par_'.uniqid();
+                    $preparedVar = ':par_'.self::getRandomParameter();
                     $this->preparedVars[ $preparedVar ] = $value;
                     $result = $preparedVar;
                 }
@@ -69,7 +69,7 @@ final class TSqlInsert extends TSqlStatement
             {
                 if ($prepared)
                 {
-                    $preparedVar = ':par_'.uniqid();
+                    $preparedVar = ':par_'.self::getRandomParameter();
                     $this->preparedVars[ $preparedVar ] = $value;
                     $result = $preparedVar;
                 }

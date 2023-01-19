@@ -4,7 +4,7 @@
             <menuitem label='Welcome'>
                 <menu>
                     <menuitem label='Welcome page'>
-                        <icon>app/images/ico_welcome.png</icon>
+                        <icon>app/images/ico_wellcome.png</icon>
                         <action>WelcomeView</action>
                     </menuitem>
                 </menu>

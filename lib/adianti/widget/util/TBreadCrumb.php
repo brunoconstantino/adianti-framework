@@ -1,24 +1,20 @@
 <?php
-Namespace Adianti\Widget\Util;
+namespace Adianti\Widget\Util;
 
-use Gtk;
-use GtkFrame;
-use GtkHBox;
-use GtkImage;
-use GtkLabel;
-use GtkArrow;
+use Adianti\Widget\Base\TElement;
 
 /**
  * BreadCrumb
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @author     Nataniel Rabaioli
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TBreadCrumb extends GtkFrame
+class TBreadCrumb extends TElement
 {
     protected static $homeController;
     protected $container;
@@ -30,12 +26,29 @@ class TBreadCrumb extends GtkFrame
      */
     public function __construct()
     {
-        parent::__construct();
-        parent::set_border_width(4);
+        parent::__construct('div');
+        $this->{'id'} = 'div_breadcrumbs';
         
-        $this->container = new GtkHBox;
-        $this->container->set_border_width(4);
-        parent::add($this->container);
+        $this->container = new TElement('ol');
+        $this->container->{'class'} = 'tbreadcrumb';
+        parent::add( $this->container );
+    }
+    
+    /**
+     * Static constructor
+     */
+    public static function create( $options, $home = true)
+    {
+        $breadcrumb = new TBreadCrumb;
+        if ($home)
+        {
+            $breadcrumb->addHome();
+        }
+        foreach ($options as $option)
+        {
+            $breadcrumb->addItem( $option );
+        }
+        return $breadcrumb;
     }
     
     /**
@@ -43,8 +56,28 @@ class TBreadCrumb extends GtkFrame
      */
     public function addHome()
     {
-        $image = GtkImage::new_from_file('lib/adianti/include/tbreadcrumb/home.png');
-        $this->container->pack_start($image, FALSE, FALSE);
+        $li = new TElement('li');
+        
+        $a = new TElement('a');
+        $a->{'class'} = 'bread';
+        $a->generator = 'adianti';
+        
+        if (self::$homeController)
+        {
+            $a->{'href'} = 'engine.php?class='.self::$homeController;
+        }
+        else
+        {
+            $a->{'href'} = 'engine.php';
+        }
+        
+        $a->{'title'} = 'Home';
+        
+        $span = new TElement('span');
+        $span->add( 'h' );
+        $li->add( $a );
+        $a->add( $span );
+        $this->container->add( $li );
     }
     
     /**
@@ -54,9 +87,25 @@ class TBreadCrumb extends GtkFrame
      */
     public function addItem($path, $last = FALSE)
     {
-        $this->items[$path] = new GtkLabel($path);
-        $this->container->pack_start(new GtkArrow(Gtk::ARROW_RIGHT,Gtk::SHADOW_NONE), FALSE, FALSE);
-        $this->container->pack_start($this->items[$path], FALSE, FALSE);
+        $li = new TElement('li');
+        $this->container->add( $li );
+        
+        $span = new TElement('span');
+        $span->add( $path );
+        
+        $this->items[$path] = $span;
+        if( $last )
+        {
+            $li->add( $span );
+        }
+        else
+        {
+            $a = new TElement('a');
+            
+            $li->add( $a );
+            $a->add( $span );
+        }
+            
     }
     
     /**
@@ -64,15 +113,15 @@ class TBreadCrumb extends GtkFrame
      */
     public function select($path)
     {
-        foreach ($this->items as $key => $label)
+        foreach ($this->items as $key => $span)
         {
             if ($key == $path)
             {
-                $label->set_markup("<span foreground=\"blue\"> $key </span>");
+                $span->{'class'} = 'selected';
             }
             else
             {
-                $label->set_text($key);
+                $span->{'class'} = '';
             }
         }
     }

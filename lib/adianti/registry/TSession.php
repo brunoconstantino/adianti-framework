@@ -1,26 +1,52 @@
 <?php
+namespace Adianti\Registry;
 
-Namespace Adianti\Registry;
+use SessionHandlerInterface;
+use Adianti\Registry\AdiantiRegistryInterface;
 
 /**
  * Session Data Handler
  *
- * @version    2.0
+ * @version    4.0
  * @package    registry
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TSession
+class TSession implements AdiantiRegistryInterface
 {
-    static private $content;
-    
     /**
      * Class Constructor
      */
-    public function __construct()
+    public function __construct(SessionHandlerInterface $handler = NULL, $path = NULL)
     {
-        self::$content = array();
+        if ($path)
+        {
+            session_save_path($path);
+        }
+        
+        if ($handler)
+        {
+            session_set_save_handler($handler, true);
+        }
+		
+        // if there's no opened session
+        if (!session_id())
+        {
+            session_start();
+        }
+    }
+    
+    /**
+     * Returns if the service is active
+     */
+    public static function enabled()
+    {
+        if (!session_id())
+        {
+            return session_start();
+        }
+        return TRUE;
     }
     
     /**
@@ -28,28 +54,85 @@ class TSession
      * @param $var   Variable Name
      * @param $value Variable Value
      */
-    public function setValue($var, $value)
+    public static function setValue($var, $value)
     {
-        self::$content[$var] = $value;
+        if (defined('APPLICATION_NAME'))
+        {
+            $_SESSION[APPLICATION_NAME][$var] = $value;
+        }
+        else
+        {
+            $_SESSION[$var] = $value;
+        }
     }
     
     /**
      * Returns the value for a variable
      * @param $var Variable Name
      */
-    public function getValue($var)
+    public static function getValue($var)
     {
-        if (isset(self::$content[$var]))
+        if (defined('APPLICATION_NAME'))
         {
-            return self::$content[$var];
+            if (isset($_SESSION[APPLICATION_NAME][$var]))
+            {
+                return $_SESSION[APPLICATION_NAME][$var];
+            }
+        }
+        else
+        {
+            if (isset($_SESSION[$var]))
+            {
+                return $_SESSION[$var];
+            }
         }
     }
     
     /**
-     * Destroy the session data
+     * Clear the value for a variable
+     * @param $var   Variable Name
      */
-    public function freeSession()
+    public static function delValue($var)
     {
-        self::$content = array();
+        if (defined('APPLICATION_NAME'))
+        {
+            unset($_SESSION[APPLICATION_NAME][$var]);
+        }
+        else
+        {
+            unset($_SESSION[$var]);
+        }
+    }
+    
+    /**
+     * Regenerate id
+     */
+    public static function regenerate()
+    {
+        session_regenerate_id();
+    }
+    
+    /**
+     * Clear session
+     */
+    public static function clear()
+    {
+        self::freeSession();
+    }
+    
+    /**
+     * Destroy the session data
+     * Backward compatibility
+     */
+    public static function freeSession()
+    {
+        if (defined('APPLICATION_NAME'))
+        {
+            $_SESSION[APPLICATION_NAME] = array();
+        }
+        else
+        {
+            $_SESSION[] = array();
+        }
     }
 }

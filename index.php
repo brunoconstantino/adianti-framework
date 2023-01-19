@@ -1,37 +1,27 @@
 <?php
 require_once 'init.php';
+$theme = 'theme1';
+new TSession;
 
-class TApplication extends AdiantiCoreApplication
+ob_start();
+$menu = TMenuBar::newFromXML('menu.xml');
+$menu->show();
+$menu_string = ob_get_clean();
+
+$content  = file_get_contents("app/templates/{$theme}/layout.html");
+//$content  = ApplicationTranslator::translateTemplate($content);
+$content  = str_replace('{LIBRARIES}', file_get_contents("app/templates/{$theme}/libraries.html"), $content);
+$content  = str_replace('{class}', isset($_REQUEST['class']) ? $_REQUEST['class'] : '', $content);
+$content  = str_replace('{template}', $theme, $content);
+$content  = str_replace('{MENU}', $menu_string, $content);
+$css      = TPage::getLoadedCSS();
+$js       = TPage::getLoadedJS();
+$content  = str_replace('{HEAD}', $css.$js, $content);
+
+echo $content;
+
+if (isset($_REQUEST['class']))
 {
-    protected $content;
-    function __construct()
-    {
-        parent::__construct();
-        parent::set_title('Adianti Framework :: Samples');
-        $this->content = new GtkFixed;
-
-        $vbox = new GtkVBox;
-        $vbox->pack_start(GtkImage::new_from_file('app/images/pageheader.png'), false, false);
-        $MenuBar = TMenuBar::newFromXML('menu.xml');
-        
-        $vbox->pack_start($MenuBar, false, false);
-        $vbox->pack_start($this->content, true, true);
-        
-        parent::add($vbox);
-        parent::show_all();
-    }
+    $method = isset($_REQUEST['method']) ? $_REQUEST['method'] : NULL;
+    AdiantiCoreApplication::loadPage($_REQUEST['class'], $method, $_REQUEST);
 }
-
-$app = new TApplication;
-
-try
-{
-    Gtk::Main();
-}
-catch (Exception $e)
-{
-    $app->destroy();
-    new TExceptionView($e);
-    Gtk::main();
-}
-?>

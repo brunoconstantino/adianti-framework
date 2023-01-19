@@ -1,50 +1,42 @@
 <?php
-Namespace Adianti\Widget\Util;
+namespace Adianti\Widget\Util;
 
-use Gtk;
-use GObject;
-use GtkTreeView;
-use GtkTreeStore;
-use GtkTreeViewColumn;
-use GtkCellRendererPixbuf;
-use GtkCellRendererText;
-use GdkPixbuf;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
 
 /**
  * TreeView
  * 
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TTreeView extends GtkTreeView
+class TTreeView extends TElement
 {
-    private $model;
-    private $itemAction;
     private $itemIcon;
-    private $paths;
+    private $itemAction;
+    private $collapsed;
+    private $callback;
     
     /**
-     * Construct treeview
+     * Class Constructor
      */
-    function __construct()
+    public function __construct()
     {
-        parent::__construct();
-        parent::set_headers_visible(FALSE);
-        $this->model = new GtkTreeStore(GObject::TYPE_OBJECT, GObject::TYPE_STRING, GObject::TYPE_PHP_VALUE, GObject::TYPE_STRING);
-        parent::set_model($this->model);
-        parent::connect('row-activated', array($this, 'onClick'));
-        $column1 = new GtkTreeViewColumn;
-        $cell_renderer1 = new GtkCellRendererPixbuf;
-        $cell_renderer2 = new GtkCellRendererText;
-        $column1->pack_start($cell_renderer1, false);
-        $column1->pack_start($cell_renderer2, false);
-        $column1->set_attributes($cell_renderer1, 'pixbuf', 0);
-        $column1->set_attributes($cell_renderer2, 'text', 1);
-        parent::append_column($column1);
+        $this->{'id'} = 'ttreeview_'.mt_rand(1000000000, 1999999999);
+        $this->collapsed = FALSE;
+        parent::__construct('ul');
+    }
+    
+    /**
+     * Set node transformer
+     */
+    public function setTransformer($callback)
+    {
+        $this->callback = $callback;
     }
     
     /**
@@ -53,7 +45,7 @@ class TTreeView extends GtkTreeView
      */
     public function setSize($width)
     {
-        parent::set_size_request($width, -1);
+        $this->{'style'} = "width: {$width}px";
     }
     
     /**
@@ -79,7 +71,21 @@ class TTreeView extends GtkTreeView
      */
     public function collapse()
     {
-        parent::collapse_all();
+        $this->collapsed = TRUE;
+    }
+    
+    /**
+     * Expand to Tree Node
+     * @param $key Node key
+     */
+    public function expandTo($key)
+    {
+        $objectId = $this->{'id'};
+        $id = md5($key);
+        $script = new TElement('script');
+        $script->{'type'} = 'text/javascript';
+        $script->add("setTimeout(function(){ \$('#{$objectId}_{$id}').parents('ul').show()  },1);");
+        $script->show();
     }
     
     /**
@@ -94,39 +100,45 @@ class TTreeView extends GtkTreeView
             {
                 if (is_scalar($option))
                 {
-                    $iter = $this->model->append();
-                    $pixbuf = GdkPixbuf::new_from_file('app/images/'.$this->itemIcon);
-                    $this->model->set($iter, 0, $pixbuf);
-                    $this->model->set($iter, 1, $option);
-                    $this->model->set($iter, 2, array('key'=> $key, 'value'=>$option));
-                    $this->model->set($iter, 3, 'child');
+                    $element = new TElement('li');
+                    $span = new TElement('span');
+                    $span->{'class'} = 'file';
+                    $span->add($option);
+                    if ($this->itemIcon)
+                    {
+                        $element->{'style'} = "background-image:url(app/images/{$this->itemIcon})";
+                    }
                     
-                    $path = $this->model->get_path($iter);
-                    $this->paths[$key] = $path;
+                    if ($this->itemAction)
+                    {
+                        $this->itemAction->setParameter('key', $key);
+                        $this->itemAction->setParameter('value', $option);
+                        $string_action = $this->itemAction->serialize(FALSE);
+                        $element->{'onClick'} = "__adianti_ajax_exec('{$string_action}')";
+                        $element->{'id'} = $this->{'id'} . '_' . md5($key);
+                    }
+                    $span->{'key'} = $key;
+                    $element->add($span);
+                    
+                    if (is_callable($this->callback))
+                    {
+                        call_user_func($this->callback, $span);
+                    }
+                    
+                    parent::add($element);
                 }
                 else if (is_array($option))
                 {
-                    $iter = $this->model->append();
-                    $pixbuf = GdkPixbuf::new_from_file('lib/adianti/include/ttreeview/ico_folder.png');
-                    $this->model->set($iter, 0, $pixbuf);
-                    $this->model->set($iter, 1, $key);
-                    $this->model->set($iter, 2, array('key'=> $key, 'value'=>$option));
-                    $this->model->set($iter, 3, 'parent');
-                    
-                    $this->fromOptions($iter, $option);
+                    $element = new TElement('li');
+                    $span = new TElement('span');
+                    $span->{'class'} = 'folder';
+                    $span->add($key);
+                    $element->add($span);
+                    $element->add($this->fromOptions($option));
+                    parent::add($element);
                 }
             }
         }
-        parent::expand_all();
-    }
-    
-    /**
-     * Expand to Tree Node
-     * @param $key Node key
-     */
-    public function expandTo($key)
-    {
-        parent::expand_to_path( $this->paths[$key] );
     }
     
     /**
@@ -134,60 +146,64 @@ class TTreeView extends GtkTreeView
      * @param $options array of options
      * @ignore-autocomplete on
      */
-    private function fromOptions($parent, $options)
+    private function fromOptions($options)
     {
         if (is_array($options))
         {
+            $ul = new TElement('ul');
             foreach ($options as $key => $option)
             {
                 if (is_scalar($option))
                 {
-                    $iter = $this->model->append($parent);
-                    $pixbuf = GdkPixbuf::new_from_file('app/images/'.$this->itemIcon);
-                    $this->model->set($iter, 0, $pixbuf);
-                    $this->model->set($iter, 1, $option);
-                    $this->model->set($iter, 2, array('key'=> $key, 'value'=>$option));
-                    $this->model->set($iter, 3, 'child');
+                    $element = new TElement('li');
+                    $span = new TElement('span');
+                    $span->{'class'} = 'file';
+                    $span->add($option);
+                    if ($this->itemIcon)
+                    {
+                        $element->{'style'} = "background-image:url(app/images/{$this->itemIcon})";
+                    }
                     
-                    $path = $this->model->get_path($iter);
-                    $this->paths[$key] = $path;
+                    if ($this->itemAction)
+                    {
+                        $this->itemAction->setParameter('key', $key);
+                        $this->itemAction->setParameter('value', $option);
+                        $string_action = $this->itemAction->serialize(FALSE);
+                        $element->{'onClick'} = "__adianti_ajax_exec('{$string_action}')";
+                        $element->{'id'} = $this->{'id'} . '_' . md5($key);
+                    }
+                    $span->{'key'} = $key;
+                    $element->add($span);
+                    
+                    if (is_callable($this->callback))
+                    {
+                        call_user_func($this->callback, $span);
+                    }
                 }
                 else if (is_array($option))
                 {
-                    $iter = $this->model->append($parent);
-                    $pixbuf = GdkPixbuf::new_from_file('lib/adianti/include/ttreeview/ico_folder.png');
-                    $this->model->set($iter, 0, $pixbuf);
-                    $this->model->set($iter, 1, $key);
-                    $this->model->set($iter, 2, array('key'=> $key, 'value'=>$option));
-                    $this->model->set($iter, 3, 'parent');
-                    
-                    $this->fromOptions($iter, $option);
+                    $element = new TElement('li');
+                    $span = new TElement('span');
+                    $span->{'class'} = 'folder';
+                    $span->add($key);
+                    $element->add($span);
+                    $element->add($this->fromOptions($option));
                 }
+                $ul->add($element);
             }
+            return $ul;
         }
     }
     
     /**
-     * Execute the action
-     * @ignore-autocomplete on
+     * Shows the tag
      */
-    public function onClick($object, $event)
+    public function show()
     {
-        $treeselection = parent::get_selection();
-        list($model, $iter) = $treeselection->get_selected();
+        $objectId = $this->{'id'};
+        $collapsed = $this->collapsed ? 'true' : 'false';
         
-        if ($iter)
-        {
-            $info = $this->model->get_value($iter, 2);
-            $type = $this->model->get_value($iter, 3);
-            
-            if ($type == 'child' AND $this->itemAction)
-            {
-                $parameters = $this->itemAction->getParameters();
-                $parameters['key'] = $info['key'];
-                $parameters['value'] = $info['value'];
-                call_user_func_array($this->itemAction->getAction(), array($parameters));
-            }
-        }
+        parent::add(TScript::create(" ttreeview_start( '#{$objectId}', {$collapsed} ); ", FALSE));
+        parent::show();
     }
 }

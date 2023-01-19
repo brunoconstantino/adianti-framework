@@ -12,31 +12,23 @@ img
     border: 0;
 }
 
-.ui-widget
-{
-    font-size: 10pt;
-}
-
-button span
-{
-    font-size: 9pt;
-}
 
 #menuDiv
 {
     width: 100%;
 }
 
-#div_breadcrumbs
+.tbreadcrumb li span
 {
-    min-width: 640px;
+    font-family: 'Open Sans';
+    font-size: 10pt;
 }
 
 .adianti_container
 {
     margin: auto;
     margin-top: 10px;
-    width: 980px;
+    width: 90%;
     min-height: 570px;
     display: block;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
@@ -45,27 +37,6 @@ button span
     float: center;
     align: center;
     text-align: left;
-}
-
-.body .panel
-{
-    font: 11px "Trebuchet MS", Arial, sans-serif;
-    float: right;
-    background: none repeat scroll 0 0 #FAFAFA;
-    display: inline-block;
-    position: relative;
-    width: 220px;
-    min-height: 540px;
-    height: 100%;
-    z-index: 4;
-    #border: 1px solid;
-    #box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
-    padding: 20px;
-    padding-top: 40px;
-    padding-left: 25px;
-    height: auto;
-    text-align: center;
-    border-left: 1px solid #e0e0e0;
 }
 
 .adianti_container .thin_bar
@@ -106,9 +77,7 @@ button span
 
 .body .content
 {
-    padding-left: 20px;
-    padding-top: 20px;
-    float: left;
+    padding: 20px;
 }
 
 .adianti_container .header
@@ -167,6 +136,7 @@ input, textarea
     overflow: visible;
     color: #777777;
     margin-bottom: 0px;
+    font-family: 'Open Sans';
 }
 
 .tutor-navbar-inner
@@ -174,12 +144,7 @@ input, textarea
     min-height: 40px;
     padding-right: 20px;
     padding-left: 20px;
-    background-color: #fafafa;
-    background-image: -moz-linear-gradient(top, #ffffff, #f2f2f2);
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#f2f2f2));
-    background-image: -webkit-linear-gradient(top, #ffffff, #f2f2f2);
-    background-image: -o-linear-gradient(top, #ffffff, #f2f2f2);
-    background-image: linear-gradient(to bottom, #ffffff, #f2f2f2);
+    background: whitesmoke;
     background-repeat: repeat-x;
     border: 1px solid #d4d4d4;
     filter: progid:dximagetransform.microsoft.gradient(startColorstr='#ffffffff', endColorstr='#fff2f2f2', GradientType=0);
@@ -189,10 +154,23 @@ input, textarea
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.065);
 }
 
+.tutor-navbar-inner a
+{
+    color: #333;
+    font-size: 14px;
+}
+
 .tutor-navbar .btn,
 .tutor-navbar .btn-group
 {
     margin-top: 3px;
+}
+
+@media only screen and (max-width: 768px) {
+    .tutor-navbar > .tutor-navbar-inner > .navbar> .navbar-nav > li.active.open > .dropdown-toggle {
+        background: rgb(93, 122, 237);
+        color: white;
+    }
 }
 
 .navbar-collapse
@@ -216,3 +194,54 @@ a
     border: 1px solid #e0e0e0;
     padding: 10px;
 }
+
+.navbar-nav > li.active.open > .dropdown-toggle
+{
+    border-left: 1px solid rgba(0,0,0,0.15);
+    border-right: 1px solid rgba(0,0,0,0.15);
+    border-top: 1px solid rgba(0,0,0,0.15);
+    border-bottom: 1px solid white;
+    background: white;
+    z-index: 2000;
+    display: block;
+    margin-bottom: -1px;
+    margin-top: -1px;
+}
+.navbar-nav > li.active.open
+{
+    box-shadow: 0 0 12px 0 rgba(0,0,0,0.175);
+}
+
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus
+{
+    background: #eeeeee;
+}
+
+.dropdown-submenu>a:after
+{
+    border-left-color: gray;
+}
+.dropdown-menu {
+    font-size: 14px;
+}
+
+.select2-container .select2-choice {
+    background-image: none !important;
+}
+
+.select2-dropdown-open .select2-choice {
+    background-color: white;
+}
+
+.tsourcecode code
+{
+    font-family: Monospace;
+    line-height: normal;
+}
+
+/* para screenshots
+input, select, textarea, .panel-heading, .panel, .panel-footer {
+    border-width: 1.5px !important;
+    border-color: gray !important;
+}
+*/

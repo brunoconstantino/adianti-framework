@@ -1,28 +1,36 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
+use Adianti\Core\AdiantiCoreTranslator;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
 use Adianti\Validator\TFieldValidator;
+use Adianti\Validator\TRequiredValidator;
 
-use Gtk;
-use GtkHBox;
+use Exception;
+use ReflectionClass;
 
 /**
  * Base class to construct all the widgets
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-abstract class TField extends GtkHBox
+abstract class TField
 {
-    protected $widget;
-    protected $wname;
+    protected $id;
+    protected $name;
+    protected $size;
+    protected $value;
+    protected $editable;
+    protected $tag;
     protected $formName;
+    protected $label;
     private   $validations;
-    protected $wid;
     
     /**
      * Class Constructor
@@ -30,12 +38,85 @@ abstract class TField extends GtkHBox
      */
     public function __construct($name)
     {
-        parent::__construct();
-        self::setName($name);
-        $this->wid = uniqid();
-
+        $rc = new ReflectionClass( $this );
+        $classname = $rc->getShortName();
+        
+        if (empty($name))
+        {
+            throw new Exception(AdiantiCoreTranslator::translate('The parameter (^1) of ^2 constructor is required', 'name', $classname));
+        }
+        
+        // define some default properties
+        self::setEditable(TRUE);
+        self::setName(trim($name));
+        self::setSize(200);
+        
         // initialize validations array
         $this->validations = array();
+        
+        // creates a <input> tag
+        $this->tag = new TElement('input');
+        $this->tag->{'class'} = 'tfield';   // classe CSS
+        $this->tag->{'widget'} = strtolower($classname);
+    }
+    
+    /**
+     * Intercepts whenever someones assign a new property's value
+     * @param $name     Property Name
+     * @param $value    Property Value
+     */
+    public function __set($name, $value)
+    {
+        // objects and arrays are not set as properties
+        if (is_scalar($value))
+        {              
+            // store the property's value
+            $this->setProperty($name, $value);
+        }
+    }
+    
+    /**
+     * Returns a property value
+     * @param $name     Property Name
+     */
+    public function __get($name)
+    {
+        return $this->getProperty($name);
+    }
+    
+    /**
+     * Clone the object
+     */
+    function __clone()
+    {
+        $this->tag = clone $this->tag;
+    }
+    
+    /**
+     * Redirects function call
+     * @param $method Method name
+     * @param $param  Array of parameters
+     */
+    public function __call($method, $param)
+    {
+        return call_user_func_array( array($this->tag, $method), $param );
+    }
+    
+    /**
+     * Define the field's label
+     * @param $label   A string containing the field's label
+     */
+    public function setLabel($label)
+    {
+        $this->label = $label;
+    }
+
+    /**
+     * Returns the field's label
+     */
+    public function getLabel()
+    {
+        return $this->label;
     }
     
     /**
@@ -44,7 +125,7 @@ abstract class TField extends GtkHBox
      */
     public function setName($name)
     {
-        $this->wname = $name;
+        $this->name = $name;
     }
 
     /**
@@ -52,16 +133,16 @@ abstract class TField extends GtkHBox
      */
     public function getName()
     {
-        return $this->wname;
+        return $this->name;
     }
     
     /**
      * Define the field's id
-     * @param $id   A string containing the field's id
+     * @param $id A string containing the field's id
      */
     public function setId($id)
     {
-        $this->wid = $id;
+        $this->id = $id;
     }
 
     /**
@@ -69,28 +150,25 @@ abstract class TField extends GtkHBox
      */
     public function getId()
     {
-        return $this->wid;
+        return $this->id;
     }
     
     /**
-     * Define a field property
-     * @param $name  Property Name
-     * @param $value Property Value
+     * Define the field's value
+     * @param $value A string containing the field's value
      */
-    abstract public function setProperty($name, $value, $replace = TRUE);
+    public function setValue($value)
+    {
+        $this->value = $value;
+    }
     
     /**
-     * Return a field property
-     * @param $name  Property Name
-     * @param $value Property Value
+     * Returns the field's value
      */
-    abstract public function getProperty($name);
-        
-    /**
-     * Define the Field's size
-     * @param $width Field's width in pixels
-     */
-    abstract public function setSize($width, $height = NULL);
+    public function getValue()
+    {
+        return $this->value;
+    }
     
     /**
      * Define the name of the form to wich the button is attached
@@ -104,18 +182,25 @@ abstract class TField extends GtkHBox
     
     /**
      * Define the field's tooltip
-     * @param $tip A string containing the field's tooltip
+     * @param $name   A string containing the field's tooltip
      */
     public function setTip($tip)
     {
-        if (method_exists($this, 'set_tooltip_text'))
+        $this->tag->{'title'} = $tip;
+    }
+    
+    /**
+     * Return the post data
+     */
+    public function getPostData()
+    {
+        if (isset($_POST[$this->name]))
         {
-            $this->widget->set_tooltip_text($tip);
+            return $_POST[$this->name];
         }
         else
         {
-            $tooltip = TooltipSingleton::getInstance();
-            $tooltip->set_tip($this->widget, $tip);
+            return '';
         }
     }
     
@@ -125,7 +210,7 @@ abstract class TField extends GtkHBox
      */
     public function setEditable($editable)
     {
-        $this->widget->set_sensitive($editable);
+        $this->editable= $editable;
     }
 
     /**
@@ -134,7 +219,62 @@ abstract class TField extends GtkHBox
      */
     public function getEditable()
     {
-        return $this->widget->get_sensitive();
+        return $this->editable;
+    }
+    
+    /**
+     * Define a field property
+     * @param $name  Property Name
+     * @param $value Property Value
+     */
+    public function setProperty($name, $value, $replace = TRUE)
+    {
+        if ($replace)
+        {
+            // delegates the property assign to the composed object
+            $this->tag->$name = $value;
+        }
+        else
+        {
+            if ($this->tag->$name)
+            {
+            
+                // delegates the property assign to the composed object
+                $this->tag->$name = $this->tag->$name . ';' . $value;
+            }
+            else
+            {
+                // delegates the property assign to the composed object
+                $this->tag->$name = $value;
+            }
+        }
+    }
+    
+    /**
+     * Return a field property
+     * @param $name  Property Name
+     * @param $value Property Value
+     */
+    public function getProperty($name)
+    {
+        return $this->tag->$name;
+    }
+    
+    /**
+     * Define the Field's width
+     * @param $width Field's width in pixels
+     */
+    public function setSize($width, $height = NULL)
+    {
+        $this->size = $width;
+    }
+    
+    /**
+     * Returns the field size
+     */
+    public function getSize()
+    {
+        return $this->size;
     }
     
     /**
@@ -146,6 +286,33 @@ abstract class TField extends GtkHBox
     public function addValidation($label, TFieldValidator $validator, $parameters = NULL)
     {
         $this->validations[] = array($label, $validator, $parameters);
+    }
+    
+    /**
+     * Returns field validations
+     */
+    public function getValidations()
+    {
+        return $this->validations;
+    }
+    
+    /**
+     * Returns if the field is required
+     */
+    public function isRequired()
+    {
+        if ($this->validations)
+        {
+            foreach ($this->validations as $validation)
+            {
+                $validator = $validation[1];
+                if ($validator instanceof TRequiredValidator)
+                {
+                    return TRUE;
+                }
+            }
+        }
+        return FALSE;
     }
     
     /**
@@ -167,21 +334,25 @@ abstract class TField extends GtkHBox
     }
     
     /**
+     * Returns the element content as a string
+     */
+    public function getContents()
+    {
+        ob_start();
+        $this->show();
+        $content = ob_get_contents();
+        ob_end_clean();
+        return $content;
+    }
+    
+    /**
      * Enable the field
      * @param $form_name Form name
      * @param $field Field name
      */
     public static function enableField($form_name, $field)
     {
-        $form = TForm::getFormByName($form_name);
-        if ($form instanceof TForm)
-        {
-            $field = $form->getField($field);
-            if ($field instanceof AdiantiWidgetInterface)
-            {
-                $field->setEditable(TRUE);
-            }
-        }
+        TScript::create( " tfield_enable_field('{$form_name}', '{$field}'); " );
     }
     
     /**
@@ -191,15 +362,7 @@ abstract class TField extends GtkHBox
      */
     public static function disableField($form_name, $field)
     {
-        $form = TForm::getFormByName($form_name);
-        if ($form instanceof TForm)
-        {
-            $field = $form->getField($field);
-            if ($field instanceof AdiantiWidgetInterface)
-            {
-                $field->setEditable(FALSE);
-            }
-        }
+        TScript::create( " tfield_disable_field('{$form_name}', '{$field}'); " );
     }
     
     /**
@@ -209,48 +372,6 @@ abstract class TField extends GtkHBox
      */
     public static function clearField($form_name, $field)
     {
-        $form = TForm::getFormByName($form_name);
-        if ($form instanceof TForm)
-        {
-            $field = $form->getField($field);
-            if ($field instanceof AdiantiWidgetInterface)
-            {
-                $field->setValue(NULL);
-            }
-        }
-    }
-    
-    /**
-     * Connects a signal to the widget
-     */
-    public function connect_simple($signal, $callback, $parameters)
-    {
-        $this->widget->connect_simple($signal, $callback, $parameters);
-    }
-    
-    /**
-     * Connects a signal to the widget
-     */
-    public function connect($signal, $callback, $parameters)
-    {
-        $this->widget->connect($signal, $callback, $parameters);
-    }
-    
-    /**
-     * Call a non existant method: Redirect to composed widget
-     * @param $method Method name
-     * @param $parameters Array of parameters
-     */
-    public function __call($method, $parameters)
-    {
-        call_user_func_array(array($this->widget, $method), $parameters);
-    }
-    
-    /**
-     * Show widget
-     */
-    public function show()
-    {
-        $this->widget->show_all();
+        TScript::create( " tfield_clear_field('{$form_name}', '{$field}'); " );
     }
 }

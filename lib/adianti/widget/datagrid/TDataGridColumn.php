@@ -1,38 +1,29 @@
 <?php
-Namespace Adianti\Widget\Datagrid;
+namespace Adianti\Widget\Datagrid;
 
 use Adianti\Control\TAction;
-
-use Gtk;
-use GtkTreeViewColumn;
-use GtkCellRendererText;
-use GtkHBox;
-use GtkLabel;
-use GtkImage;
 
 /**
  * Representes a DataGrid column
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage datagrid
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TDataGridColumn extends GtkTreeViewColumn
+class TDataGridColumn
 {
     private $name;
     private $label;
     private $align;
     private $width;
     private $action;
-    private $param;
-    private $sort_up;
-    private $sort_down;
-    private $transformer;
-    private $renderer;
     private $editaction;
+    private $transformer;
+    private $properties;
+    private $totalFunction;
     
     /**
      * Class Constructor
@@ -46,54 +37,57 @@ class TDataGridColumn extends GtkTreeViewColumn
         $this->name  = $name;
         $this->label = $label;
         $this->align = $align;
-        $this->width = (int) $width;
-        
-        if ($align == 'left')
-            $alignment = 0.0;
-        else if ($align == 'center')
-            $alignment = 0.5;
-        else if ($align == 'right')
-            $alignment = 1.0;
-        
-        parent::__construct();
-        $this->renderer = new GtkCellRendererText;
-        if ($width)
-        {
-            $this->renderer->set_property('width', $width);
-            parent::set_fixed_width($width);
-        }
-        $this->renderer->set_property('xalign', $alignment);
-        parent::pack_start($this->renderer, true);
-        parent::set_alignment($alignment);
-        parent::set_title($label);
-        
-        $header_hbox = new GtkHBox;
-        $header_label=new GtkLabel($this->label);
-        $header_hbox->pack_start($header_label);
-        $this->sort_up   = GtkImage::new_from_stock(GTK::STOCK_GO_UP, Gtk::ICON_SIZE_MENU);
-        $this->sort_down = GtkImage::new_from_stock(GTK::STOCK_GO_DOWN, Gtk::ICON_SIZE_MENU);
-        $header_hbox->pack_start($this->sort_up);
-        $header_hbox->pack_start($this->sort_down);
-        
-        $header_hbox->show_all();
-        
-        // hide the ordering images
-        $this->sort_up->hide();
-        $this->sort_down->hide();
-        
-        parent::set_widget($header_hbox);
+        $this->width = $width;
+        $this->properties = array();
     }
     
     /**
-     * Returns the cell renderer
+     * Define a field property
+     * @param $name  Property Name
+     * @param $value Property Value
      */
-    public function getRenderer()
+    public function setProperty($name, $value)
     {
-        return $this->renderer;
+        $this->properties[$name] = $value;
     }
     
     /**
-     * Returns the column's name in the database
+     * Return a field property
+     * @param $name  Property Name
+     */
+    public function getProperty($name)
+    {
+        if (isset($this->properties[$name]))
+        {
+            return $this->properties[$name];
+        }
+    }
+    
+    /**
+     * Return field properties
+     */
+    public function getProperties()
+    {
+        return $this->properties;
+    }
+    
+    /**
+     * Intercepts whenever someones assign a new property's value
+     * @param $name     Property Name
+     * @param $value    Property Value
+     */
+    public function __set($name, $value)
+    {
+        // objects and arrays are not set as properties
+        if (is_scalar($value))
+        {              
+            // store the property's value
+            $this->setProperty($name, $value);
+        }
+    }
+    
+    /**
+     * Returns the database column's name
      */
     public function getName()
     {
@@ -136,40 +130,25 @@ class TDataGridColumn extends GtkTreeViewColumn
     /**
      * Define the action to be executed when
      * the user clicks over the column header
-     * @param $action A TAction object
+     * @param $action   A TAction object
      */
     public function setAction(TAction $action)
     {
-        $this->set_clickable(TRUE);
-        $this->connect_simple('clicked', array($this, 'onExecuteAction'),
-                         $action->getAction(), $action->getParameters());
-    }
-    
-    /**
-     * Execute an action
-     * @param $action    Callback to be executed
-     * @param $parameter User parameters
-     * @ignore-autocomplete on
-     */
-    public function onExecuteAction($action, $parameter)
-    {
-        call_user_func($action, $parameter);
-        if (isset($parameter['order']))
-        {
-            if ($parameter['order'] == $this->name)
-            {
-                //$this->sort_up->show(); 
-            }
-        }
+        $this->action = $action;
     }
     
     /**
      * Returns the action defined by set_action() method
-     * @return the action to be executed when the user clicks over the column header
+     * @return the action to be executed when the
+     * user clicks over the column header
      */
     public function getAction()
     {
-        return $this->action;
+        // verify if the column has an actions
+        if ($this->action)
+        {
+            return $this->action;
+        }
     }
     
     /**
@@ -200,7 +179,7 @@ class TDataGridColumn extends GtkTreeViewColumn
      * Define a callback function to be applyed over the column's data
      * @param $callback  A function name of a method of an object
      */
-    public function setTransformer($callback)
+    public function setTransformer(Callable $callback)
     {
         $this->transformer = $callback;
     }
@@ -211,5 +190,22 @@ class TDataGridColumn extends GtkTreeViewColumn
     public function getTransformer()
     {
         return $this->transformer;
+    }
+    
+    /**
+     * Define a callback function to totalize column
+     * @param $callback  A function name of a method of an object
+     */
+    public function setTotalFunction(Callable $callback)
+    {
+        $this->totalFunction = $callback;
+    }
+    
+    /**
+     * Returns the callback defined by the setTotalFunction()
+     */
+    public function getTotalFunction()
+    {
+        return $this->totalFunction;
     }
 }

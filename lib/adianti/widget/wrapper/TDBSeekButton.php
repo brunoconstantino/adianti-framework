@@ -1,6 +1,7 @@
 <?php
-Namespace Adianti\Widget\Wrapper;
+namespace Adianti\Widget\Wrapper;
 
+use Adianti\Core\AdiantiApplicationConfig;
 use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Widget\Form\TSeekButton;
 use Adianti\Base\TStandardSeek;
@@ -12,11 +13,11 @@ use Exception;
 /**
  * Abstract Record Lookup Widget: Creates a lookup field used to search values from associated entities
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TDBSeekButton extends TSeekButton
@@ -52,9 +53,12 @@ class TDBSeekButton extends TSeekButton
         }
         
         $obj = new TStandardSeek;
+        $ini  = AdiantiApplicationConfig::get();
+        $seed = APPLICATION_NAME . ( !empty($ini['general']['seed']) ? $ini['general']['seed'] : 's8dkld83kf73kf094' );
         
         // define the action parameters
         $action = new TAction(array($obj, 'onSetup'));
+        $action->setParameter('hash',          md5("{$seed}{$database}{$model}{$display_field}"));
         $action->setParameter('database',      $database);
         $action->setParameter('parent',        $form);
         $action->setParameter('model',         $model);

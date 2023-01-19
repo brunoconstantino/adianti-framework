@@ -1,100 +1,131 @@
 <?php
-Namespace Adianti\Widget\Dialog;
+namespace Adianti\Widget\Dialog;
 
+use Adianti\Widget\Base\TScript;
 use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Control\TAction;
-use Adianti\Widget\Form\TForm;
+use Adianti\Widget\Form\AdiantiFormInterface;
+use Adianti\Widget\Form\TButton;
+use Adianti\Widget\Base\TElement;
 use Adianti\Widget\Wrapper\TQuickForm;
+use Adianti\Wrapper\BootstrapFormWrapper;
 
 use Exception;
-use Gtk;
-use Gdk;
-use GtkDialog;
 
 /**
  * Input Dialog
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage dialog
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TInputDialog extends GtkDialog
+class TInputDialog
 {
+    private $id;
+    private $action;
+    
     /**
      * Class Constructor
-     * @param $caption Button caption
+     * @param $title_msg  Dialog Title
      * @param $form    Dialog form body
      * @param $action  Action to be processed when closing the dialog
-     * @param $title_msg  Dialog Title
+     * @param $caption Button caption
      */
-    public function __construct($title_msg, TForm $form, TAction $action = NULL, $caption = '')
+    public function __construct($title_msg, AdiantiFormInterface $form, TAction $action = NULL, $caption = '')
     {
-        parent::__construct('', NULL, Gtk::DIALOG_MODAL);
-        parent::set_position(Gtk::WIN_POS_CENTER);
-        parent::set_title($title_msg ? $title_msg : AdiantiCoreTranslator::translate('Input'));
+        $this->id = 'tinputdialog_'.mt_rand(1000000000, 1999999999);
         
-        $actions = array();
-        $action_counter = 0;
-        if ($form instanceof TQuickForm)
+        $modal_wrapper = new TElement('div');
+        $modal_wrapper->{'class'} = 'modal';
+        $modal_wrapper->{'id'}    = $this->id;
+        $modal_wrapper->{'style'} = 'padding-top: 10%; z-index:2000';
+        $modal_wrapper->{'tabindex'} = '-1';
+        
+        $modal_dialog = new TElement('div');
+        $modal_dialog->{'class'} = 'modal-dialog';
+        
+        $modal_content = new TElement('div');
+        $modal_content->{'class'} = 'modal-content';
+        
+        $modal_header = new TElement('div');
+        $modal_header->{'class'} = 'modal-header';
+        
+        $close = new TElement('button');
+        $close->{'type'} = 'button';
+        $close->{'class'} = 'close';
+        $close->{'data-dismiss'} = 'modal';
+        $close->{'aria-hidden'} = 'true';
+        $close->add('×');
+        
+        $title = new TElement('h4');
+        $title->{'class'} = 'modal-title';
+        $title->{'style'} = 'display:inline';
+        $title->add( $title_msg ? $title_msg : AdiantiCoreTranslator::translate('Input') );
+        
+        $form_name = $form->getName();
+        $wait_message = AdiantiCoreTranslator::translate('Loading');
+        
+        if ($form instanceof TQuickForm or $form instanceof BootstrapFormWrapper)
         {
-            $form->delActions();
             $actionButtons = $form->getActionButtons();
+            $form->delActions();
             
-            foreach ($actionButtons as $key => $button)
+            if ($actionButtons)
             {
-                parent::add_button($button->getLabel(), $action_counter);
-                $actions[] = $button->getAction();
-                $action_counter ++;
+                foreach ($actionButtons as $key => $button)
+                {
+                    if ($button->getAction()->getParameter('stay-open') !== 1)
+                    {
+                        $button->addFunction( "tdialog_close('{$this->id}')" );
+                        $button->{'data-toggle'} = "modal";
+                        $button->{'data-dismiss'} = 'modal';
+                    }
+                    $button->getAction()->setParameter('modalId', $this->id);
+                    $buttons[] = $button;
+                }
             }
         }
         else
         {
-            parent::add_button($caption, $action_counter);
-            $actions[] = $action;
+            $button = new TButton(strtolower(str_replace(' ', '_', $caption)));
+            if ($action->getParameter('stay-open') !== 1)
+            {
+                $button->{'data-toggle'} = "modal";
+                $button->{'data-dismiss'} = 'modal';
+                $button->addFunction( "tdialog_close('{$this->id}')" );
+                
+            }
+            $action->setParameter('modalId', $this->id);
+            $button->setAction( $action );
+            $button->setLabel( $caption );
+            $buttons[] = $button;
+            $form->addField($button);
         }
         
-        $this-> vbox->pack_start($form);
+        $footer = new TElement('div');
+        $footer->{'class'} = 'modal-footer';
         
-        $form->show();
-        $this->show_all();
-        parent::connect('key_press_event', array($this, 'onClose'));
+        $modal_wrapper->add($modal_dialog);
+        $modal_dialog->add($modal_content);
+        $modal_content->add($modal_header);
+        $modal_header->add($close);
+        $modal_header->add($title);
         
-        $result = parent::run();
-        foreach ($actions as $actionIndex => $buttonAction)
+        $modal_content->add($form);
+        $modal_content->add($footer);
+        
+        if (isset($buttons) AND $buttons)
         {
-            if ($result == $actionIndex)
+            foreach ($buttons as $button)
             {
-                if ($buttonAction)
-                {
-                    $parameters = $buttonAction->getParameters();
-                    $data = $form->getData();
-                    foreach ($data as $key => $value)
-                    {
-                        $parameters[$key] = $value;
-                    }
-                    parent::destroy();
-                    call_user_func_array($buttonAction->getAction(), array($parameters));
-                    return;
-                }
+                $footer->add($button);
             }
         }
-        parent::destroy();
-    }
-    
-    /**
-     * Executed when the user hits any key
-     * @param $widget Source widget of the event
-     * @param $event  GdkEvent associated
-     * @ignore-autocomplete on
-     */
-    public function onClose($widget, $event)
-    {
-        if ($event->keyval == Gdk::KEY_Escape)
-        {
-            parent::hide();
-        }
+        
+        $modal_wrapper->show();
+        TScript::create( "tdialog_start( '#{$this->id}' );");
     }
 }

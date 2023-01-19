@@ -1,74 +1,34 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
 use Adianti\Widget\Form\AdiantiWidgetInterface;
 use Adianti\Widget\Form\TField;
 
-use Gtk;
-use GtkEntry;
-
 /**
  * Hidden field
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class THidden extends TField implements AdiantiWidgetInterface
 {
-    protected $widget;
-    
     /**
-     * Class Constructor
-     * @param $name Name of the widget
+     * Show the widget at the screen
      */
-    public function __construct($name)
+    public function show()
     {
-        parent::__construct($name);
+        // set the tag properties
+        $this->tag->{'id'}    = 'thidden_' . mt_rand(1000000000, 1999999999);
+        $this->tag->{'name'}  = $this->name;  // tag name
+        $this->tag->{'value'} = $this->value; // tag value
+        $this->tag->{'type'}  = 'hidden';     // input type
+        $this->tag->{'style'} = "width:{$this->size}";
         
-        $this->widget = new GtkEntry;
-        parent::add($this->widget);
-        $this->setSize(200);
+        // shows the widget
+        $this->tag->show();
     }
-    
-    /**
-     * Define the widget's content
-     * @param  $value  widget's content
-     */
-    public function setValue($value)
-    {
-        $this->widget->set_text($value);
-    }
-
-    /**
-     * Return the widget's content
-     */
-    public function getValue()
-    {
-        return $this->widget->get_text();
-    }
-    
-    /**
-     * Define the Field's width
-     * @param $width Field's width in pixels
-     */
-    public function setSize($width, $height = NULL)
-    {
-        $this->widget->set_size_request($width, -1);
-    }
-    
-    /**
-     * Not implemented
-     */
-    public function setProperty($name, $value, $replace = TRUE)
-    {}
-    
-    /**
-     * Not implemented
-     */
-    public function getProperty($name)
-    {}
 }

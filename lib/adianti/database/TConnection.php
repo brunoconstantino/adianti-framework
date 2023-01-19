@@ -1,17 +1,17 @@
 <?php
-Namespace Adianti\Database;
+namespace Adianti\Database;
 
-Use Adianti\Core\AdiantiCoreTranslator;
+use Adianti\Core\AdiantiCoreTranslator;
 use PDO;
 use Exception;
 
 /**
  * Singleton manager for database connections
  *
- * @version    2.0
+ * @version    4.0
  * @package    database
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 final class TConnection
@@ -60,6 +60,8 @@ final class TConnection
         $type  = isset($db['type']) ? $db['type'] : NULL;
         $port  = isset($db['port']) ? $db['port'] : NULL;
         $char  = isset($db['char']) ? $db['char'] : NULL;
+        $flow  = isset($db['flow']) ? $db['flow'] : NULL;
+        $type  = strtolower($type);
         
         // each database driver has a different instantiation process
         switch ($type)
@@ -88,17 +90,39 @@ final class TConnection
                 $conn = new PDO("firebird:dbname={$name}", $user, $pass);
                 break;
             case 'oracle':
-                $port = $port ? $port : '1521';
-                $conn = new PDO("oci:dbname={$host}:{$port}/{$name}", $user, $pass);
+                $port    = $port ? $port : '1521';
+                $charset = $char ? ";charset={$char}" : '';
+                $conn = new PDO("oci:dbname={$host}:{$port}/{$name}{$charset}", $user, $pass);
+                if (isset($db['date']))
+                {
+                    $date = $db['date'];
+                    $conn->query("ALTER SESSION SET NLS_DATE_FORMAT = '{$date}'");
+                }
+                if (isset($db['time']))
+                {
+                    $time = $db['time'];
+                    $conn->query("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = '{$time}'");
+                }
+                if (isset($db['nsep']))
+                {
+                    $nsep = $db['nsep'];
+                    $conn->query("ALTER SESSION SET NLS_NUMERIC_CHARACTERS = '{$nsep}'");
+                }
                 break;
             case 'mssql':
                 if (OS == 'WIN')
+                {
                     $conn = new PDO("sqlsrv:Server={$host};Database={$name}", $user, $pass);
+                }
                 else
-                    $conn = new PDO("dblib:host={$host};dbname={$name}", $user, $pass);
+                {
+                    $port = $port ? $port : '1433';
+                    $conn = new PDO("dblib:host={$host}:{$port};dbname={$name}", $user, $pass);
+                }
                 break;
             case 'dblib':
-                $conn = new PDO("dblib:host={$host},1433;dbname={$name}", $user, $pass);
+                $port = $port ? $port : '1433';
+                $conn = new PDO("dblib:host={$host},{$port};dbname={$name}", $user, $pass);
                 break;
             default:
                 throw new Exception(AdiantiCoreTranslator::translate('Driver not found') . ': ' . $type);
@@ -107,6 +131,11 @@ final class TConnection
         
         // define wich way will be used to report errors (EXCEPTION)
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
+        if ($flow == '1')
+        {
+            $conn->setAttribute(PDO::ATTR_CASE, PDO::CASE_LOWER);
+        }
         
         // return the PDO object
         return $conn;

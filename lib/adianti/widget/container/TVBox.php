@@ -1,28 +1,40 @@
 <?php
-Namespace Adianti\Widget\Container;
+namespace Adianti\Widget\Container;
 
-use Gtk;
-use GtkVBox;
+use Adianti\Widget\Base\TElement;
 
 /**
  * Vertical Box
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TVBox extends GtkVBox
+class TVBox extends TElement
 {
     /**
-     * add a widget
-     * @param $widget Widget
+     * Class Constructor
      */
-    public function add($widget)
+    public function __construct()
     {
-        parent::pack_start($widget, FALSE, FALSE);
+        parent::__construct('div');
+        $this->{'style'} = 'display: inline-block';
+    }
+    
+    /**
+     * Add an child element
+     * @param $child Any object that implements the show() method
+     */
+    public function add($child)
+    {
+        $wrapper = new TElement('div');
+        $wrapper->{'style'} = 'clear:both';
+        $wrapper->add($child);
+        parent::add($wrapper);
+        return $wrapper;
     }
     
     /**
@@ -57,22 +69,5 @@ class TVBox extends GtkVBox
             }
         }
         return $box;
-    }
-    
-    /**
-     * Shows the VBox
-     */
-    public function show()
-    {
-        $children = parent::get_children();
-        if ($children)
-        {
-            foreach ($children as $child)
-            {
-                // show child object
-                $child->show();
-            }
-        }
-        parent::show_all();
     }
 }

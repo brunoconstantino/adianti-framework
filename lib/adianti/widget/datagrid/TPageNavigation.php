@@ -1,27 +1,24 @@
 <?php
-Namespace Adianti\Widget\Datagrid;
+namespace Adianti\Widget\Datagrid;
 
+use Adianti\Core\AdiantiCoreTranslator;
+use Adianti\Widget\Base\TElement;
 use Adianti\Control\TAction;
+use Adianti\Widget\Container\TTable;
 
 use Exception;
-use Gtk;
-use GtkFrame;
-use GtkHBox;
-use GtkEventBox;
-use GtkButton;
-use GdkColor;
 
 /**
  * Page Navigation provides navigation for a datagrid
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage datagrid
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TPageNavigation extends GtkFrame
+class TPageNavigation
 {
     private $limit;
     private $count;
@@ -29,59 +26,16 @@ class TPageNavigation extends GtkFrame
     private $page;
     private $first_page;
     private $action;
-    private $hbox;
     private $width;
-    private $buttons;
-    private $front;
-    private $back;
-    
-    /**
-     * Class Constructor
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->hbox = new GtkHBox;
-        $this->buttons = array();
-        $box = new GtkEventBox;
-        $a = new GdkColor(50000,50000,50000);
-        $box->modify_bg(Gtk::STATE_NORMAL, $a);
-        $box->add($this->hbox);
-        
-        $this->back = new GtkButton('<<');
-        $this->back->set_relief(GTK::RELIEF_NONE);
-        $this->back->connect('clicked', array($this, 'executeAction'));
-        $this->back->set_sensitive(FALSE);
-        
-        $this->front = new GtkButton('>>');
-        $this->front->set_relief(GTK::RELIEF_NONE);
-        $this->front->connect('clicked', array($this, 'executeAction'));
-        $this->front->set_sensitive(FALSE);
-        
-        $this->hbox->pack_start(new GtkHBox, true, true);
-        $this->hbox->pack_start($this->back, false, false);
-        for ($n=1; $n<=10; $n++)
-        {
-            $this->buttons[$n] = new GtkButton($n);
-            $this->buttons[$n]->get_child()->set_use_markup(TRUE);
-            $this->buttons[$n]->set_relief(GTK::RELIEF_NONE);
-            $this->buttons[$n]->connect('clicked', array($this, 'executeAction'));
-            $this->buttons[$n]->set_sensitive(FALSE);
-            $this->hbox->pack_start($this->buttons[$n], false, false);
-        }
-        $this->hbox->pack_start($this->front, false, false);
-        $this->hbox->pack_start(new GtkHBox, true, true);
-        parent::add($box);
-    }
+    private $direction;
     
     /**
      * Set the Amount of displayed records
-     * @param $limit An integer representing the Amount of displayed records
+     * @param $limit An integer
      */
     public function setLimit($limit)
     {
-        $this->limit  = $limit;
-        $this->refresh();
+        $this->limit  = (int) $limit;
     }
     
     /**
@@ -91,7 +45,6 @@ class TPageNavigation extends GtkFrame
     public function setWidth($width)
     {
         $this->width = $width;
-        parent::set_size_request($this->width,-1);
     }
     
     /**
@@ -100,8 +53,7 @@ class TPageNavigation extends GtkFrame
      */
     public function setCount($count)
     {
-        $this->count = $count;
-        $this->refresh();
+        $this->count = (int) $count;
     }
     
     /**
@@ -110,18 +62,16 @@ class TPageNavigation extends GtkFrame
      */
     public function setPage($page)
     {
-        $this->page = $page;
-        $this->refresh();
+        $this->page = (int) $page;
     }
     
     /**
      * Define the first page
-     * @param $first_page An integer (the current page)
+     * @param $page An integer (the first page)
      */
     public function setFirstPage($first_page)
     {
-        $this->first_page = $first_page;
-        $this->refresh();
+        $this->first_page = (int) $first_page;
     }
     
     /**
@@ -131,9 +81,17 @@ class TPageNavigation extends GtkFrame
     public function setOrder($order)
     {
         $this->order = $order;
-        $this->refresh();
     }
     
+    /**
+     * Define the ordering
+     * @param $direction asc, desc
+     */
+    public function setDirection($direction)
+    {
+        $this->direction = $direction;
+    }
+        
     /**
      * Set the page navigation properties
      * @param $properties array of properties
@@ -142,10 +100,12 @@ class TPageNavigation extends GtkFrame
     {
         $order      = isset($properties['order'])  ? addslashes($properties['order'])  : '';
         $page       = isset($properties['page'])   ? $properties['page']   : 1;
+        $direction  = (isset($properties['direction']) AND in_array($properties['direction'], array('asc', 'desc')))  ? $properties['direction']   : NULL;
         $first_page = isset($properties['first_page']) ? $properties['first_page']: 1;
         
         $this->setOrder($order);
         $this->setPage($page);
+        $this->setDirection($direction);
         $this->setFirstPage($first_page);
     }
     
@@ -156,24 +116,29 @@ class TPageNavigation extends GtkFrame
     public function setAction($action)
     {
         $this->action = $action;
-        $this->refresh();
     }
     
     /**
-     * Refresh the Page Navigation's content
+     * Show the PageNavigation widget
      */
-    public function refresh()
+    public function show()
     {
-        $first_page  = $this->first_page;
-        $direction   = 'asc';
+        if (!$this->action instanceof TAction)
+        {
+            throw new Exception(AdiantiCoreTranslator::translate('You must call ^1 before add this component', __CLASS__ . '::' . 'setAction()'));
+        }
         
-        $page_size = $this->limit;
+        $first_page  = isset($this->first_page) ? $this->first_page : 1;
+        $direction   = 'asc';
+        $page_size = isset($this->limit) ? $this->limit : 10;
         $max = 10;
-        $registros=$this->count;
+        $registros = $this->count;
+        
         if (!$registros)
         {
-            return;
+            $registros = 0;
         }
+        
         if ($page_size > 0)
         {
             $pages = (int) ($registros / $page_size) - $first_page +1;
@@ -182,90 +147,120 @@ class TPageNavigation extends GtkFrame
         {
             $pages = 1;
         }
+        
         if ($page_size>0)
         {
             $resto = $registros % $page_size;
         }
-        else
-        {
-            $resto = 0;
-        }
+        
         $pages += $resto>0 ? 1 : 0;
         $last_page = min($pages, $max);
         
-        $this->back->set_sensitive(FALSE);
-        $this->front->set_sensitive(FALSE);
+        $nav = new TElement('nav');
+        $nav->{'class'} = 'tpagenavigation';
+        $nav-> align = 'center';
         
-        for ($n=1; $n<=10; $n++)
-        {
-            $this->buttons[$n]->set_sensitive(FALSE);
-        }
+        $ul = new TElement('ul');
+        $ul->{'class'} = 'pagination';
+        $nav->add($ul);
+        
+        // previous
+        $item = new TElement('li');
+        $link = new TElement('a');
+        $span = new TElement('span');
+        $link->{'href'} = '#';
+        $link->{'aria-label'} = 'Previous';
+        $ul->add($item);
+        $item->add($link);
+        $link->add($span);
         
         if ($first_page > 1)
         {
-            $_first_page = $first_page - $max;
-            $n = $_first_page;
-            $offset = ($n -1) * $page_size;
+            $this->action->setParameter('offset', ($first_page - $max -1) * $page_size);
+            $this->action->setParameter('limit',  $page_size);
+            $this->action->setParameter('direction', $this->direction);
+            $this->action->setParameter('page',   $first_page - $max);
+            $this->action->setParameter('first_page', $first_page - $max);
+            $this->action->setParameter('order', $this->order);
             
-            $param['offset']    = $offset;
-            $param['limit']     = $this->limit;
-            $param['page_size'] = $page_size;
-            $param['page']      = $n;
-            $param['first_page']= $_first_page;
-            $param['order']     = $this->order;
-            $this->back->set_sensitive(TRUE);
-            $this->back->set_data('param', $param);
+            $link-> href      = $this->action->serialize();
+            $link-> generator = 'adianti';
+            $span->add('&laquo;');
+        }
+        else
+        {
+            $span->add('&nbsp;');
         }
         
-        $i=1;
-        for ($n=$first_page; $n <= $last_page + $first_page -1; $n++)
+        for ($n = $first_page; $n <= $last_page + $first_page -1; $n++)
         {
             $offset = ($n -1) * $page_size;
-            $label   = ($this->page == $n) ? "<b>$n</b>" : "$n";
+            $item = new TElement('li');
+            $link = new TElement('a');
+            $span = new TElement('span');
             
-            $param['offset']    = $offset;
-            $param['limit']     = $this->limit;
-            $param['page_size'] = $page_size;
-            $param['page']      = $n;
-            $param['first_page']= $first_page;
-            $param['order']     = $this->order;
-            $this->buttons[$i]->set_data('param', $param);
-            $this->buttons[$i]->get_child()->set_markup($label);
-            $this->buttons[$i]->set_sensitive(TRUE);
-            $i++;
+            $this->action->setParameter('offset', $offset);
+            $this->action->setParameter('limit',  $page_size);
+            $this->action->setParameter('direction', $this->direction);
+            $this->action->setParameter('page',   $n);
+            $this->action->setParameter('first_page', $first_page);
+            $this->action->setParameter('order', $this->order);
+            
+            $link-> href      = $this->action->serialize();
+            $link-> generator = 'adianti';
+            
+            $ul->add($item);
+            $item->add($link);
+            $link->add($span);
+            $span->add($n);
+            
+            if($this->page == $n)
+            {
+                $item->{'class'} = 'active';
+            }
         }
+        
+        for ($z=$n; $z<=10; $z++)
+        {
+            $item = new TElement('li');
+            $link = new TElement('a');
+            $span = new TElement('span');
+            $item->{'class'} = 'off';
+            $ul->add($item);
+            $item->add($link);
+            $link->add($span);
+            $span->add($z);
+        }
+        
+        $item = new TElement('li');
+        $link = new TElement('a');
+        $span = new TElement('span');
+        $link->{'aria-label'} = "Next";
+        $ul->add($item);
+        $item->add($link);
+        $link->add($span);
+        
         if ($pages > $max)
         {
             $offset = ($n -1) * $page_size;
             $first_page = $n;
             
-            $param['offset']    = $offset;
-            $param['limit']     = $this->limit;
-            $param['page_size'] = $page_size;
-            $param['page']      = $n;
-            $param['first_page']= $first_page;
-            $param['order']     = $this->order;
-            $this->front->set_sensitive(TRUE);
-            $this->front->set_data('param', $param);
+            $this->action->setParameter('offset',  $offset);
+            $this->action->setParameter('limit',   $page_size);
+            $this->action->setParameter('direction', $this->direction);
+            $this->action->setParameter('page',    $n);
+            $this->action->setParameter('first_page', $first_page);
+            $this->action->setParameter('order', $this->order);
+            $link-> href      = $this->action->serialize();
+            $link-> generator = 'adianti';
+            
+            $span->add('&raquo;');
         }
-    }
-    
-    /**
-     * execute the widget's action
-     * @ignore-autocomplete on
-     */
-    public function executeAction($widget)
-    {
-        call_user_func($this->action->getAction(), $widget->get_data('param'));
-        $this->refresh();
-    }
-    
-    /**
-     * Show the PageNavigation widget
-     */
-    public function show()
-    {
-        parent::show();
-        $this->refresh();
+        else
+        {
+            $span->add('&nbsp;');
+        }
+        
+        $nav->show();
     }
 }

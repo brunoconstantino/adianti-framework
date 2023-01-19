@@ -1,101 +1,214 @@
 <?php
-Namespace Adianti\Control;
+namespace Adianti\Control;
 
 use Adianti\Core\AdiantiCoreTranslator;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
 
 use Exception;
-use Gtk;
-use Gdk;
-use GtkFrame;
 
 /**
  * Page Controller Pattern: used as container for all elements inside a page and also as a page controller
  *
- * @version    2.0
+ * @version    4.0
  * @package    control
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TPage extends GtkFrame
+class TPage extends TElement
 {
+    private $body;
     private $constructed;
+    static private $loadedjs;
+    static private $loadedcss;
+    static private $registeredcss;
     
     /**
      * Class Constructor
      */
     public function __construct()
     {
-        parent::__construct();
-        parent::set_shadow_type(Gtk::SHADOW_NONE);
+        parent::__construct('div');
         $this->constructed = TRUE;
     }
     
     /**
-     * Executed when the user hits any key
-     * @param $widget Source Widget of the event
-     * @param $event  Associated GdkEvent
-     * @ignore-autocomplete on
+     * Interprets an action based at the URL parameters
      */
-    public function onKeyPress($widget, $event)
+    public function run()
     {
-        if ($event->keyval==Gdk::KEY_Escape)
+        if ($_GET)
         {
-            parent::hide();
+            $class  = isset($_GET['class'])  ? $_GET['class']  : NULL;
+            $method = isset($_GET['method']) ? $_GET['method'] : NULL;
+            
+            if ($class)
+            {
+                $object = $class == get_class($this) ? $this : new $class;
+                if (is_callable(array($object, $method) ) )
+                {
+                    call_user_func(array($object, $method), $_REQUEST);
+                }
+            }
+            else if (function_exists($method))
+            {
+                call_user_func($method, $_REQUEST);
+            }
         }
     }
     
     /**
-     * Show the page and its child
+     * Include a specific JavaScript function to this page
+     * @param $js JavaScript location
      */
-    public function show()
+    public static function include_js($js)
     {
-        if (!$this->constructed)
-        {
-            throw new Exception(AdiantiCoreTranslator::translate('You must call ^1 constructor', __CLASS__ ) );
-        }
-        
-        $child = parent::get_child();
-        if ($child)
-        {
-            $child->show();
-        }
-        parent::show_all();
+        self::$loadedjs[$js] = TRUE;
     }
     
     /**
-     * Close the current page
+     * Include a specific Cascading Stylesheet to this page
+     * @param $css  Cascading Stylesheet 
      */
-    public function close()
+    public static function include_css($css)
     {
-        $this->hide();
-        return true;
+        self::$loadedcss[$css] = TRUE;
+    }
+    
+    /**
+     * Register a specific Cascading Stylesheet to this page
+     * @param $cssname  Cascading Stylesheet Name
+     * @param $csscode  Cascading Stylesheet Code
+     */
+    public static function register_css($cssname, $csscode)
+    {
+        self::$registeredcss[$cssname] = $csscode;
     }
     
     /**
      * Open a File Dialog
      * @param $file File Name
      */
-    public function openFile($file)
+    public static function openFile($file)
     {
-        $ini = parse_ini_file('application.ini');
-        $viewer = $ini['viewer'];
+        TScript::create("__adianti_download_file('{$file}')");
+    }
+    
+    /**
+     * Return the loaded Cascade Stylesheet files
+     * @ignore-autocomplete on
+     */
+    public static function getLoadedCSS()
+    {
+        $css = self::$loadedcss;
+        $csc = self::$registeredcss;
+        $css_text = '';
         
-        if (file_exists($viewer))
+        if ($css)
         {
-            if (OS != 'WIN')
+            foreach ($css as $cssfile => $bool)
             {
-                exec("$viewer $file >/dev/null &");
-            }
-            else
-            {
-                $WshShell = new COM("WScript.Shell");
-                $WshShell->Run("$file", 0, true);
+                $css_text .= "    <link rel='stylesheet' type='text/css' media='screen' href='$cssfile'/>\n";
             }
         }
-        else
+        
+        if ($csc)
         {
-            throw new Exception(AdiantiCoreTranslator::translate('File not found') . ': ' . $viewer);
+            $css_text .= "    <style type='text/css' media='screen'>\n";
+            foreach ($csc as $cssname => $csscode)
+            {
+                $css_text .= $csscode;
+            }
+            $css_text .= "    </style>\n";
+        }
+        
+        return $css_text;
+    }
+    
+    /**
+     * Return the loaded JavaScript files
+     * @ignore-autocomplete on
+     */
+    public static function getLoadedJS()
+    {
+        $js = self::$loadedjs;
+        $js_text = '';
+        if ($js)
+        {
+            foreach ($js as $jsfile => $bool)
+            {
+                $js_text .= "    <script language='JavaScript' src='$jsfile'></script>\n";;
+            }
+        }
+        return $js_text;
+    }
+    
+    /**
+     * Discover if the browser is mobile device
+     */
+    public static function isMobile()
+    {
+        $isMobile = FALSE;
+        
+        if (PHP_SAPI == 'cli')
+        {
+            return FALSE;
+        }
+        
+        if (isset($_SERVER['HTTP_X_WAP_PROFILE']) or isset($_SERVER['HTTP_PROFILE']))
+        {
+            $isMobile = TRUE;
+        }
+        
+        $mobiBrowsers = array('android',   'audiovox', 'blackberry', 'epoc',
+                              'ericsson', ' iemobile', 'ipaq',       'iphone', 'ipad', 
+                              'ipod',      'j2me',     'midp',       'mmp',
+                              'mobile',    'motorola', 'nitro',      'nokia',
+                              'opera mini','palm',     'palmsource', 'panasonic',
+                              'phone',     'pocketpc', 'samsung',    'sanyo',
+                              'series60',  'sharp',    'siemens',    'smartphone',
+                              'sony',      'symbian',  'toshiba',    'treo',
+                              'up.browser','up.link',  'wap',        'wap',
+                              'windows ce','htc');
+                              
+        foreach ($mobiBrowsers as $mb)
+        {
+            if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']),$mb) !== FALSE)
+            {
+             	$isMobile = TRUE;
+            }
+        }
+        
+        return $isMobile;
+    }
+    
+    /**
+     * Intercepts whenever someones assign a new property's value
+     * @param $name     Property Name
+     * @param $value    Property Value
+     */
+    public function __set($name, $value)
+    {
+        parent::__set($name, $value);
+        $this->$name = $value;
+    }
+    
+    /**
+     * Decide wich action to take and show the page
+     */
+    public function show()
+    {
+        // just execute run() from toplevel TPage's, not nested ones
+        if (!$this->getIsWrapped())
+        {
+            $this->run();
+        }
+        parent::show();
+        
+        if (!$this->constructed)
+        {
+            throw new Exception(AdiantiCoreTranslator::translate('You must call ^1 constructor', __CLASS__ ) );
         }
     }
 }

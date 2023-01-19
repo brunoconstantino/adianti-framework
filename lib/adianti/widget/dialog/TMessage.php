@@ -1,102 +1,113 @@
 <?php
-Namespace Adianti\Widget\Dialog;
+namespace Adianti\Widget\Dialog;
 
+use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Control\TAction;
-
-use Gtk;
-use Gdk;
-use GtkHBox;
-use GtkDialog;
-use GtkTextView;
-use GtkTextTag;
-use GtkImage;
-use GtkScrolledWindow;
-use PangoFontDescription;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
+use Adianti\Widget\Util\TImage;
 
 /**
  * Message Dialog
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage dialog
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @author     Victor Feitoza <vfeitoza [at] gmail.com> (process action after OK)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TMessage extends GtkDialog
+class TMessage
 {
+    private $id;
+    private $action;
+    
     /**
      * Class Constructor
      * @param $type    Type of the message (info, error)
      * @param $message Message to be shown
      * @param $action  Action to be processed when closing the dialog
+     * @param $title_msg  Dialog Title
      */
-    public function __construct($type, $message, TAction $action = NULL)
+    public function __construct($type, $message, TAction $action = NULL, $title_msg = '')
     {
-        parent::__construct('', NULL, Gtk::DIALOG_MODAL, 
-                                  array(Gtk::STOCK_OK, Gtk::RESPONSE_OK));
-        parent::set_position(Gtk::WIN_POS_CENTER);
-        parent::set_size_request(500, 300);
+        $this->id = 'tmessage_'.mt_rand(1000000000, 1999999999);
         
-        $textview=new GtkTextView;
-        $textview->set_wrap_mode(Gtk::WRAP_WORD);
-        $textview->set_border_width(12);
-        $textbuffer=$textview->get_buffer();
+        $modal_wrapper = new TElement('div');
+        $modal_wrapper->{'class'} = 'modal';
+        $modal_wrapper->{'id'}    = $this->id;
+        $modal_wrapper->{'style'} = 'padding-top: 10%; z-index:4000';
+        $modal_wrapper->{'tabindex'} = '-1';
         
-        $tagtable=$textbuffer->get_tag_table();
-        $customTag = new GtkTextTag;
-        $tagtable->add($customTag);
-        $customTag->set_property('foreground', '#525252');
+        $modal_dialog = new TElement('div');
+        $modal_dialog->{'class'} = 'modal-dialog';
         
-        $message = "\n   " . str_replace('<br>', "\n   ", $message);
-        $tagBegin= $textbuffer->create_mark('tagBegin', $textbuffer->get_end_iter(), true);
-        $textbuffer->insert_at_cursor(strip_tags($message));
-        $tagEnd = $textbuffer->create_mark('tagEnd', $textbuffer->get_end_iter(), true);
-        $start  = $textbuffer->get_iter_at_mark($tagBegin);
-        $end    = $textbuffer->get_iter_at_mark($tagEnd);
-        $textbuffer->apply_tag($customTag, $start, $end);
+        $modal_content = new TElement('div');
+        $modal_content->{'class'} = 'modal-content';
         
-        $textview->set_editable(FALSE);
-        $textview->set_cursor_visible(FALSE);
-        $pango = new PangoFontDescription('Sans 14');
-        $textview->modify_font($pango);
-        $image = $type=='info' ? GtkImage::new_from_stock(Gtk::STOCK_DIALOG_INFO, Gtk::ICON_SIZE_DIALOG):
-                                 GtkImage::new_from_stock(Gtk::STOCK_DIALOG_ERROR,Gtk::ICON_SIZE_DIALOG);
-        $scroll = new GtkScrolledWindow;
-        $scroll->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS);
-        $scroll->add($textview);
-        $hbox = new GtkHBox;
-        $this-> vbox->pack_start($hbox);
-        $hbox->pack_start($image, FALSE, FALSE);
-        $hbox->pack_start($scroll, TRUE, TRUE);
-        $this->show_all();
-        parent::connect('key_press_event', array($this, 'onClose'));
+        $modal_header = new TElement('div');
+        $modal_header->{'class'} = 'modal-header';
         
-        $result = parent::run();
-        if ($result == Gtk::RESPONSE_OK)
+        if ($type=='info')
         {
-            if ($action)
-            {
-                $parameters = $action->getParameters();
-                parent::destroy();
-                call_user_func_array($action->getAction(), array($parameters));
-                return;
-            }
+            $image = new TImage("fa:fa fa-info-circle fa-5x blue");
         }
-        parent::destroy();
-    }
-    
-    /**
-     * Executed when the user hits any key
-     * @param $widget Source widget of the event
-     * @param $event  GdkEvent associated
-     * @ignore-autocomplete on
-     */
-    public function onClose($widget, $event)
-    {
-        if ($event->keyval == Gdk::KEY_Escape)
+        else
         {
-            parent::hide();
+            $image = new TImage("fa:fa fa-exclamation-circle fa-5x red");
         }
+        $image->{'style'} = 'float:left; margin-right: 10px;';
+        
+        $close = new TElement('button');
+        $close->{'type'} = 'button';
+        $close->{'class'} = 'close';
+        $close->{'data-dismiss'} = 'modal';
+        $close->{'aria-hidden'} = 'true';
+        $close->add('×');
+        
+        $title = new TElement('h4');
+        $title->{'class'} = 'modal-title';
+        $title->{'style'} = 'display:inline';
+        $title->add( $title_msg ? $title_msg : ( $type == 'info' ? AdiantiCoreTranslator::translate('Information') : AdiantiCoreTranslator::translate('Error')));
+        
+        $body = new TElement('div');
+        $body->{'style'} = 'text-align:left';
+        $body->{'class'} = 'modal-body';
+        $body->add($image);
+        
+        $span = new TElement('span');
+        $span->add($message);
+        
+        $body->add($span);
+        $button = new TElement('button');
+        $button->{'class'} = 'btn btn-default';
+        $button->{'data-dismiss'} = 'modal';
+        $button->{'onclick'} = "\$( '.modal-backdrop' ).last().remove(); \$('#{$this->id}').modal('hide'); \$('body').removeClass('modal-open');";
+        $button->add('OK');
+        
+        if ($action)
+        {
+            $button->{'onclick'} .= "__adianti_load_page('{$action->serialize()}');";
+            $button->{'data-toggle'} = "modal";
+        }
+        
+        $footer = new TElement('div');
+        $footer->{'class'} = 'modal-footer';
+        
+        $modal_wrapper->add($modal_dialog);
+        $modal_dialog->add($modal_content);
+        $modal_content->add($modal_header);
+        $modal_header->add($close);
+        $modal_header->add($title);
+        
+        $modal_content->add($body);
+        $modal_content->add($footer);
+        
+        $footer->add($button);
+        
+        $modal_wrapper->show();
+        $callback = 'function () {' . $button->{'onclick'} .'}';
+        TScript::create( "tdialog_start( '#{$this->id}', $callback );");
     }
 }

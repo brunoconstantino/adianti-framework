@@ -1,32 +1,31 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
 use Adianti\Widget\Form\AdiantiWidgetInterface;
 use Adianti\Control\TAction;
+use Adianti\Widget\Base\TElement;
 use Adianti\Widget\Form\TForm;
 use Adianti\Widget\Form\TField;
-use Adianti\Core\AdiantiCoreTranslator;
 
+use Adianti\Core\AdiantiCoreTranslator;
 use Exception;
-use Gtk;
-use GtkScrolledWindow;
-use GtkTextView;
 
 /**
  * Text Widget (also known as Memo)
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TText extends TField implements AdiantiWidgetInterface
 {
-    protected $widget;
+    private   $height;
+    private   $exitAction;
     protected $formName;
-    protected $exitAction;
+    protected $size;
     
     /**
      * Class Constructor
@@ -36,47 +35,26 @@ class TText extends TField implements AdiantiWidgetInterface
     {
         parent::__construct($name);
         
-        $this->widget = new GtkScrolledWindow;
-        $this->widget->set_size_request(200, -1);
-        parent::add($this->widget);
-        
-        $this->textview = new GtkTextView;
-        $this->textview->set_wrap_mode(Gtk::WRAP_WORD);
-        $this->textbuffer = $this->textview->get_buffer();
-        $this->widget->add($this->textview);
-    }
-    
-    /**
-     * Define the widget's content
-     * @param  $value  widget's content
-     */
-    public function setValue($value)
-    {
-        $first = $this->textbuffer->get_start_iter();
-        $end   = $this->textbuffer->get_end_iter();
-        $this->textbuffer->delete($first, $end);
-        
-        // Insert the content in the text buffer
-        $this->textbuffer->insert_at_cursor($value);
-    }
-
-    /**
-     * Return the widget's content
-     */
-    public function getValue()
-    {
-        $first = $this->textbuffer->get_start_iter();
-        $end   = $this->textbuffer->get_end_iter();
-        return $this->textbuffer->get_text($first, $end);
+        // creates a <textarea> tag
+        $this->tag = new TElement('textarea');
+        $this->tag->{'class'} = 'tfield';       // CSS
+        $this->tag->{'widget'} = 'ttext';
+        // defines the text default height
+        $this->height= 100;
     }
     
     /**
      * Define the widget's size
-     * @param $size Widget's size in pixels
+     * @param  $width   Widget's width
+     * @param  $height  Widget's height
      */
-    public function setSize($width, $height = -1)
+    public function setSize($width, $height = NULL)
     {
-        $this->widget->set_size_request($width, $height);
+        $this->size   = $width;
+        if ($height)
+        {
+            $this->height = $height;
+        }
     }
     
     /**
@@ -85,21 +63,8 @@ class TText extends TField implements AdiantiWidgetInterface
      */
     public function getSize()
     {
-        $size = $this->widget->get_size_request();
-        return array( $size[0], $size[1] );
+        return array( $this->size, $this->height );
     }
-    
-    /**
-     * Not implemented
-     */
-    public function setProperty($name, $value, $replace = TRUE)
-    {}
-    
-    /**
-     * Not implemented
-     */
-    public function getProperty($name)
-    {}
     
     /**
      * Define the action to be executed when the user leaves the form field
@@ -116,24 +81,48 @@ class TText extends TField implements AdiantiWidgetInterface
             $string_action = $action->toString();
             throw new Exception(AdiantiCoreTranslator::translate('Action (^1) must be static to be used in ^2', $string_action, __METHOD__));
         }
-        $this->textview->connect_after('focus-out-event', array($this, 'onExecuteExitAction'));
     }
     
     /**
-     * Execute the exit action
+     * Show the widget
      */
-    public function onExecuteExitAction()
+    public function show()
     {
-        if (!TForm::getFormByName($this->formName) instanceof TForm)
+        $this->tag-> name  = $this->name;   // tag name
+        if ($this->size)
         {
-            throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->wname, 'TForm::setFields()') );
+            $size = (strstr($this->size, '%') !== FALSE) ? $this->size : "{$this->size}px";
+            $this->setProperty('style', "width:{$size};", FALSE); //aggregate style info
         }
         
-        if (isset($this->exitAction) AND $this->exitAction instanceof TAction)
+        if ($this->height)
         {
-            $callback = $this->exitAction->getAction();
-            $param = (array) TForm::retrieveData($this->formName);
-            call_user_func($callback, $param);
+            $height = (strstr($this->height, '%') !== FALSE) ? $this->height : "{$this->height}px";
+            $this->setProperty('style', "height:{$height}", FALSE); //aggregate style info
         }
+        
+        // check if the field is not editable
+        if (!parent::getEditable())
+        {
+            // make the widget read-only
+            $this->tag-> readonly = "1";
+            $this->tag->{'class'} = $this->tag->{'class'} == 'tfield' ? 'tfield_disabled' : $this->tag->{'class'} . ' tfield_disabled'; // CSS
+        }
+        
+        if (isset($this->exitAction))
+        {
+            if (!TForm::getFormByName($this->formName) instanceof TForm)
+            {
+                throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->name, 'TForm::setFields()') );
+            }
+            $string_action = $this->exitAction->serialize(FALSE);
+            $this->setProperty('exitaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', this, 'callback')");
+            $this->setProperty('onBlur', $this->getProperty('exitaction'), FALSE);
+        }
+        
+        // add the content to the textarea
+        $this->tag->add(htmlspecialchars($this->value));
+        // show the tag
+        $this->tag->show();
     }
 }

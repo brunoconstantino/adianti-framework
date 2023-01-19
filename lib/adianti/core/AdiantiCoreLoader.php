@@ -1,5 +1,5 @@
 <?php
-Namespace Adianti\Core;
+namespace Adianti\Core;
 
 use Adianti\Core\AdiantiApplicationLoader;
 use Adianti\Core\AdiantiClassMap;
@@ -7,10 +7,10 @@ use Adianti\Core\AdiantiClassMap;
 /**
  * Framework class autoloader
  *
- * @version    2.0
+ * @version    4.0
  * @package    core
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class AdiantiCoreLoader
@@ -29,7 +29,10 @@ class AdiantiCoreLoader
         {
             foreach ($aliases as $old_class => $new_class)
             {
-                class_alias($new_class, $old_class);
+                if (class_exists($new_class))
+                {
+                    class_alias($new_class, $old_class);
+                }
             }
         }
     }
@@ -87,7 +90,7 @@ class AdiantiCoreLoader
         {
             if (file_exists(self::$classMap[$class]))
             {
-                //echo 'Legacy '.self::$classMap[$class] . '<br>';
+                //echo 'Classmap '.self::$classMap[$class] . '<br>';
                 require_once self::$classMap[$class];
                 
                 self::globalScope($class);
@@ -112,9 +115,11 @@ class AdiantiCoreLoader
                 $ns = str_replace('.php', '', $ns);
                 
                 //echo "&nbsp;&nbsp;&nbsp;&nbsp;Mapping: $ns, $class<br>";
-                class_alias($ns, $class, FALSE);
+                if (class_exists($ns) OR interface_exists($ns))
+                {
+                    class_alias($ns, $class, FALSE);
+                }
             }
-            
         }
     }
 }

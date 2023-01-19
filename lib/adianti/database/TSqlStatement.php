@@ -1,15 +1,15 @@
 <?php
-Namespace Adianti\Database;
+namespace Adianti\Database;
 
 use Adianti\Database\TCriteria;
 
 /**
  * Provides an abstract Interface to create a SQL statement
  *
- * @version    2.0
+ * @version    4.0
  * @package    database
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 abstract class TSqlStatement
@@ -42,6 +42,14 @@ abstract class TSqlStatement
     public function setCriteria(TCriteria $criteria)
     {
         $this->criteria = $criteria;
+    }
+    
+    /**
+     * Returns a random parameter
+     */
+    protected function getRandomParameter()
+    {
+        return mt_rand(1000000000, 1999999999);
     }
     
     // force method rewrite in child classes

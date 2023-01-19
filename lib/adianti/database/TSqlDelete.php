@@ -1,15 +1,15 @@
 <?php
-Namespace Adianti\Database;
+namespace Adianti\Database;
 
 use Adianti\Database\TSqlStatement;
 
 /**
  * Provides an Interface to create DELETE statements
  *
- * @version    2.0
+ * @version    4.0
  * @package    database
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 final class TSqlDelete extends TSqlStatement

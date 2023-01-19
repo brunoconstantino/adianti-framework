@@ -1,30 +1,32 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
 use Adianti\Widget\Form\AdiantiWidgetInterface;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
 use Adianti\Widget\Form\TField;
 use Adianti\Widget\Form\TButton;
 use Adianti\Core\AdiantiCoreTranslator;
-
 use Exception;
-use Gtk;
-use GtkFrame;
-use GtkWidget;
+use ReflectionClass;
 
 /**
  * Wrapper class to deal with forms
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TForm extends GtkFrame
+class TForm implements AdiantiFormInterface
 {
-    protected $fields;
-    protected $fname;
+    protected $fields; // array containing the form fields
+    protected $name;   // form name
+    protected $children;
+    protected $js_function;
+    protected $element;
     static private $forms;
     
     /**
@@ -33,14 +35,64 @@ class TForm extends GtkFrame
      */
     public function __construct($name = 'my_form')
     {
-        parent::__construct();
-        parent::set_shadow_type(Gtk::SHADOW_NONE);
-        
-        // register this form
-        self::$forms[$name] = $this;
         if ($name)
         {
             $this->setName($name);
+        }
+        $this->children = array();
+        $this->element  = new TElement('form');
+    }
+    
+    /**
+     * Intercepts whenever someones assign a new property's value
+     * @param $name     Property Name
+     * @param $value    Property Value
+     */
+    public function __set($name, $value)
+    {
+        $rc = new ReflectionClass( $this );
+        $classname = $rc->getShortName();
+        
+        if (in_array($classname, array('TForm', 'TQuickForm', 'TQuickNotebookForm')))
+        {
+            // objects and arrays are not set as properties
+            if (is_scalar($value))
+            {              
+                // store the property's value
+                $this->element->$name = $value;
+            }
+        }
+        else
+        {
+            $this->$name = $value;
+        }
+    }
+    
+    /**
+     * Define a form property
+     * @param $name  Property Name
+     * @param $value Property Value
+     */
+    public function setProperty($name, $value, $replace = TRUE)
+    {
+        if ($replace)
+        {
+            // delegates the property assign to the composed object
+            $this->element->$name = $value;
+        }
+        else
+        {
+            if ($this->element->$name)
+            {
+            
+                // delegates the property assign to the composed object
+                $this->element->$name = $this->element->$name . ';' . $value;
+            }
+            else
+            {
+                // delegates the property assign to the composed object
+                $this->element->$name = $value;
+            }
         }
     }
     
@@ -61,7 +113,9 @@ class TForm extends GtkFrame
      */
     public function setName($name)
     {
-        $this->fname = $name;
+        $this->name = $name;
+        // register this form
+        self::$forms[$this->name] = $this;
     }
     
     /**
@@ -69,62 +123,130 @@ class TForm extends GtkFrame
      */
     public function getName()
     {
-        return $this->fname;
+        return $this->name;
     }
     
     /**
-     * get form data in a static way
-     * for internal use
-     * @ignore-autocomplete on
-     * @param $form_name Form Name
+     * Send data for a form located in the parent window
+     * @param $form_name  Form Name
+     * @param $object     An Object containing the form data
      */
-    public function retrieveData($form_name)
+    public static function sendData($form_name, $object, $aggregate = FALSE, $fireEvents = TRUE)
     {
-        if (isset(self::$forms[$form_name]))
+        $fire_param = $fireEvents ? 'true' : 'false';
+        // iterate the object properties
+        if ($object)
         {
-            $instance = self::$forms[$form_name];
-            return $instance->getData();
+            foreach ($object as $field => $value)
+            {
+                if (is_object($value))  // TMultiField
+                {
+                    foreach ($value as $property=>$data)
+                    {
+                        // if inside ajax request, then utf8_encode if isn't utf8
+                        if (utf8_encode(utf8_decode($data)) !== $data )
+                        {
+                            $data = utf8_encode(addslashes($data));
+                        }
+                        else
+                        {
+                            $data = addslashes($data);
+                        }
+                        $data = str_replace(array("\n", "\r"), array( ' ', ' '), $data );
+                        // send the property value to the form
+                        TScript::create( " tform_send_data('{$form_name}', '{$field}_{$property}', '$data', $fire_param); " );
+                    }
+                }
+                else
+                {
+                    if (is_array($value))
+                    {
+                        $value = implode(',', $value);
+                    }
+                    
+                    // if inside ajax request, then utf8_encode if isn't utf8
+                    if (utf8_encode(utf8_decode($value)) !== $value )
+                    {
+                        $value = utf8_encode(addslashes($value));
+                    }
+                    else
+                    {
+                        $value = addslashes($value);
+                    }
+                    
+                    $value = str_replace(array("\n", "\r"), array( ' ', ' '), $value );
+                    
+                    // send the property value to the form
+                    if ($aggregate)
+                    {
+                        TScript::create( " tform_send_data_aggregate('{$form_name}', '{$field}', '$value', $fire_param); " );
+                    }
+                    else
+                    {
+                        TScript::create( " tform_send_data('{$form_name}', '{$field}', '$value', $fire_param); " );
+                        TScript::create( " tform_send_data_by_id('{$form_name}', '{$field}', '$value', $fire_param); " );
+                    }
+                }
+            }
         }
-    }
-    
-    /**
-     * Send data for any form by it's name
-     * @param $form_name Form Name
-     * @param $object    An Object containing the form data
-     */
-    public function sendData($form_name, $object)
-    {
-        $instance = self::$forms[$form_name];
-        $instance->setFilledData($object);
     }
     
     /**
      * Define if the form will be editable
-     * @param $bool A Boolean indicating if the form will be editable
+     * @param $bool A Boolean
      */
     public function setEditable($bool)
     {
-        foreach ($this->fields as $field)
+        if ($this->fields)
         {
-            $field->setEditable($bool);
+            foreach ($this->fields as $object)
+            {
+                $object->setEditable($bool);
+            }
         }
     }
-
+    
     /**
      * Add a Form Field
      * @param $field Object
      */
     public function addField(AdiantiWidgetInterface $field)
     {
-        if ($field instanceof GtkWidget)
+        if ($field instanceof TField)
         {
             $name = $field->getName();
-            if (isset($this->fields[$name]))
+            if (isset($this->fields[$name]) AND substr($name,-2) !== '[]')
             {
                 throw new Exception(AdiantiCoreTranslator::translate('You have already added a field called "^1" inside the form', $name));
             }
-            $this->fields[$name] = $field;
-            $field->setFormName($this->fname);
+            
+            if ($name)
+            {
+                $this->fields[$name] = $field;
+                $field->setFormName($this->name);
+                
+                if ($field instanceof TButton)
+                {
+                    $field->addFunction($this->js_function);
+                }
+            }
+        }
+        if ($field instanceof TMultiField)
+        {
+            $fieldid = $field->getId();
+            $this->js_function .= "multifields['$fieldid'].parseTableToJSON();";
+            
+            if ($this->fields)
+            {
+                // if the button was added before multifield
+                foreach ($this->fields as $field)
+                {
+                    if ($field instanceof TButton)
+                    {
+                        $field->addFunction($this->js_function);
+                    }
+                }
+            }
         }
     }
     
@@ -162,6 +284,9 @@ class TForm extends GtkFrame
     {
         if (is_array($fields))
         {
+            $this->fields = array();
+            $this->js_function = '';
+            // iterate the form fields
             foreach ($fields as $field)
             {
                 $this->addField($field);
@@ -169,13 +294,14 @@ class TForm extends GtkFrame
         }
         else
         {
-            throw new Exception(AdiantiCoreTranslator::translate('Method ^1 must receive a paremeter of type ^2', __METHOD__, 'Array'));
+            throw new Exception(AdiantiCoreTranslator::translate('Method ^1 must receive a parameter of type ^2', __METHOD__, 'Array'));
         }
     }
     
     /**
      * Returns a form field by its name
-     * @param $name A string containing the field's name
+     * @param $name  A string containing the field's name
+     * @return       The Field object
      */
     public function getField($name)
     {
@@ -195,13 +321,15 @@ class TForm extends GtkFrame
     }
     
     /**
-     * Clear the form data
+     * clear the form Data
      */
-    public function clear()
+    public function clear($keepDefaults = FALSE)
     {
+        // iterate the form fields
         foreach ($this->fields as $name => $field)
         {
-            if (!$field instanceof TButton)
+            // labels don't have name
+            if ($name AND !$keepDefaults)
             {
                 $field->setValue(NULL);
             }
@@ -214,61 +342,14 @@ class TForm extends GtkFrame
      */
     public function setData($object)
     {
+        // iterate the form fields
         foreach ($this->fields as $name => $field)
         {
-            if (!$field instanceof TButton)
+            if ($name) // labels don't have name
             {
                 if (isset($object->$name))
                 {
                     $field->setValue($object->$name);
-                }
-                else
-                {
-                    $field->setValue(NULL);
-                }
-            }
-        }
-    }
-    
-    /**
-     * for internal use
-     * @ignore-autocomplete on
-     **/
-    private function setFilledData($object)
-    {
-        $properties = get_object_vars($object);
-        foreach ($properties as $property => $value)
-        {
-            if (isset($this->fields[$property]) AND is_object($this->fields[$property]) )
-            {
-                if (isset($object->$property) AND is_object($object->$property)) //TMultifield entire object
-                {
-                    $this->fields[$property]->setFormData($object->$property);
-                }
-                else // regular field
-                {
-                    $this->fields[$property]->setValue($object->$property);
-                    $obj = $this->fields[$property];
-                    if (method_exists($obj, 'onExecuteExitAction'))
-                    {
-                        call_user_func(array($obj, 'onExecuteExitAction'));
-                    }
-                }
-            }
-            else
-            {
-                $parts = explode('_', $property); // authors_list_name
-                if (count($parts) == 3)
-                {
-                    $mtfproperty = $parts[0] . '_' . $parts[1];
-                    
-                    if (isset($this->fields[$mtfproperty])) // subfield of TMutifield in TSeekButton
-                    {
-                        $new_property = $parts[2];
-                        $new_object = new StdClass;
-                        $new_object->$new_property = $value;
-                        $this->fields[$mtfproperty]->setFormData($new_object);
-                    }
                 }
             }
         }
@@ -276,47 +357,49 @@ class TForm extends GtkFrame
     
     /**
      * Returns the form data as an object
-     * @param $class A string containing the class to the returning object
+     * @param $class A string containing the class for the returning object
      */
     public function getData($class = 'StdClass')
     {
-        $object = new $class;
-        if ($this->fields)
+        if (!class_exists($class))
         {
-            foreach ($this->fields as $field)
+            throw new Exception(AdiantiCoreTranslator::translate('Class ^1 not found in ^2', $class, __METHOD__));
+        }
+        
+        $object = new $class;
+        foreach ($this->fields as $key => $fieldObject)
+        {
+            $key = str_replace(['[',']'], ['',''], $key);
+            
+            if (!$fieldObject instanceof TButton)
             {
-                if (!$field instanceof TButton)
-                {
-                    $name = $field->getName();
-                    $value= $field->getValue();
-                    $object->$name = $value;
-                }
+                $object->$key = $fieldObject->getPostData();
             }
         }
+        
         return $object;
     }
-    
+
     /**
      * Validate form
      */
     public function validate()
     {
+        // assign post data before validation
+        // validation exception would prevent
+        // the user code to execute setData()
+        $this->setData($this->getData());
+        
         $errors = array();
-        foreach ($this->fields as $object)
+        foreach ($this->fields as $fieldObject)
         {
-            if (!$object instanceof TButton)
+            try
             {
-                if (method_exists($object, 'validate'))
-                {
-                    try
-                    {
-                        $object->validate();
-                    }
-                    catch (Exception $e)
-                    {
-                        $errors[] = $e->getMessage() . '.';
-                    }
-                }
+                $fieldObject->validate();
+            }
+            catch (Exception $e)
+            {
+                $errors[] = $e->getMessage() . '.';
             }
         }
         
@@ -327,11 +410,32 @@ class TForm extends GtkFrame
     }
     
     /**
+     * Add a container to the form (usually a table or panel)
+     * @param $object Any Object that implements the show() method
+     */
+    public function add($object)
+    {
+        if (!in_array($object, $this->children))
+        {
+            $this->children[] = $object;
+        }
+    }
+    
+    /**
+     * Pack a container to the form (usually a table or panel)
+     * @param mixed $object, ...Any Object that implements the show() method
+     */
+    public function pack()
+    {
+        $this->children = func_get_args();
+    }
+    
+    /**
      * Returns the child object
      */
     public function getChild()
     {
-        return parent::get_child();
+        return $this->children[0];
     }
     
     /**
@@ -339,18 +443,21 @@ class TForm extends GtkFrame
      */
     public function show()
     {
-        /* Não é possível, pois pode ter uma IF (Designer) somente com datagrid
-        if (count($this->fields) == 0)
-        {
-            throw new Exception(AdiantiCoreTranslator::translate('Use the addField() or setFields() to define the form fields'));
-        }
-        */
+        // define form properties
+        $this->element->{'enctype'} = "multipart/form-data";
+        $this->element->{'name'}    = $this->name; // form name
+        $this->element->{'id'}      = $this->name; // form id
+        $this->element->{'method'}  = 'post';      // transfer method
         
-        $child = parent::get_child();
-        if ($child)
+        // add the container to the form
+        if (isset($this->children))
         {
-            $child->show();
+            foreach ($this->children as $child)
+            {
+                $this->element->add($child);
+            }
         }
-        parent::show_all();
+        // show the form
+        $this->element->show();
     }
 }

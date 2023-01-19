@@ -1,64 +1,84 @@
 <?php
-Namespace Adianti\Widget\Datagrid;
+namespace Adianti\Widget\Datagrid;
 
-use Adianti\Core\AdiantiCoreApplication;
+use Adianti\Control\TAction;
 use Adianti\Core\AdiantiCoreTranslator;
+use Adianti\Widget\Container\TTable;
+use Adianti\Widget\Util\TDropDown;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
+use Adianti\Widget\Util\TImage;
 
+use Math\Parser;
 use Exception;
-use Gtk;
-use GObject;
-use GtkVBox;
-use GtkTreeView;
-use GtkListStore;
-use GtkHButtonBox;
-use GtkScrolledWindow;
-use GtkButton;
-use GtkImage;
 
 /**
  * DataGrid Widget: Allows to create datagrids with rows, columns and actions
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage datagrid
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TDataGrid extends GtkVBox
+class TDataGrid extends TTable
 {
-    private $count;
-    private $columns;
-    private $types;
-    private $width;
-    private $height;
-    private $scrollable;
-    private $action_area;
-    private $pageNavigation;
-    private $clickhandler;
-    private $modelCreated;
+    protected $columns;
+    protected $actions;
+    protected $action_groups;
+    protected $rowcount;
+    protected $thead;
+    protected $tbody;
+    protected $height;
+    protected $scrollable;
+    protected $modelCreated;
+    protected $pageNavigation;
+    protected $defaultClick;
+    protected $groupColumn;
+    protected $groupContent;
+    protected $groupMask;
+    protected $popover;
+    protected $poptitle;
+    protected $popcontent;
+    protected $objects;
+    protected $actionWidth;
+    protected $groupCount;
+    protected $groupRowCount;
+    protected $columnValues;
     
     /**
      * Class Constructor
      */
     public function __construct()
     {
-        $this->types   = array();
-        $this->columns = array();
-        $this->count   = 0;
-        $this->modelCreated = FALSE;
-        
         parent::__construct();
-        $this->view  = new GtkTreeView;
-        $this->model = new GtkListStore;
-        $this->view->set_size_request(200,-1);
-        $this->handler = $this->view->connect_simple('row-activated', array($this, 'onDoubleClick'));
-        
-        $this->action_area = new GtkHButtonBox;
-        $this->action_area->set_layout(Gtk::BUTTONBOX_START);
-        parent::pack_start($this->view, true, true);
-        parent::pack_start($this->action_area, false, false);
-        parent::set_size_request(-1,-1);
+        $this->modelCreated = FALSE;
+        $this->defaultClick = TRUE;
+        $this->popover = FALSE;
+        $this->groupColumn = NULL;
+        $this->groupContent = NULL;
+        $this->groupMask = NULL;
+        $this->groupCount = 0;
+        $this->actions = array();
+        $this->action_groups = array();
+        $this->actionWidth = '16px';
+        $this->objects = array();
+        $this->columnValues = array();
+        $this->{'class'} = 'tdatagrid_table';
+        $this->{'id'}    = 'tdatagrid_' . mt_rand(1000000000, 1999999999);
+    }
+    
+    /**
+     * Enable popover
+     * @param $title Title
+     * @param $content Content
+     */
+    public function enablePopover($title, $content)
+    {
+        $this->popover = TRUE;
+        $this->poptitle = $title;
+        $this->popcontent = $content;
     }
     
     /**
@@ -67,24 +87,18 @@ class TDataGrid extends GtkVBox
     public function makeScrollable()
     {
         $this->scrollable = TRUE;
-        $children = parent::get_children();
-        if ($children)
+        if (isset($this->thead))
         {
-            foreach ($children as $child)
-            {
-                parent::remove($child);
-            }
+            $this->thead->style = 'display: block';
         }
-        $scroll = new GtkScrolledWindow;
-        $scroll->add($this->view);
-        $scroll->set_size_request(-1, $this->height);
-        parent::pack_start($scroll, true, true);
-        parent::pack_start($this->action_area, false, false);
-        
-        if ($this->height)
-        {
-            parent::set_size_request(-1,$this->height);
-        }
+    }
+    
+    /**
+     * Set the column action width
+     */
+    public function setActionWidth($width)
+    {
+        $this->actionWidth = $width;
     }
     
     /**
@@ -92,27 +106,23 @@ class TDataGrid extends GtkVBox
      */
     public function disableDefaultClick()
     {
-        $this->view->disconnect($this->handler);
+        $this->defaultClick = FALSE;
     }
     
     /**
      * Define the Height
      * @param $height An integer containing the height
      */
-    public function setHeight($height)
+    function setHeight($height)
     {
         $this->height = $height;
-        if ($this->scrollable)
-        {
-            parent::set_size_request(-1,$height);
-        }
     }
     
     /**
      * Add a Column to the DataGrid
      * @param $object A TDataGridColumn object
      */
-    public function addColumn(TDataGridColumn $column)
+    public function addColumn(TDataGridColumn $object)
     {
         if ($this->modelCreated)
         {
@@ -120,28 +130,44 @@ class TDataGrid extends GtkVBox
         }
         else
         {
-            $renderers = $column->get_cell_renderers();
-            $cell_renderer = $renderers[0];
-            $column->add_attribute($cell_renderer, 'text', $this->count);
-            $column->set_cell_data_func($cell_renderer, array($this,'formatZebra'));
-            $this->view->append_column($column);
-            $this->types[] = GObject::TYPE_STRING;
-            $this->columns[] = $column;
-            if ($column->getWidth())
-            {
-                $this->width += $column->getWidth();
-                $width = $this->width + count($this->columns)*10;
-                $this->view->set_size_request($width, -1);
-            }
-            $this->count ++;
+            $this->columns[] = $object;
         }
+    }
+    
+    /**
+     * Returns an array of TDataGridColumn
+     */
+    public function getColumns()
+    {
+        return $this->columns;
     }
     
     /**
      * Add an Action to the DataGrid
      * @param $object A TDataGridAction object
      */
-    public function addAction(TDataGridAction $action)
+    public function addAction(TDataGridAction $object)
+    {
+        if (!$object->getField())
+        {
+            throw new Exception(AdiantiCoreTranslator::translate('You must define the field for the action (^1)', $object->toString()) );
+        }
+        
+        if ($this->modelCreated)
+        {
+            throw new Exception(AdiantiCoreTranslator::translate('You must call ^1 before ^2', __METHOD__ , 'createModel') );
+        }
+        else
+        {
+            $this->actions[] = $object;
+        }
+    }
+    
+    /**
+     * Add an Action Group to the DataGrid
+     * @param $object A TDataGridActionGroup object
+     */
+    public function addActionGroup(TDataGridActionGroup $object)
     {
         if ($this->modelCreated)
         {
@@ -149,119 +175,51 @@ class TDataGrid extends GtkVBox
         }
         else
         {
-            $this->actions[] = $action;
-            $button = new GtkButton($action->getLabel());
-            
-            if ($action->getImage())
-            {
-                if (file_exists('lib/adianti/images/'.$action->getImage()))
-                {
-                    $button->set_image(GtkImage::new_from_file('lib/adianti/images/'.$action->getImage()));
-                }
-                else if (file_exists('app/images/'.$action->getImage()))
-                {
-                    $button->set_image(GtkImage::new_from_file('app/images/'.$action->getImage()));
-                }
-            }
-            
-            $button->connect_simple('clicked', array($this, 'onExecute'), $action);
-            $this->action_area->pack_start($button);
+            $this->action_groups[] = $object;
         }
     }
     
-    /**
-     * Execute the action
-     * @param  $action A TDataGridAction object
-     * @ignore-autocomplete on
-     */
-    public function onExecute(TDataGridAction $action)
+    public function setGroupColumn($column, $mask)
     {
-        $selection = $this->view->get_selection();
-        if ($selection)
-        {
-            list($model, $iter) = $selection->get_selected();
-            if ($iter)
-            {
-                $activeObject = $this->model->get_value($iter, $this->count);
-                $field = $action->getField();
-                $label = $action->getLabel();
-                
-                if (is_null($field))
-                {
-                    throw new Exception(AdiantiCoreTranslator::translate('Field for action ^1 not defined', $label) . '.<br>' . 
-                                        AdiantiCoreTranslator::translate('Use the ^1 method', 'setField'.'()').'.');
-                }
-                
-                $array['key'] = $activeObject->$field;
-                $callb = $action->getAction();
-                
-                if (is_array($callb))
-                {
-                    if (is_object($callb[0]))
-                    {
-                        $object = $callb[0];
-                        $window_visible = method_exists($object, 'get_visible') ? $object->get_visible() : $object->is_visible();
-                        
-                        // execute action
-                        call_user_func($callb, $array);
-                        
-                        if (method_exists($object, 'show'));
-                        {
-                            // if the window wasn't visible before
-                            // the operation, shows it. 
-                            // Forms: window wasn't visible, then show.
-                            // SeekBtns: window was visible, do nothing.
-                            //           the operation itself closes the window. 
-                            if (!$window_visible)
-                            {
-                                if ($object->get_child())
-                                {
-                                    $object->show();
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        $class  = $callb[0];
-                        $method = $callb[1];
-                        AdiantiCoreApplication::executeMethod($class, $method, $array);
-                    }
-                }
-                else
-                {
-                    // execute action
-                    call_user_func($callb, $array);
-                }
-            }
-        }
+        $this->groupColumn = $column;
+        $this->groupMask   = $mask;
     }
     
     /**
-     * Execute an edit action
-     * @param $action    Callback to be executed
-     * @param $parameter User parameters
-     * @ignore-autocomplete on
+     * Clear the DataGrid contents
      */
-    function onExecuteEditAction($cell_renderer, $linha, $content, $column)
+    function clear( $preserveHeader = TRUE)
     {
-        $parameters = $column->getEditAction()->getParameters();
-        
-        $selection = $this->view->get_selection();
-        if ($selection)
+        if ($this->modelCreated)
         {
-            list($model, $iter) = $selection->get_selected();
-            if ($iter)
+            if ($preserveHeader)
             {
-                $activeObject = $this->model->get_value($iter, $this->count);
-                $field = $column->getEditAction()->getField();
-                
-                $parameters['field'] = $column->getName();
-                $parameters['key']   = $activeObject->{$field};
-                $parameters['value'] = $content;
-                
-                call_user_func($column->getEditAction()->getAction(), $parameters);
+                // copy the headers
+                $copy = $this->children[0];
+                // reset the row array
+                $this->children = array();
+                // add the header again
+                $this->children[] = $copy;
             }
+            else
+            {
+                // reset the row array
+                $this->children = array();
+            }
+            
+            // add an empty body
+            $this->tbody = new TElement('tbody');
+            $this->tbody->{'class'} = 'tdatagrid_body';
+            if ($this->scrollable)
+            {
+                $this->tbody->{'style'} = "height: {$this->height}px; display: block; overflow-y:scroll; overflow-x:hidden;";
+            }
+            parent::add($this->tbody);
+            
+            // restart the row count
+            $this->rowcount = 0;
+            $this->objects = array();
+            $this->columnValues = array();
         }
     }
     
@@ -270,21 +228,147 @@ class TDataGrid extends GtkVBox
      */
     public function createModel()
     {
-        // the last iter is the object itself
-        $this->types[] = GObject::TYPE_PHP_VALUE;
-        $this->model->set_column_types($this->types);
-        $this->view->set_model($this->model);
-        
-        foreach ($this->columns as $column)
+        if (!$this->columns)
         {
-            if ($column->getEditAction())
+            return;
+        }
+        
+        $this->thead = new TElement('thead');
+        $this->thead->{'class'} = 'tdatagrid_head';
+        parent::add($this->thead);
+        
+        $row = new TElement('tr');
+        if ($this->scrollable)
+        {
+            $this->thead->{'style'} = 'display:block';
+        }
+        $this->thead->add($row);
+        
+        $actions_count = count($this->actions) + count($this->action_groups);
+        
+        if ($actions_count >0)
+        {
+            for ($n=0; $n < $actions_count; $n++)
             {
-                $renderer = $column->getRenderer();
-                $renderer->set_property('editable', TRUE);
-                $renderer->connect("edited", array($this, 'onExecuteEditAction'), $column);
+                $cell = new TElement('th');
+                $row->add($cell);
+                $cell->add('&nbsp;');
+                $cell->{'class'} = 'tdatagrid_action';
+                $cell-> width = $this->actionWidth;
+            }
+            
+            $cell->{'class'} = 'tdatagrid_col';
+        }
+        
+        // add some cells for the data
+        if ($this->columns)
+        {
+            // iterate the DataGrid columns
+            foreach ($this->columns as $column)
+            {
+                // get the column properties
+                $name  = $column->getName();
+                $label = '&nbsp;'.$column->getLabel().'&nbsp;';
+                $align = $column->getAlign();
+                $width = $column->getWidth();
+                $props = $column->getProperties();
+                
+                if (isset($_GET['order']))
+                {
+                    if ($_GET['order'] == $name)
+                    {
+                        if (isset($_GET['direction']) AND $_GET['direction'] == 'asc')
+                        {
+                            $label .= '<span class="glyphicon glyphicon-chevron-down blue" aria-hidden="true"></span>';
+                        }
+                        else
+                        {
+                            $label .= '<span class="glyphicon glyphicon-chevron-up blue" aria-hidden="true"></span>';
+                        }
+                    }
+                }
+                // add a cell with the columns label
+                $cell = new TElement('th');
+                $row->add($cell);
+                $cell->add($label);
+                
+                $cell->{'class'} = 'tdatagrid_col';
+                $cell->{'style'} = "text-align:$align";
+                
+                if ($props)
+                {
+                    foreach ($props as $prop_name => $prop_value)
+                    {
+                        $cell->$prop_name = $prop_value;
+                    }
+                }
+                
+                if ($width)
+                {
+                    $cell->{'width'} = (strpos($width, '%') !== false) ? $width : ($width + 8).'px';
+                }
+                
+                // verify if the column has an attached action
+                if ($column->getAction())
+                {
+                    $action = $column->getAction();
+                    if (isset($_GET['direction']) AND $_GET['direction'] == 'asc' AND isset($_GET['order']) AND ($_GET['order'] == $name))
+                    {
+                        $action->setParameter('direction', 'desc');
+                    }
+                    else
+                    {
+                        $action->setParameter('direction', 'asc');
+                    }
+                    $url    = $action->serialize();
+                    $cell-> href        = $url;
+                    $cell-> generator   = 'adianti';
+                }
+            }
+            
+            if ($this->scrollable)
+            {
+                $cell = new TElement('td');
+                $cell->{'class'} = 'tdatagrid_col';
+                $row->add($cell);
+                $cell->add('&nbsp;');
+                $cell-> width = '12px';
             }
         }
+        
+        // add one row to the DataGrid
+        $this->tbody = new TElement('tbody');
+        $this->tbody->{'class'} = 'tdatagrid_body';
+        if ($this->scrollable)
+        {
+            $this->tbody->{'style'} = "height: {$this->height}px; display: block; overflow-y:scroll; overflow-x:hidden;";
+        }
+        parent::add($this->tbody);
+        
         $this->modelCreated = TRUE;
+    }
+    
+    /**
+     * insert content
+     */
+    public function insert($position, $content)
+    {
+        $this->tbody->insert($position, $content);
+    }
+    
+    /**
+     * Add objects to the DataGrid
+     * @param $objects An array of Objects
+     */
+    public function addItems($objects)
+    {
+        if ($objects)
+        {
+            foreach ($objects as $object)
+            {
+                $this->addItem($object);
+            }
+        }
     }
     
     /**
@@ -295,25 +379,273 @@ class TDataGrid extends GtkVBox
     {
         if ($this->modelCreated)
         {
-            $indice = 0;
-            $iter = $this->model->append();
-            foreach ($this->columns as $column)
+            if ($this->groupColumn AND
+                (is_null($this->groupContent) OR $this->groupContent !== $object->{$this->groupColumn} ) )
             {
-                $name = $column->getName();
-                $cell = $object->$name;
+                $row = new TElement('tr');
+                $row->{'class'} = 'tdatagrid_group';
+                $row->{'level'} = ++ $this->groupCount;
+                $this->groupRowCount = 0;
                 
-                $function = $column->getTransformer();
-                if ($function)
-                {
-                    $cell = call_user_func($function, $cell, $object, $iter);
-                }
-                
-                $this->model->set($iter, $indice, (string) $cell);
-                $indice ++;
+                $this->tbody->add($row);
+                $cell = new TElement('td');
+                $cell->add( $this->replace($this->groupMask, $object) );
+                $cell->colspan = count($this->actions)+count($this->action_groups)+count($this->columns);
+                $row->add($cell);
+                $this->groupContent = $object->{$this->groupColumn};
             }
-            // the last iter is the object itself
-            $this->model->set($iter, $indice, $object);
-            $this->objects ++;
+            
+            // define the background color for that line
+            $classname = ($this->rowcount % 2) == 0 ? 'tdatagrid_row_even' : 'tdatagrid_row_odd';
+            
+            $row = new TElement('tr');
+            $this->tbody->add($row);
+            $row->{'class'} = $classname;
+            
+            if ($this->groupColumn)
+            {
+                $this->groupRowCount ++;
+                $row->{'childof'} = $this->groupCount;
+                $row->{'level'}   = $this->groupCount . '.'. $this->groupRowCount;
+            }
+            
+            if ($this->actions)
+            {
+                // iterate the actions
+                foreach ($this->actions as $action)
+                {
+                    $this->prepareAction($action, $object); // validate action
+                    
+                    // get the action properties
+                    $label     = $action->getLabel();
+                    $image     = $action->getImage();
+                    $condition = $action->getDisplayCondition();
+                    
+                    if (empty($condition) OR call_user_func($condition, $object))
+                    {
+                        $url       = $action->serialize();
+                        $first_url = isset($first_url) ? $first_url : $url;
+                        
+                        // creates a link
+                        $link = new TElement('a');
+                        $link->{'href'}      = $url;
+                        $link->{'generator'} = 'adianti';
+                        
+                        // verify if the link will have an icon or a label
+                        if ($image)
+                        {
+                            $image_tag = new TImage($image);
+                            $image_tag->{'title'} = $label;
+                            
+                            if ($action->getUseButton())
+                            {
+                                // add the label to the link
+                                $span = new TElement('span');
+                                $span->{'class'} = $action->getButtonClass() ? $action->getButtonClass() : 'btn btn-default';
+                                $span->add($image_tag);
+                                $span->add($label);
+                                $link->add($span);
+                            }
+                            else
+                            {
+                                $link->add( $image_tag );
+                            }
+                        }
+                        else
+                        {
+                            // add the label to the link
+                            $span = new TElement('span');
+                            $span->{'class'} = $action->getButtonClass() ? $action->getButtonClass() : 'btn btn-default';
+                            $span->add($label);
+                            $link->add($span);
+                        }
+                    }
+                    else
+                    {
+                        $link = '';
+                    }
+                    
+                    // add the cell to the row
+                    $cell = new TElement('td');
+                    $row->add($cell);
+                    $cell->add($link);
+                    $cell->{'width'} = $this->actionWidth;
+                    $cell->{'class'} = 'tdatagrid_cell action';
+                }
+            }
+            
+            if ($this->action_groups)
+            {
+                foreach ($this->action_groups as $action_group)
+                {
+                    $actions    = $action_group->getActions();
+                    $headers    = $action_group->getHeaders();
+                    $separators = $action_group->getSeparators();
+                    
+                    if ($actions)
+                    {
+                        $dropdown = new TDropDown($action_group->getLabel(), $action_group->getIcon());
+                        $last_index = 0;
+                        foreach ($actions as $index => $action)
+                        {
+                            // add intermediate headers and separators
+                            for ($n=$last_index; $n<$index; $n++)
+                            {
+                                if (isset($headers[$n]))
+                                {
+                                    $dropdown->addHeader($headers[$n]);
+                                }
+                                if (isset($separators[$n]))
+                                {
+                                    $dropdown->addSeparator();
+                                }
+                            }
+                            // get the action properties
+                            $label  = $action->getLabel();
+                            $image  = $action->getImage();
+                            $condition = $action->getDisplayCondition();
+                            
+                            if (empty($condition) OR call_user_func($condition, $object))
+                            {
+                                $this->prepareAction($action, $object); // validate action
+                                $url    = $action->serialize();
+                                $first_url = isset($first_url) ? $first_url : $url;
+                                $dropdown->addAction($label, $action, $image);
+                            }
+                            $last_index = $index;
+                        }
+                        // add the cell to the row
+                        $cell = new TElement('td');
+                        $row->add($cell);
+                        $cell->add($dropdown);
+                        $cell->{'class'} = 'tdatagrid_cell action';
+                    }
+                }
+            }
+            
+            if ($this->columns)
+            {
+                // iterate the DataGrid columns
+                foreach ($this->columns as $column)
+                {
+                    // get the column properties
+                    $name     = $column->getName();
+                    $align    = $column->getAlign();
+                    $width    = $column->getWidth();
+                    $function = $column->getTransformer();
+                    
+                    // calculated column
+                    if (substr($name,0,1) == '=')
+                    {
+                        $content = $this->replace($name, $object, 'float');
+                        $parser = new Parser;
+                        $content = $parser->evaluate(substr($content,1));
+                        $object->$name = $content;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            $content  = $object->$name;
+                        }
+                        catch (Exception $e)
+                        {
+                            $content = $this->replace($name, $object);
+                            
+                            if (empty(trim($content)) OR $content === $name)
+                            {
+                                $content = $e->getMessage();
+                            }
+                        }
+                    }
+                    
+                    if (isset($this->columnValues[$name]))
+                    {
+                        $this->columnValues[$name][] = $content;
+                    }
+                    else
+                    {
+                        $this->columnValues[$name] = [$content];
+                    }
+                    
+                    $data = is_null($content) ? '' : $content;
+                    
+                    // verify if there's a transformer function
+                    if ($function)
+                    {
+                        // apply the transformer functions over the data
+                        $data = call_user_func($function, $data, $object, $row);
+                    }
+                    
+                    if ($editaction = $column->getEditAction())
+                    {
+                        $editaction_field = $editaction->getField();
+                        $div = new TElement('div');
+                        $div->{'class'}  = 'inlineediting';
+                        $div->{'style'}  = 'padding-left:5px;padding-right:5px';
+                        $div->{'action'} = $editaction->serialize();
+                        $div->{'field'}  = $name;
+                        $div->{'key'}    = isset($object->{$editaction_field}) ? $object->{$editaction_field} : NULL;
+                        $div->{'pkey'}   = $editaction_field;
+                        $div->add($data);
+                        $cell = new TElement('td');
+                        $row->add($cell);
+                        $cell->add($div);
+                        $cell->{'class'} = 'tdatagrid_cell';
+                    }
+                    else
+                    {
+                        // add the cell to the row
+                        $cell = new TElement('td');
+                        $row->add($cell);
+                        $cell->add($data);
+                        $cell->{'class'} = 'tdatagrid_cell';
+                        $cell-> align = $align;
+                        
+                        if (isset($first_url) AND $this->defaultClick)
+                        {
+                            $cell->{'href'}      = $first_url;
+                            $cell->{'generator'} = 'adianti';
+                            $cell->{'class'}     = 'tdatagrid_cell';
+                        }
+                    }
+                    if ($width)
+                    {
+                        $cell->{'width'} = (strpos($width, '%') !== false) ? $width : ($width + 8).'px';
+                    }
+                }
+            }
+            
+            if ($this->popover)
+            {
+                $poptitle   = $this->poptitle;
+                $popcontent = $this->popcontent;
+                $poptitle   = $this->replace($poptitle, $object);
+                $popcontent = $this->replace($popcontent, $object);
+                
+                // replace methods
+                $methods = get_class_methods($object);
+                if ($methods)
+                {
+                    foreach ($methods as $method)
+                    {
+                        if (stristr($popcontent, "{$method}()") !== FALSE)
+                        {
+                            $popcontent = str_replace('{'.$method.'()}', $object->$method(), $popcontent);
+                        }
+                    }
+                }
+                $row->{'popover'} = 'true';
+                $row->{'poptitle'} = $poptitle;
+                $row->{'popcontent'} = htmlspecialchars(str_replace("\n", '', nl2br($popcontent)));
+            }
+            
+            $this->objects[ $this->rowcount ] = $object;
+            
+            // increments the row counter
+            $this->rowcount ++;
+            
+            return $row;
         }
         else
         {
@@ -322,59 +654,232 @@ class TDataGrid extends GtkVBox
     }
     
     /**
-     * Clear the DataGrid contents
+     * Return datagrid items
      */
-    public function clear()
+    public function getItems()
     {
-        $this->model->clear();
+        return $this->objects;
     }
     
     /**
-     * Returns the DataGrid's width
+     * Process column totals
      */
-    public function getWidth()
+    private function processTotals()
     {
-        return $this->width + count($this->columns)*10;
-    }
-    
-    /**
-     * Executed when the user double click at the row
-     * @ignore-autocomplete on
-     */
-    public function onDoubleClick()
-    {
-        if (isset($this->actions[0]))
+        if (count($this->objects) == 0)
         {
-            $this->onExecute($this->actions[0]);
+            return;
+        }
+        
+        $has_total = false;
+        
+        $tfoot = new TElement('tfoot');
+        $tfoot->{'class'} = 'tdatagrid_footer';
+        
+        $row = new TElement('tr');
+        $tfoot->add($row);
+        
+        if ($this->actions)
+        {
+            // iterate the actions
+            foreach ($this->actions as $action)
+            {
+                $cell = new TElement('td');
+                $row->add($cell);
+            }
+        }
+        
+        if ($this->action_groups)
+        {
+            foreach ($this->action_groups as $action_group)
+            {
+                $cell = new TElement('td');
+                $row->add($cell);
+            }
+        }
+        
+        if ($this->columns)
+        {
+            // iterate the DataGrid columns
+            foreach ($this->columns as $column)
+            {
+                $cell = new TElement('td');
+                $row->add($cell);
+                
+                // get the column total function
+                $totalFunction = $column->getTotalFunction();
+                $transformer   = $column->getTransformer();
+                $name          = $column->getName();
+                $align         = $column->getAlign();
+                $cell->{'style'} = "text-align:$align";
+                if ($totalFunction)
+                {
+                    $has_total = true;
+                    $content   = $totalFunction($this->columnValues[$name]);
+                    
+                    if ($transformer)
+                    {
+                        // apply the transformer functions over the data
+                        $content = call_user_func($transformer, $content);
+                    }
+                    $cell->add($content);
+                }
+                else
+                {
+                    $cell->add('&nbsp;');
+                }
+                //$cell->{'class'} = 'tdatagrid_action';
+            }
+        }
+        
+        if ($has_total)
+        {
+            parent::add($tfoot);
         }
     }
     
     /**
-     * Differentiate lines by color
-     * @ignore-autocomplete on
+     * Replace a string with object properties within {pattern}
+     * @param $content String with pattern
+     * @param $object  Any object
      */
-    public function formatZebra($column, $cell, $model, $iter)
+    private function replace($content, $object, $cast = null)
     {
-        $path = $model->get_path($iter);
-        $row_num = $path[0];
-        $row_color = ($row_num%2==1) ? '#eeeeee' : '#ffffff';
-        $cell->set_property('cell-background', $row_color);
+        if (preg_match_all('/\{(.*?)\}/', $content, $matches) )
+        {
+            foreach ($matches[0] as $match)
+            {
+                $property = substr($match, 1, -1);
+                $value    = $object->$property;
+                if ($cast)
+                {
+                    settype($value, $cast);
+                }
+                
+                $content  = str_replace($match, $value, $content);
+            }
+        }
+        
+        return $content;
+    }
+    
+    /**
+     * Find the row index by object attribute
+     * @param $attribute Object attribute
+     * @param $value Object value
+     */
+    public function getRowIndex($attribute, $value)
+    {
+        foreach ($this->objects as $pos => $object)
+        {
+            if ($object->$attribute == $value)
+            {
+                
+                return $pos;
+            }
+        }
+        return NULL; 
+    }
+    
+    /**
+     * Return the row by position
+     * @param $position Row position
+     */
+    public function getRow($position)
+    {
+        return $this->tbody->get($position);
+    }
+    
+    /**
+     * Prepare action for use
+     * @param $action TAction
+     * @param $object Data Object
+     */
+    private function prepareAction(TAction $action, $object)
+    {
+        $field  = $action->getField();
+        
+        if ( is_null( $field ) )
+        {
+            throw new Exception(AdiantiCoreTranslator::translate('Field for action ^1 not defined', $label) . '.<br>' . 
+                                AdiantiCoreTranslator::translate('Use the ^1 method', 'setField'.'()').'.');
+        }
+        
+        if ( !isset( $object->$field ) )
+        {
+            throw new Exception(AdiantiCoreTranslator::translate('Field ^1 not exists or contains NULL value', $field));
+        }
+        
+        // get the object property that will be passed ahead
+        $action->setParameter('key', isset($object->$field) ? $object->$field : NULL);
+        if (isset($object->$field))
+        {
+            $action->setParameter($field, $object->$field);
+        }
+    }
+    
+    /**
+     * Returns the DataGrid's width
+     * @return An integer containing the DataGrid's width
+     */
+    public function getWidth()
+    {
+        $width=0;
+        if ($this->actions)
+        {
+            // iterate the DataGrid Actions
+            foreach ($this->actions as $action)
+            {
+                $width += 22;
+            }
+        }
+        
+        if ($this->columns)
+        {
+            // iterate the DataGrid Columns
+            foreach ($this->columns as $column)
+            {
+                $width += $column->getWidth();
+            }
+        }
+        return $width;
+    }
+    
+    /**
+     * Shows the DataGrid
+     */
+    function show()
+    {
+        $this->processTotals();
+        
+        // shows the datagrid
+        parent::show();
+        
+        $params = $_REQUEST;
+        unset($params['class']);
+        unset($params['method']);
+        // to keep browsing parameters (order, page, first_page, ...)
+        $urlparams='&'.http_build_query($params);
+        
+        // inline editing treatment
+        TScript::create(" tdatagrid_inlineedit( '{$urlparams}' );");
+        TScript::create(" tdatagrid_enable_groups();");
     }
     
     /**
      * Assign a PageNavigation object
      * @param $pageNavigation object
      */
-    public function setPageNavigation($pageNavigation)
+    function setPageNavigation($pageNavigation)
     {
         $this->pageNavigation = $pageNavigation;
     }
     
     /**
      * Return the assigned PageNavigation object
-     * @return TPageNavigation
+     * @return $pageNavigation object
      */
-    public function getPageNavigation()
+    function getPageNavigation()
     {
         return $this->pageNavigation;
     }

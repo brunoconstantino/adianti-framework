@@ -1,55 +1,70 @@
-.formtitle
-{
-    position: relative;
-    padding: 14px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 14px;
-    color: #FFF;
-    background: #939393;
-    text-shadow:0 1px 0 #000000;
-    border-radius: 3px 3px 3px 3px;
-}
-
-.formfield
-{
-    background: #F5EBDD;
-    border: 1px solid #A0A0A0;
-    border-radius: 3px 3px 3px 3px;
-    padding-left: 4px;
-    padding-right: 4px;
-    height: 24px;
-    z-index: 1;
-}
-
-.sectiontitle
-{
-    position: relative;
-    padding: 4px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 16px;
-    color: #FFF;
-    background: #9EAACD;
-    text-shadow:0 1px 0 #000000;
-    border-radius: 3px 3px 3px 3px;
-}
-
 .customform
 {
     border-radius: 3px 3px 3px 3px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    font-family:"Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
     font-size:14px;
-    width: 700px;
-    background-color: #FAFAFA;
-    -moz-box-shadow: 3px 3px 3px #BABABA;
-    -webkit-box-shadow: 3px 3px 3px #BABABA;
-    box-shadow: 3px 3px 3px #BABABA;
-    border:1px solid #B7B7B7;
+    width: 100%;
+    background: white;
+    -moz-box-shadow: 3px 3px 3px #ececec;
+    -webkit-box-shadow: 3px 3px 3px #ececec;
+    box-shadow: 3px 3px 3px #ececec;
+    border-spacing: 0px !important;
+    border-collapse: collapse;
+    margin-top: 2px;
+    border: 1px solid #808080;
+}
+
+.customform .formtitle
+{
+    position: relative;
+    padding: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    color: #FFF;
+    background: #A5A5A5;
+    border-radius: 3px 3px 3px 3px;
+    font-family: 'Open Sans';
+}
+
+.customform td.sectiontitle
+{
+    position: relative;
+    padding: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    color: #FFF;
+    background: #A5A5A5;
+    border-radius: 2px 2px 2px 2px;
+    font-family: 'Open Sans';
+    border:0;
+}
+
+.customform .formfield
+{
+    background: #F5EBDD;
+    border: 1px solid #A0A0A0;
+    border-radius: 2px 2px 2px 2px;
+    height: 24px;
+    z-index: 1;
+    display: block;
+    padding: 4px;
+}
+
+.customform tr.oddrow
+{
+    background: whiteSmoke;
 }
 
 .customform td
 {
-    padding-left:2px;
+    padding: 4px;
+}
+
+.customform tbody.formdata td
+{
+    padding: 4px;
+    border-left: 1px solid #808080;
+    border-right: 1px solid #808080;
 }

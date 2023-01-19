@@ -1,94 +1,60 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
 use Adianti\Widget\Form\AdiantiWidgetInterface;
 use Adianti\Control\TAction;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
 use Adianti\Widget\Form\TForm;
 use Adianti\Widget\Form\TField;
 
 use Adianti\Core\AdiantiCoreTranslator;
-
 use Exception;
-use Gtk;
-use GtkSpinButton;
 
 /**
  * Spinner Widget (also known as spin button)
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TSpinner extends TField implements AdiantiWidgetInterface
 {
-    protected $widget;
+    private $min;
+    private $max;
+    private $step;
+    private $exitAction;
+    protected $id;
     protected $formName;
-    protected $exitAction;
     
     /**
      * Class Constructor
-     * @param  $name Field Name
+     * @param $name Name of the widget
      */
     public function __construct($name)
     {
         parent::__construct($name);
-        $this->widget = new GtkSpinButton;
-        parent::add($this->widget);
-        $this->setSize(200);
+        $this->id = 'tspinner_'.mt_rand(1000000000, 1999999999);
     }
     
     /**
-     * Define the widget's content
-     * @param  $value  widget's content
+     * Define the field's range
+     * @param $min Minimal value
+     * @param $max Maximal value
+     * @param $step Step value
      */
-    public function setValue($value)
+    public function setRange($min, $max, $step)
     {
-        $this->widget->set_value($value);
-    }
-
-    /**
-     * Return the widget's content
-     */
-    public function getValue()
-    {
-        return $this->widget->get_value();
-    }
-    
-    /**
-     * Define the Field's size
-     * @param $width Field's width in pixels
-     */
-    public function setSize($width, $height = NULL)
-    {
-        $this->widget->set_size_request($width, -1);
-    }
-    
-    /**
-     * Define a field property
-     * @param $name  Property Name
-     * @param $value Property Value
-     */
-    public function setProperty($name, $value, $replace = TRUE)
-    {
-        if ($name == 'readonly')
+        $this->min = $min;
+        $this->max = $max;
+        $this->step = $step;
+        
+        if ($this->getValue() % $step !== 0)
         {
-            $this->widget->set_editable(false);
-        }
-    }
-    
-    /**
-     * Return a field property
-     * @param $name  Property Name
-     * @param $value Property Value
-     */
-    public function getProperty($name)
-    {
-        if ($name == 'readonly')
-        {
-            return $this->widget->get_editable();
+            parent::setValue($min);
         }
     }
     
@@ -107,54 +73,90 @@ class TSpinner extends TField implements AdiantiWidgetInterface
             $string_action = $action->toString();
             throw new Exception(AdiantiCoreTranslator::translate('Action (^1) must be static to be used in ^2', $string_action, __METHOD__));
         }
-        $this->widget->connect_after('value-changed', array($this, 'onExecuteExitAction'));
     }
     
     /**
-     * Execute the exit action
-     */
-    public function onExecuteExitAction()
-    {
-        if (!TForm::getFormByName($this->formName) instanceof TForm)
-        {
-            throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->wname, 'TForm::setFields()') );
-        }
-        
-        if (isset($this->exitAction) AND $this->exitAction instanceof TAction)
-        {
-            $callback = $this->exitAction->getAction();
-            $param = (array) TForm::retrieveData($this->formName);
-            call_user_func($callback, $param);
-        }
-    }
-    
-    /**
-     * Define the field's range
-     * @param $min Minimal value
-     * @param $max Maximal value
-     * @param $step Step value
-     */
-    public function setRange($min, $max, $step)
-    {
-        $this->widget->set_increments($step, $step*10);
-        $this->widget->set_range($min, $max);
-    }
-    
-    /**
-     * Clear the field
+     * Enable the field
      * @param $form_name Form name
      * @param $field Field name
      */
-    public static function clearField($form_name, $field)
+    public static function enableField($form_name, $field)
     {
-        $form = TForm::getFormByName($form_name);
-        if ($form instanceof TForm)
+        TScript::create( " tspinner_enable_field('{$form_name}', '{$field}'); " );
+    }
+    
+    /**
+     * Disable the field
+     * @param $form_name Form name
+     * @param $field Field name
+     */
+    public static function disableField($form_name, $field)
+    {
+        TScript::create( " tspinner_disable_field('{$form_name}', '{$field}'); " );
+    }
+    
+    /**
+     * Shows the widget at the screen
+     */
+    public function show()
+    {
+        // define the tag properties
+        $this->tag-> name  = $this->name;    // TAG name
+        $this->tag-> value = $this->value;   // TAG value
+        $this->tag-> type  = 'text';         // input type
+        
+        if (strstr($this->size, '%') !== FALSE)
         {
-            $field = $form->getField($field);
-            if ($field instanceof AdiantiWidgetInterface)
-            {
-                $field->setValue(0);
-            }
+            $this->setProperty('style', "width:{$this->size};", false); //aggregate style info
+            $this->setProperty('relwidth', "{$this->size}", false); //aggregate style info
         }
+        else
+        {
+            $this->setProperty('style', "width:{$this->size}px;", false); //aggregate style info
+        }
+        
+        if ($this->id)
+        {
+            $this->tag->{'id'}  = $this->id;
+        }
+        
+        // verify if the widget is non-editable
+        if (parent::getEditable())
+        {
+            $exit_action = 'function() {}';
+            if (isset($this->exitAction))
+            {
+                if (!TForm::getFormByName($this->formName) instanceof TForm)
+                {
+                    throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->name, 'TForm::setFields()') );
+                }            
+                $string_action = $this->exitAction->serialize(FALSE);
+                $exit_action = "function() { __adianti_post_lookup('{$this->formName}', '{$string_action}', '{$this->id}' ) }";
+            }
+            
+            TScript::create(" tspinner_start( '#{$this->id}', '{$this->value}', '{$this->min}', '{$this->max}', '{$this->step}', $exit_action); ");
+            
+            $mask = str_repeat('9', strlen($this->max));
+            $this->tag->{'onKeyPress'} = "return tentry_mask(this,event,'{$mask}')";
+        }
+        else
+        {
+            $this->tag->{'readonly'} = "1";
+            $this->tag->{'class'} = 'tfield_disabled'; // CSS
+            $this->tag->{'style'} = "width:{$this->size}px;".
+                                    "-moz-user-select:none;";
+            $this->tag->{'onmouseover'} = "style.cursor='default'";
+        }
+        
+        // shows the tag
+        $this->tag->show();
+    }
+    
+    /**
+     * Set the value
+     */
+    public function setValue($value)
+    {
+        parent::setValue( (int) $value);
     }
 }

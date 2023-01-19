@@ -46,16 +46,9 @@ class TAccordion extends TElement
             parent::add($content);
         }
         
-    	$script = new TElement('script');
-    	$script->{'type'} = 'text/javascript';
-    	$code = '
-            $(document).ready( function() {
-                $( "#'.$this->id.'" ).accordion();
-            });
-            ';
-        $script->add($code);
-        
-        $script->show();
+        TScript::create('$(document).ready( function() {
+                            $( "#'.$this->id.'" ).accordion();
+                        });');
         parent::show();
     }
 }

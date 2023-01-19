@@ -1,101 +1,117 @@
 <?php
-Namespace Adianti\Core;
+namespace Adianti\Core;
 
 use ReflectionMethod;
 use Exception;
+use ErrorException;
 use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Control\TPage;
+use Adianti\Widget\Base\TScript;
+use Adianti\Widget\Dialog\TMessage;
 use Adianti\Widget\Util\TExceptionView;
 
-use Gtk;
-use GtkWindow;
-use GtkSettings;
-use GtkMessageDialog;
-use GdkPixbuf;
-
 /**
- * Adianti Core Application
+ * Basic structure to run a web application
  *
- * @version    2.0
+ * @version    4.0
  * @package    core
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class AdiantiCoreApplication extends GtkWindow
+class AdiantiCoreApplication
 {
-    const APP_TITLE = 'Adianti Framework';
-    static $inst;
-    protected $content;
-    protected $classname;
+    private static $router;
     
-    /**
-     * Constructor Method
-     */
-    function __construct()
+    public static function run($debug = FALSE)
     {
-        parent::__construct();
-        parent::set_size_request(840,640);
-        parent::set_position(GTK::WIN_POS_CENTER);
-        parent::connect_simple('delete-event', array($this, 'onClose'));
-        parent::connect_simple('destroy', array('Gtk', 'main_quit'));
-        parent::set_title(self::APP_TITLE);
-        parent::set_icon(GdkPixbuf::new_from_file('favicon.png'));
+        $class   = isset($_REQUEST['class'])    ? $_REQUEST['class']   : '';
+        $static  = isset($_REQUEST['static'])   ? $_REQUEST['static']  : '';
+        $method  = isset($_REQUEST['method'])   ? $_REQUEST['method']  : '';
         
-        $gtk = GtkSettings::get_default();
-        $gtk->set_long_property("gtk-button-images", TRUE, 0);
-        $gtk->set_long_property("gtk-menu-images", TRUE, 0);
-        
-        self::$inst = $this;
+        $content = '';
         set_error_handler(array('AdiantiCoreApplication', 'errorHandler'));
-    }
-    
-    /**
-     * Pack a class inside the application window
-     * @param $callback PHP Callback
-     */
-    function run($callback)
-    {
-        if (is_array($callback))
-        {
-            $class  = $callback[0];
-            $method = $callback[1];
-        }
-        else
-        {
-            $class = $callback;
-        }
         
-        if (class_exists($class))
+        if (in_array(strtolower($class), array_map('strtolower', AdiantiClassMap::getInternalClasses()) ))
         {
-            $object = new $class;
-            
-            if ($object instanceof TPage)
+            ob_start();
+            new TMessage( 'error', AdiantiCoreTranslator::translate('The internal class ^1 can not be executed', " <b><i><u>{$class}</u></i></b>") );
+            $content = ob_get_contents();
+            ob_end_clean();
+        }
+        else if (class_exists($class))
+        {
+            if ($static)
             {
-                if ($children = $this->content->get_children())
+                $rf = new ReflectionMethod($class, $method);
+                if ($rf-> isStatic ())
                 {
-                    foreach ($children as $child)
-                    {
-                        $this->content->remove($child);
-                    }
+                    call_user_func(array($class, $method), $_REQUEST);
                 }
-                
-                if (isset($method))
+                else
                 {
-                  $object->$method();
+                    call_user_func(array(new $class($_REQUEST), $method), $_REQUEST);
                 }
-                
-                $this->content->put($object, 5, 5);
-                $object->show( array() );
-                return $object;
             }
             else
             {
-                $object->show();
-                return $object;
+                try
+                {
+                    $page = new $class( $_REQUEST );
+                    ob_start();
+                    $page->show( $_REQUEST );
+	                $content = ob_get_contents();
+	                ob_end_clean();
+                }
+                catch(Exception $e)
+                {
+                    ob_start();
+                    if ($debug)
+                    {
+                        new TExceptionView($e);
+                        $content = ob_get_contents();
+                    }
+                    else
+                    {
+                        new TMessage('error', $e->getMessage());
+                        $content = ob_get_contents();
+                    }
+                    ob_end_clean();
+                }
             }
         }
+        else if (function_exists($method))
+        {
+            call_user_func($method, $_REQUEST);
+        }
+        else
+        {
+            new TMessage('error', AdiantiCoreTranslator::translate('Class ^1 not found', " <b><i><u>{$class}</u></i></b>") . '.<br>' . AdiantiCoreTranslator::translate('Check the class name or the file name').'.');
+        }
         
+        if (!$static)
+        {
+            echo TPage::getLoadedCSS();
+        }
+        echo TPage::getLoadedJS();
+        
+        echo $content;
+    }
+    
+    /**
+     * Set router callback
+     */
+    public static function setRouter(Callable $callback)
+    {
+        self::$router = $callback;
+    }
+    
+    /**
+     * Get router callback
+     */
+    public static function getRouter()
+    {
+        return self::$router;
     }
     
     /**
@@ -105,33 +121,9 @@ class AdiantiCoreApplication extends GtkWindow
      * @param $method method name
      * @param $parameters array of parameters
      */
-    static public function executeMethod($class, $method = NULL, $parameters = NULL)
+    public static function executeMethod($class, $method = NULL, $parameters = NULL)
     {
-        if (class_exists($class))
-        {
-            $inst = self::getInstance();
-            $object = $inst->run($class);
-            
-            if ($method)
-            {
-                if (method_exists($object, $method))
-                {
-                    $object->$method($parameters);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Load a page
-     *
-     * @param $class class name
-     * @param $method method name
-     * @param $parameters array of parameters
-     */
-    static public function loadPage($class, $method = NULL, $parameters = NULL)
-    {
-        self::executeMethod($class, $method, $parameters);
+        self::gotoPage($class, $method, $parameters);
     }
     
     /**
@@ -141,49 +133,111 @@ class AdiantiCoreApplication extends GtkWindow
      * @param $method method name
      * @param $parameters array of parameters
      */
-    static public function gotoPage($class, $method = NULL, $parameters = NULL)
+    public static function gotoPage($class, $method = NULL, $parameters = NULL, $callback = NULL)
     {
-        self::executeMethod($class, $method, $parameters);
+        $query = self::buildHttpQuery($class, $method, $parameters);
+        
+        TScript::create("__adianti_goto_page('{$query}');");
     }
     
     /**
-     * on close the main window
+     * Load a page
+     *
+     * @param $class class name
+     * @param $method method name
+     * @param $parameters array of parameters
      */
-    function onClose()
+    public static function loadPage($class, $method = NULL, $parameters = NULL)
     {
-        $dialog = new GtkMessageDialog(null, Gtk::DIALOG_MODAL, Gtk::MESSAGE_QUESTION,
-                                             Gtk::BUTTONS_YES_NO, AdiantiCoreTranslator::translate('Quit the application ?'));
-        $dialog->set_position(GTK::WIN_POS_CENTER);
-        $response = $dialog->run();
-        if ($response == Gtk::RESPONSE_YES)
+        $query = self::buildHttpQuery($class, $method, $parameters);
+        
+        TScript::create("__adianti_load_page('{$query}');");
+    }
+    
+    /**
+     * Post data
+     *
+     * @param $class class name
+     * @param $method method name
+     * @param $parameters array of parameters
+     */
+    public static function postData($formName, $class, $method = NULL, $parameters = NULL)
+    {
+        $url = array();
+        $url['class']  = $class;
+        $url['method'] = $method;
+        unset($parameters['class']);
+        unset($parameters['method']);
+        $url = array_merge($url, (array) $parameters);
+        
+        TScript::create("__adianti_post_data('{$formName}', '".http_build_query($url)."');");
+    }
+    
+    /**
+     * Build HTTP Query
+     *
+     * @param $class class name
+     * @param $method method name
+     * @param $parameters array of parameters
+     */
+    public static function buildHttpQuery($class, $method = NULL, $parameters = NULL)
+    {
+        $url = array();
+        $url['class']  = $class;
+        $url['method'] = $method;
+        unset($parameters['class']);
+        unset($parameters['method']);
+        $query = http_build_query($url);
+        $callback = self::$router;
+        $short_url = null;
+        
+        if ($callback)
         {
-            $dialog->destroy();
-            return false;
+            $query  = $callback($query, TRUE);
         }
         else
         {
-            $dialog->destroy();
-            return true;
+            $query = 'index.php?'.$query;
+        }
+        
+        if (strpos($query, '?') !== FALSE)
+        {
+            return $query . ( count($parameters)>0 ? '&'.http_build_query($parameters) : '' );
+        }
+        else
+        {
+            return $query . ( count($parameters)>0 ? '?'.http_build_query($parameters) : '' );
         }
     }
     
     /**
-     * Returns the application instance
+     * Reload application
      */
-    static function getInstance()
+    public static function reload()
     {
-        return self::$inst;
+        TScript::create("__adianti_goto_page('index.php')");
+    }
+    
+    /**
+     * Register URL
+     *
+     * @param $page URL to be registered
+     */
+    public static function registerPage($page)
+    {
+        TScript::create("__adianti_register_state('{$page}', 'user');");
     }
     
     /**
      * Handle Catchable Errors
      */
-    static public function errorHandler($errno, $errstr, $errfile, $errline)
+    public static function errorHandler($errno, $errstr, $errfile, $errline)
     {
-    	if ( $errno === E_RECOVERABLE_ERROR ) { 
-    		throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
-    	}
-     
-    	return false;
+        if ( $errno === E_RECOVERABLE_ERROR )
+        {
+            throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
+        	}
+        	
+        	return false;
     }
 }

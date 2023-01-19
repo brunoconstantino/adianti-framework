@@ -1,5 +1,5 @@
 <?php
-Namespace Adianti\Widget\Util;
+namespace Adianti\Widget\Util;
 
 use Adianti\Widget\Util\TBreadCrumb;
 use Adianti\Core\AdiantiCoreTranslator;
@@ -9,11 +9,11 @@ use Exception;
 /**
  * XMLBreadCrumb
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TXMLBreadCrumb extends TBreadCrumb
@@ -50,6 +50,10 @@ class TXMLBreadCrumb extends TBreadCrumb
                 $action = (string) $xmlElement-> action;
                 $icon   = (string) $xmlElement-> icon;
                 
+                if (substr($label, 0, 3) == '_t{')
+                {
+                    $label = _t(substr($label,3,-1), 3, -1);
+                }
                 $this->parse($xmlElement-> menu-> menuitem, array($label));
             }
             
@@ -83,26 +87,35 @@ class TXMLBreadCrumb extends TBreadCrumb
     public function parse($xml, $path)
     {
         $i = 0;
-        foreach ($xml as $xmlElement)
+        if ($xml)
         {
-            $atts   = $xmlElement->attributes();
-            $label  = (string) $atts['label'];
-            $action = (string) $xmlElement-> action;
-            if (strpos($action, '#') !== FALSE)
+            foreach ($xml as $xmlElement)
             {
-                list($action, $method) = explode('#', $action);
-            }
-            $icon   = (string) $xmlElement-> icon;
-            
-            if ($xmlElement->menu)
-            {
-                $this->parse($xmlElement-> menu-> menuitem, array_merge($path, array($label)));
-            }
-            
-            // just child nodes have actions
-            if ($action)
-            {
-                $this->paths[$action] = array_merge($path, array($label));
+                $atts   = $xmlElement->attributes();
+                $label  = (string) $atts['label'];
+                $action = (string) $xmlElement-> action;
+                
+                if (substr($label, 0, 3) == '_t{')
+                {
+                    $label = _t(substr($label,3,-1), 3, -1);
+                }
+                
+                if (strpos($action, '#') !== FALSE)
+                {
+                    list($action, $method) = explode('#', $action);
+                }
+                $icon   = (string) $xmlElement-> icon;
+                
+                if ($xmlElement->menu)
+                {
+                    $this->parse($xmlElement-> menu-> menuitem, array_merge($path, array($label)));
+                }
+                
+                // just child nodes have actions
+                if ($action)
+                {
+                    $this->paths[$action] = array_merge($path, array($label));
+                }
             }
         }
     }

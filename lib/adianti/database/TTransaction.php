@@ -1,22 +1,22 @@
 <?php
-Namespace Adianti\Database;
+namespace Adianti\Database;
 
 use Adianti\Database\TConnection;
 use Adianti\Log\TLogger;
-use Psr\Log\LoggerInterface;
-use Psr\Log\LoggerAwareInterface;
+use Adianti\Log\AdiantiLoggerInterface;
 use PDO;
+use Closure;
 
 /**
  * Manage Database transactions
  *
- * @version    2.0
+ * @version    4.0
  * @package    database
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-final class TTransaction implements LoggerAwareInterface
+final class TTransaction
 {
     private static $conn;     // active connection
     private static $logger;   // Logger object
@@ -64,8 +64,20 @@ final class TTransaction implements LoggerAwareInterface
             // begins transaction
             self::$conn[self::$counter]->beginTransaction();
         }
-        // turn OFF the log
-        self::$logger[self::$counter] = NULL;
+        
+        if (!empty(self::$dbinfo[self::$counter]['slog']))
+        {
+            $logClass = self::$dbinfo[self::$counter]['slog'];
+            if (class_exists($logClass))
+            {
+                self::setLogger(new $logClass);
+            }
+        }
+        else
+        {
+            // turn OFF the log
+            self::$logger[self::$counter] = NULL;
+        }
     }
     
     /**
@@ -106,7 +118,10 @@ final class TTransaction implements LoggerAwareInterface
         if (self::$conn[self::$counter])
         {
             $driver = self::$conn[self::$counter]->getAttribute(PDO::ATTR_DRIVER_NAME);
-            if ($driver !== 'dblib')
+            $info = self::getDatabaseInfo();
+            $fake = isset($info['fake']) ? $info['fake'] : FALSE;
+            
+            if ($driver !== 'dblib' AND !$fake)
             {
                 // apply the pending operations
                 self::$conn[self::$counter]->commit();
@@ -117,10 +132,27 @@ final class TTransaction implements LoggerAwareInterface
     }
     
     /**
+     * Assign a Logger closure function
+     * @param $logger A Closure
+     */
+    public static function setLoggerFunction(Closure $logger)
+    {
+        if (isset(self::$conn[self::$counter]))
+        {
+            self::$logger[self::$counter] = $logger;
+        }
+        else
+        {
+            // if there's no active transaction opened
+            throw new Exception(AdiantiCoreTranslator::translate('No active transactions') . ': ' . __METHOD__);
+        }
+    }
+    
+    /**
      * Assign a Logger strategy
      * @param $logger A TLogger child object
      */
-    public static function setLogger(LoggerInterface $logger)
+    public static function setLogger(AdiantiLoggerInterface $logger)
     {
         if (isset(self::$conn[self::$counter]))
         {
@@ -142,7 +174,23 @@ final class TTransaction implements LoggerAwareInterface
         // check if exist a logger
         if (self::$logger[self::$counter])
         {
-            self::$logger[self::$counter]->write($message);
+            $log = self::$logger[self::$counter];
+            
+            // avoid recursive log
+            self::$logger[self::$counter] = NULL;
+            
+            if ($log instanceof AdiantiLoggerInterface)
+            {
+                // call log method
+                $log->write($message);
+            }
+            else if ($log instanceof Closure)
+            {
+                $log($message);
+            }
+            
+            // restore logger
+            self::$logger[self::$counter] = $log;
         }
     }
     

@@ -1,28 +1,39 @@
 <?php
-Namespace Adianti\Widget\Container;
+namespace Adianti\Widget\Container;
 
-use Gtk;
-use GtkHBox;
+use Adianti\Widget\Base\TElement;
 
 /**
  * Horizontal Box
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class THBox extends GtkHBox
+class THBox extends TElement
 {
     /**
-     * add a widget
-     * @param $widget Widget
+     * Class Constructor
      */
-    public function add($widget)
+    public function __construct()
     {
-        parent::pack_start($widget, FALSE, FALSE);
+        parent::__construct('div');
+    }
+    
+    /**
+     * Add an child element
+     * @param $child Any object that implements the show() method
+     */
+    public function add($child, $style = 'display:inline-table;')
+    {
+        $wrapper = new TElement('div');
+        $wrapper->{'style'} = $style;
+        $wrapper->add($child);
+        parent::add($wrapper);
+        return $wrapper;
     }
     
     /**
@@ -57,22 +68,5 @@ class THBox extends GtkHBox
             }
         }
         return $box;
-    }
-    
-    /**
-     * Shows the HBox
-     */
-    public function show()
-    {
-        $children = parent::get_children();
-        if ($children)
-        {
-            foreach ($children as $child)
-            {
-                // show child object
-                $child->show();
-            }
-        }
-        parent::show_all();
     }
 }

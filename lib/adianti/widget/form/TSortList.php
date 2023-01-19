@@ -1,137 +1,74 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
 use Adianti\Widget\Form\AdiantiWidgetInterface;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
 use Adianti\Widget\Form\TField;
-use Adianti\Widget\Form\TImage;
+use Adianti\Widget\Util\TImage;
+use Adianti\Core\AdiantiCoreTranslator;
+use Adianti\Control\TAction;
 
-use Gtk;
-use Gdk;
-use GtkFrame;
-use GtkHBox;
-use GtkVBox;
-use GtkScrolledWindow;
-use GtkButton;
+use Exception;
 
 /**
  * A Sortable list
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TSortList extends TField implements AdiantiWidgetInterface
 {
-    private $container;
-    private $itemIcon;
-    private $items;
-    private $connectedTo;
     private $initialItems;
-    protected $widget;
+    private $items;
+    private $valueSet;
+    private $connectedTo;
+    private $itemIcon;
+    private $changeAction;
+    private $orientation;
+    private $limit;
+    protected $id;
     
     /**
      * Class Constructor
      * @param  $name widget's name
      */
-    function __construct($name)
+    public function __construct($name)
     {
+        // executes the parent class constructor
         parent::__construct($name);
-        
-        $this->widget = new GtkFrame;
-        parent::add($this->widget);
-        
-        $this->container = new GtkVBox;
+        $this->id   = 'tsortlist_'.mt_rand(1000000000, 1999999999);
         
         $this->initialItems = array();
         $this->items = array();
+        $this->limit = -1;
         
-        $targets = array(array('text/plain', 0, -1));
-        $this->widget->connect('drag_data_received', array($this, 'onDataReceived'));
-        $this->widget->drag_dest_set(Gtk::DEST_DEFAULT_ALL, $targets, Gdk::ACTION_COPY);
-        
-        $scroll = new GtkScrolledWindow;
-        $scroll->set_border_width(4);
-        $this->widget->add($scroll);
-        
-        $hbox = new GtkHBox;
-        $scroll->add_with_viewport($hbox);
-        
-        $hbox->pack_start($this->container, TRUE, TRUE);
-        $hbox->set_border_width(20);
-        parent::show_all();
+        // creates a <ul> tag
+        $this->tag = new TElement('ul');
+        $this->tag->{'class'} = 'tsortlist';
+        $this->tag->{'itemname'} = $name;
     }
     
     /**
-     * Define the widget's content
-     * @param  $value  widget's content
+     * Define orientation
+     * @param $orienatation (horizontal, vertical)
      */
-    public function setValue($value)
+    public function setOrientation($orientation)
     {
-        foreach ($this->container->get_children() as $child)
-        {
-            $this->container->remove($child);
-        }
-        $items = $this->initialItems;
-        
-        if (is_array($value))
-        {
-            $this->items = array();
-            foreach ($value as $index)
-            {
-                if (isset($items[$index]))
-                {
-                    $this->addItems(array($index => $items[$index]));
-                }
-                else if (isset($this->connectedTo) AND is_array($this->connectedTo))
-                {
-                    foreach ($this->connectedTo as $connectedList)
-                    {
-                        if (isset($connectedList->initialItems[$index] ) )
-                        {
-                            $this->addItems(array($index => $connectedList->initialItems[$index]));
-                        }
-                    }
-                }
-            }
-        }
+        $this->orientation = $orientation;
     }
     
     /**
-     * Return the widget's content
+     * Define limit
      */
-    public function getValue()
+    public function setLimit($limit)
     {
-        $return = array();
-        foreach ($this->container->get_children() as $child)
-        {
-            $return[] = $child->get_data('key');
-        }
-        return $return;
+        $this->limit = $limit;
     }
-    
-    /**
-     * Define the Field's size
-     * @param $width Field's width in pixels
-     */
-    public function setSize($width, $height = NULL)
-    {
-        $this->widget->set_size_request($width +40, $height + 40);
-    }
-    
-    /**
-     * Not implemented
-     */
-    public function setProperty($name, $value, $replace = TRUE)
-    {}
-    
-    /**
-     * Not implemented
-     */
-    public function getProperty($name)
-    {}
     
     /**
      * Define the item icon
@@ -140,6 +77,45 @@ class TSortList extends TField implements AdiantiWidgetInterface
     public function setItemIcon(TImage $icon)
     {
         $this->itemIcon = $icon;
+    }
+    
+    /**
+     * Define the list size
+     */
+    public function setSize($width, $height = NULL)
+    {
+        $this->tag->{'style'} = "width:{$width}px;height:{$height}px";
+    }
+    
+    /**
+     * Define the field's value
+     * @param $value An array the field's values
+     */
+    public function setValue($value)
+    {
+        $items = $this->initialItems;
+        if (is_array($value))
+        {
+            $this->items = array();
+            foreach ($value as $index)
+            {
+                if (isset($items[$index]))
+                {
+                    $this->items[$index] = $items[$index];
+                }
+                else if (isset($this->connectedTo) AND is_array($this->connectedTo))
+                {
+                    foreach ($this->connectedTo as $connectedList)
+                    {
+                        if (isset($connectedList->initialItems[$index] ) )
+                        {
+                            $this->items[$index] = $connectedList->initialItems[$index];
+                        }
+                    }
+                }
+            }
+        	$this->valueSet = TRUE;
+        }
     }
     
     /**
@@ -159,13 +135,8 @@ class TSortList extends TField implements AdiantiWidgetInterface
     {
         if (is_array($items))
         {
-            $this->items += $items;
             $this->initialItems += $items;
-            
-            foreach ($items as $key=>$value)
-            {
-                $this->addItem($key, $value);
-            }
+            $this->items += $items;
         }
     }
     
@@ -178,67 +149,150 @@ class TSortList extends TField implements AdiantiWidgetInterface
     }
     
     /**
-     * Returns the widget Selection Data for Drag action
+     * Return the post data
      */
-    public function onDragDataGet($widget, $context, $selection)
+    public function getPostData()
     {
-        $key   = $widget->get_data('key');
-        $value = $widget->get_data('value');
-        $selection->set_text(base64_encode(serialize(array($key => $value))));
+        if (isset($_POST[$this->name]))
+        {
+            return $_POST[$this->name];
+        }
+        else
+        {
+            return array();
+        }
     }
     
     /**
-     * Executes the action for the Drop action
+     * Define the action to be executed when the user changes the combo
+     * @param $action TAction object
      */
-    function onDataReceived($widget, $context, $x, $y, $selection)
+    public function setChangeAction(TAction $action)
     {
-        // obtém os dados da seleção
-        $data = unserialize(base64_decode($selection->get_text()));
-        
-        $this->items += $data;
-        $child = $this->addItem(key($data), current($data));
+        if ($action->isStatic())
+        {
+            $this->changeAction = $action;
+        }
+        else
+        {
+            $string_action = $action->toString();
+            throw new Exception(AdiantiCoreTranslator::translate('Action (^1) must be static to be used in ^2', $string_action, __METHOD__));
+        }
     }
     
     /**
-     * Add an item to the Sort list
-     * @param $key Item key
-     * @param $value Item value
+     * Enable the field
      */
-    private function addItem($key, $value)
+    public static function enableField($form_name, $field)
     {
-        $button = new GtkButton($value);
-        
-        $button->set_data('key',   $key);
-        $button->set_data('value', $value);
-        //$hbox = new GtkHBox;
-        //$hbox->pack_start($button, TRUE, TRUE);
-        $this->container->pack_start($button, FALSE, FALSE);
-        $button->show();
-        $targets = array(array('text/plain', 0, -1));
-        $button->connect('drag_data_get', array($this, 'onDragDataGet'));
-        $button->connect_simple('drag_data_get', array($this->container, 'remove'), $button);
-        
-        $button->drag_source_set(Gdk::BUTTON1_MASK | Gdk::BUTTON3_MASK | Gdk::SHIFT_MASK, $targets, Gdk::ACTION_COPY);
-        $button->drag_source_set_icon_stock(Gtk::STOCK_INDEX);
-        
-        return $button;
+        TScript::create( " tsortlist_enable_field('{$form_name}', '{$field}'); " );
+    }
+    
+    /**
+     * Disable the field
+     */
+    public static function disableField($form_name, $field)
+    {
+        TScript::create( " tsortlist_disable_field('{$form_name}', '{$field}'); " );
     }
     
     /**
      * Clear the field
-     * @param $form_name Form name
-     * @param $field Field name
      */
     public static function clearField($form_name, $field)
     {
-        $form = TForm::getFormByName($form_name);
-        if ($form instanceof TForm)
+        TScript::create( " tsortlist_clear_field('{$form_name}', '{$field}'); " );
+    }
+    
+    /**
+     * Shows the widget at the screen
+     */
+    public function show()
+    {
+        $this->tag->{'id'} = $this->id;
+        
+        if ($this->orientation == 'horizontal')
         {
-            $field = $form->getField($field);
-            if ($field instanceof AdiantiWidgetInterface)
+            $this->tag->{'itemdisplay'} = 'inline-block';
+        }
+        else
+        {
+            $this->tag->{'itemdisplay'} = 'block';
+        }
+        
+        if ($this->items)
+        {
+            $i = 1;
+            // iterate the checkgroup options
+            foreach ($this->items as $index => $label)
             {
-                $field->setValue(array());
+                // control to reduce available options when they are present
+                // in another connected list as a post value
+	            if ($this->connectedTo AND is_array($this->connectedTo))
+	            {
+	                foreach ($this->connectedTo as $connectedList)
+	                {
+                        if (isset($connectedList->items[$index]) AND $connectedList->valueSet )
+                        {
+                            continue 2;
+                        }
+	                }
+	            }
+
+                // instantiates a new Item
+                $item = new TElement('li');
+                
+                if ($this->itemIcon)
+                {
+                    $item->add($this->itemIcon);
+                }
+                $item->add(new TLabel($label));
+                $item->{'class'} = 'tsortlist_item btn btn-default';
+                $item->{'style'} = 'display:block;';
+                $item->{'id'} = "tsortlist_{$this->name}_item_{$i}_li";
+                $item->{'title'} = $this->tag->title;
+                
+                if ($this->orientation == 'horizontal')
+                {
+                    $item->{'style'} = 'display:inline-block';
+                }
+                
+                $input = new TElement('input');
+                $input->{'id'}   = "tsortlist_{$this->name}_item_{$i}_li_input";
+                $input->{'type'} = 'hidden';
+                $input->{'name'} = $this->name . '[]';
+                $input->{'value'} = $index;
+                $item->add($input);
+                
+                $this->tag->add($item);
+                $i ++;
             }
         }
+        
+        if (parent::getEditable())
+        {
+            $change_action = 'function() {}';
+            if (isset($this->changeAction))
+            {
+                if (!TForm::getFormByName($this->formName) instanceof TForm)
+                {
+                    throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->name, 'TForm::setFields()') );
+                }            
+                $string_action = $this->changeAction->serialize(FALSE);
+                $change_action = "function() { __adianti_post_lookup('{$this->formName}', '{$string_action}', '{$this->id}', 'callback'); }";
+            }
+            
+            $connect = 'false';
+            if ($this->connectedTo AND is_array($this->connectedTo))
+            {
+                foreach ($this->connectedTo as $connectedList)
+                {
+                    $connectIds[] =  '#'.$connectedList->getId();
+                }
+                $connect = implode(', ', $connectIds);
+            }
+            TScript::create(" tsortlist_start( '#{$this->id}', '{$connect}', $change_action, $this->limit ) ");
+        }
+        $this->tag->show();
     }
 }

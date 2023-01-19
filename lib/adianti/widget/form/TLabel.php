@@ -1,90 +1,70 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
 use Adianti\Widget\Form\AdiantiWidgetInterface;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TStyle;
 use Adianti\Widget\Form\TField;
-
-use Gtk;
-use GtkLabel;
 
 /**
  * Label Widget
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TLabel extends TField implements AdiantiWidgetInterface
 {
-    private $fontFace;
-    private $fontColor;
-    private $fontSize;
     private $fontStyle;
-    protected $widget;
-    public static $counter;
+    private $embedStyle;
+    protected $value;
+    protected $size;
+    protected $id;
     
     /**
      * Class Constructor
-     * @param $value Label's text
+     * @param  $value text label
      */
-    public function __construct($value)
+    public function __construct($value, $color = null, $size = null, $decoration = null)
     {
-        self::$counter ++;
-        parent::__construct('tlabel'.self::$counter);
-        $this->widget = new GtkLabel($value);
-        $this->widget->set_size_request(-1, -1);
-        parent::add($this->widget);
+        $this->id = mt_rand(1000000000, 1999999999);
+        $stylename = 'tlabel_'.$this->id;
         
+        // set the label's content
         $this->setValue($value);
-        $this->set_alignment(0,0.5);
-        parent::set_use_markup(TRUE);
-    }
-    
-    /**
-     * Define the widget's content
-     * @param  $value  widget's content
-     */
-    public function setValue($value)
-    {
-        $value = str_replace('<br>',   "\n", $value);
-        $value = str_replace('&nbsp;', ' ',  $value);
         
-        $this->value = $value;
-        parent::set_text($value);
-        $this->show();
+        $this->embedStyle = new TStyle($stylename);
+        
+        if (!empty($color))
+        {
+            $this->setFontColor($color);
+        }
+        
+        if (!empty($size))
+        {
+            $this->setFontSize($size);
+        }
+        
+        if (!empty($decoration))
+        {
+            $this->setFontStyle($decoration);
+        }
+        
+        // create a new element
+        $this->tag = new TElement('label');
     }
     
     /**
-     * Return the widget's content
+     * Clone the object
      */
-    public function getValue()
+    public function __clone()
     {
-        return $this->widget->get_text();
+        parent::__clone();
+        $this->embedStyle = clone $this->embedStyle;
     }
-    
-    /**
-     * Define the Field's width
-     * @param $width Field's width in pixels
-     */
-    public function setSize($width, $height = NULL)
-    {
-        $this->widget->set_size_request($width, -1);
-    }
-    
-    /**
-     * Not implemented
-     */
-    public function setProperty($name, $value, $replace = TRUE)
-    {}
-    
-    /**
-     * Not implemented
-     */
-    public function getProperty($name)
-    {}
     
     /**
      * Define the font size
@@ -92,7 +72,29 @@ class TLabel extends TField implements AdiantiWidgetInterface
      */
     public function setFontSize($size)
     {
-        $this->fontSize = $size;
+        $this->embedStyle->{'font_size'}    = $size.'pt';
+    }
+    
+    /**
+     * Define the style
+     * @param  $decoration text decorations (b=bold, i=italic, u=underline)
+     */
+    public function setFontStyle($decoration)
+    {
+        if (strpos(strtolower($decoration), 'b') !== FALSE)
+        {
+            $this->embedStyle->{'font-weight'} = 'bold';
+        }
+        
+        if (strpos(strtolower($decoration), 'i') !== FALSE)
+        {
+            $this->embedStyle->{'font-style'} = 'italic';
+        }
+        
+        if (strpos(strtolower($decoration), 'u') !== FALSE)
+        {
+            $this->embedStyle->{'text-decoration'} = 'underline';
+        }
     }
     
     /**
@@ -101,8 +103,7 @@ class TLabel extends TField implements AdiantiWidgetInterface
      */
     public function setFontFace($font)
     {
-        $this->fontFace = "font-desc='$font $this->fontSize'";
-        $this->set_markup($this->getFormattedValue());
+        $this->embedStyle->{'font_family'} = $font;
     }
     
     /**
@@ -111,38 +112,29 @@ class TLabel extends TField implements AdiantiWidgetInterface
      */
     public function setFontColor($color)
     {
-        $this->fontColor = "foreground='$color'";
-        $this->set_markup($this->getFormattedValue());
+        $this->embedStyle->{'color'} = $color;
     }
     
     /**
-     * Define the style
-     * @param $style string "b,i,u"
+     * Add a content inside the label
+     * @param $content
      */
-    public function setFontStyle($style)
+    function add($content)
     {
-        $this->fontStyle = $style;
-    }
-    
-    /**
-     * Return the label formatted according to pango
-     */
-    public function getFormattedValue()
-    {
-        $value = $this->getValue();
-        if ($this->fontStyle)
+        $this->tag->add($content);
+        
+        if (is_string($content))
         {
-            $pieces = explode(',', $this->fontStyle);
-            if ($pieces)
-            {
-                $value = $this->value;
-                foreach ($pieces as $piece)
-                {
-                    $value = "<{$piece}>$value</{$piece}>";
-                }
-            }
+            $this->value .= $content;
         }
-        return "<span {$this->fontFace} {$this->fontColor}>$value</span>";
+    }
+    
+    /**
+     * Get value
+     */
+    public function getValue()
+    {
+        return $this->value;
     }
     
     /**
@@ -150,6 +142,21 @@ class TLabel extends TField implements AdiantiWidgetInterface
      */
     public function show()
     {
-        $this->set_markup($this->getFormattedValue());
+        if ($this->size)
+        {
+            $this->embedStyle->{'width'} = $this->size . 'px';
+        }
+        
+        // if the embed style has any content
+        if ($this->embedStyle->hasContent())
+        {
+            $this->setProperty('style', $this->embedStyle->getInline() . $this->getProperty('style'), TRUE);
+        }
+        
+        // add content to the tag
+        $this->tag->add($this->value);
+        
+        // show the tag
+        $this->tag->show();
     }
 }

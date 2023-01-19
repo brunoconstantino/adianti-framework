@@ -1,15 +1,15 @@
 <?php
-Namespace Adianti\Log;
+namespace Adianti\Log;
 
 use Adianti\Log\TLogger;
 
 /**
  * Register LOG in TXT files
  *
- * @version    2.0
+ * @version    4.0
  * @package    log
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TLoggerTXT extends TLogger

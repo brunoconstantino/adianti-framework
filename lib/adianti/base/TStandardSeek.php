@@ -1,6 +1,7 @@
 <?php
-Namespace Adianti\Base;
+namespace Adianti\Base;
 
+use Adianti\Core\AdiantiApplicationConfig;
 use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Widget\Dialog\TMessage;
 use Adianti\Widget\Container\TTable;
@@ -21,16 +22,17 @@ use Adianti\Database\TRecord;
 use Adianti\Database\TFilter;
 use Adianti\Database\TCriteria;
 use Adianti\Registry\TSession;
+use Adianti\Widget\Container\TPanelGroup;
 use Exception;
 use StdClass;
 
 /**
  * Standard Page controller for Seek buttons
  *
- * @version    2.0
+ * @version    4.0
  * @package    base
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TStandardSeek extends TWindow
@@ -49,19 +51,19 @@ class TStandardSeek extends TWindow
     {
         parent::__construct();
         parent::setTitle( AdiantiCoreTranslator::translate('Search record') );
-        parent::setSize(800, 500);
+        parent::setSize(0.7, 640);
         
         // creates a new form
         $this->form = new TForm('form_standard_seek');
         // creates a new table
         $table = new TTable;
-        
+        $table->{'width'} = '100%';
         // adds the table into the form
         $this->form->add($table);
         
         // create the form fields
         $display_field= new TEntry('display_field');
-        $display_field->setSize(370);
+        $display_field->setSize('90%');
         
         // keeps the field's value
         $display_field->setValue( TSession::getValue('tstandardseek_display_value') );
@@ -70,7 +72,7 @@ class TStandardSeek extends TWindow
         $find_button = new TButton('busca');
         // define the button action
         $find_button->setAction(new TAction(array($this, 'onSearch')), AdiantiCoreTranslator::translate('Search'));
-        $find_button->setImage('ico_find.png');
+        $find_button->setImage('fa:search blue');
         
         // add a row for the filter field
         $table->addRowSet( new TLabel(_t('Search').': '), $display_field, $find_button);
@@ -80,10 +82,11 @@ class TStandardSeek extends TWindow
         
         // creates a new datagrid
         $this->datagrid = new TDataGrid;
+        $this->datagrid->{'style'} = 'width: 100%';
         
         // create two datagrid columns
-        $id      = new TDataGridColumn('id',            'ID',    'right',  70);
-        $display = new TDataGridColumn('display_field', AdiantiCoreTranslator::translate('Field'), 'left',  570);
+        $id      = new TDataGridColumn('id',            'ID',    'right', '16%');
+        $display = new TDataGridColumn('display_field', AdiantiCoreTranslator::translate('Field'), 'left');
         
         // add the columns to the datagrid
         $this->datagrid->addColumn($id);
@@ -91,8 +94,9 @@ class TStandardSeek extends TWindow
         
         // create a datagrid action
         $action1 = new TDataGridAction(array($this, 'onSelect'));
-        $action1->setLabel('Selecionar');
-        $action1->setImage('ico_apply.png');
+        $action1->setLabel(AdiantiCoreTranslator::translate('Select'));
+        $action1->setImage('fa:check-circle-o green');
+        $action1->setUseButton(TRUE);
         $action1->setField('id');
         
         // add the actions to the datagrid
@@ -106,11 +110,15 @@ class TStandardSeek extends TWindow
         $this->pageNavigation->setAction(new TAction(array($this, 'onReload')));
         $this->pageNavigation->setWidth($this->datagrid->getWidth());
         
+        $panel = new TPanelGroup();
+        $panel->add($this->form);
+        
         // creates the container
         $vbox = new TVBox;
-        $vbox->add($this->form);
+        $vbox->add($panel);
         $vbox->add($this->datagrid);
         $vbox->add($this->pageNavigation);
+        $vbox->{'style'} = 'width: 100%';
         
         // add the container to the page
         parent::add($vbox);
@@ -228,7 +236,7 @@ class TStandardSeek extends TWindow
         catch (Exception $e) // in case of exception
         {
             // shows the exception genearated message
-            new TMessage('error', '<b>Erro</b> ' . $e->getMessage());
+            new TMessage('error', $e->getMessage());
             // rollback all the database operations 
             TTransaction::rollback();
         }
@@ -239,20 +247,29 @@ class TStandardSeek extends TWindow
      */
     public function onSetup($param=NULL)
     {
-        // store the parameters in the section
-        TSession::setValue('tstandardseek_filter', NULL);
-        TSession::setValue('tstandardseek_display_value', NULL);
-        TSession::setValue('standard_seek_receive_key',   $param['receive_key']);
-        TSession::setValue('standard_seek_receive_field', $param['receive_field']);
-        TSession::setValue('standard_seek_display_field', $param['display_field']);
-        TSession::setValue('standard_seek_model',         $param['model']);
-        TSession::setValue('standard_seek_database',      $param['database']);
-        TSession::setValue('standard_seek_parent',        $param['parent']);
-        if (isset($param['criteria']) AND $param['criteria'])
+        $ini  = AdiantiApplicationConfig::get();
+        $seed = APPLICATION_NAME . ( !empty($ini['general']['seed']) ? $ini['general']['seed'] : 's8dkld83kf73kf094' );
+        
+        if (isset($param['hash']) AND $param['hash'] == md5($seed.$param['database'].$param['model'].$param['display_field']))
         {
-            TSession::setValue('standard_seek_criteria',  unserialize(base64_decode($param['criteria'])));
+            // store the parameters in the section
+            TSession::setValue('tstandardseek_filter', NULL);
+            TSession::setValue('tstandardseek_display_value', NULL);
+            TSession::setValue('standard_seek_receive_key',   $param['receive_key']);
+            TSession::setValue('standard_seek_receive_field', $param['receive_field']);
+            TSession::setValue('standard_seek_display_field', $param['display_field']);
+            TSession::setValue('standard_seek_model',         $param['model']);
+            TSession::setValue('standard_seek_database',      $param['database']);
+            TSession::setValue('standard_seek_parent',        $param['parent']);
+            
+    
+            
+            if (isset($param['criteria']) AND $param['criteria'])
+            {
+                TSession::setValue('standard_seek_criteria',  unserialize(base64_decode($param['criteria'])));
+            }
+            $this->onReload();
         }
-        $this->onReload();
     }
     
     /**
@@ -260,7 +277,7 @@ class TStandardSeek extends TWindow
      *     When using onblur signal, AJAX passes all needed parameters via GET
      *     instead of calling onSetup before.
      */
-    public function onSelect($param)
+    public static function onSelect($param)
     {
         $key = $param['key'];
         $database      = isset($param['database'])      ? $param['database'] : TSession::getValue('standard_seek_database');
@@ -279,8 +296,8 @@ class TStandardSeek extends TWindow
             $pk   = constant("{$model}::PRIMARYKEY");
             
             $object = new StdClass;
-            $object->$receive_key   = $activeRecord->$pk;
-            $object->$receive_field = $activeRecord->$display_field;
+            $object->$receive_key   = isset($activeRecord->$pk) ? $activeRecord->$pk : '';
+            $object->$receive_field = isset($activeRecord->$display_field) ? $activeRecord->$display_field : '';
             TTransaction::close();
             
             TForm::sendData($parent, $object);

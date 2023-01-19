@@ -132,7 +132,7 @@ class TTableWriterPDF implements ITableWriter
         }
         // exibe a célula com o conteúdo passado
         $this->pdf->Cell( $width, $fontsize * 1.5, $content, 1, 0, strtoupper(substr($align,0,1)), true);
-        $this->colcounter ++;
+        $this->colcounter += $colspan;
     }
     
     /**

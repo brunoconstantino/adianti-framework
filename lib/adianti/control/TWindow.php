@@ -1,43 +1,62 @@
 <?php
-Namespace Adianti\Control;
+namespace Adianti\Control;
 
-use Gtk;
-use Gdk;
-use GtkWindow;
+use Adianti\Widget\Container\TJQueryDialog;
 
 /**
  * Window Container (JQueryDialog wrapper)
  *
- * @version    2.0
+ * @version    4.0
  * @package    control
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TWindow extends GtkWindow
+class TWindow extends TPage
 {
-    /**
-     * Class Constructor
-     * @param $title Window's title
-     */
-    public function __construct($title='')
+    private $wrapper;
+    
+    public function __construct()
     {
         parent::__construct();
-        parent::set_position(Gtk::WIN_POS_CENTER);
-        parent::set_border_width(8);
-        parent::connect('key_press_event', array($this, 'onKeyTest'));
-        parent::connect_simple('delete-event', array($this, 'onClose'));
-        parent::set_modal(TRUE);
-        parent::set_title($title);
+        $this->wrapper = new TJQueryDialog;
+        $this->wrapper->setUseOKButton(FALSE);
+        $this->wrapper->setTitle('');
+        $this->wrapper->setSize(1000, 500);
+        $this->wrapper->setModal(TRUE);
+        $this->wrapper->{'widget'} = 'T'.'Window';
+        parent::add($this->wrapper);
+    }
+    
+    /**
+     * Create a window
+     */
+    public static function create($title, $width, $height)
+    {
+        $inst = new self;
+        $inst->setIsWrapped(TRUE);
+        $inst->setTitle($title);
+        $inst->setSize($width, $height);
+        unset($inst->wrapper->{'widget'});
+        return $inst;
+    }
+    
+    /**
+     * Define the stack order (zIndex)
+     * @param $order Stack order
+     */
+    public function setStackOrder($order)
+    {
+        $this->wrapper->setStackOrder($order);
     }
     
     /**
      * Define the window's title
-     * @param  $title  Window's title
+     * @param  $title Window's title
      */
     public function setTitle($title)
     {
-        parent::set_title($title);
+        $this->wrapper->setTitle($title);
     }
     
     /**
@@ -46,7 +65,7 @@ class TWindow extends GtkWindow
      */
     public function setModal($modal)
     {
-        parent::set_modal($modal);
+        $this->wrapper->setModal($modal);
     }
     
     /**
@@ -56,17 +75,7 @@ class TWindow extends GtkWindow
      */
     public function setSize($width, $height)
     {
-        if ($width < 1)
-        {
-            $screen = parent::get_screen();
-            $width  = $screen->get_width() * $width;
-        }
-        if ($height < 1)
-        {
-            $screen = parent::get_screen();
-            $height = $screen->get_height() * $height;
-        }
-        parent::set_size_request($width, $height);
+        $this->wrapper->setSize($width, $height);
     }
     
     /**
@@ -76,49 +85,23 @@ class TWindow extends GtkWindow
      */
     public function setPosition($x, $y)
     {
-        parent::set_uposition($x, $y);
+        $this->wrapper->setPosition($x, $y);
     }
     
     /**
-     * Test the pressed key
-     * @param  $object  Source object
-     * @param  $event   Event
-     * @ignore-autocomplete on
+     * Add some content to the window
+     * @param $content Any object that implements the show() method
      */
-    public function onKeyTest($object, $event)
+    public function add($content)
     {
-        if ($event-> keyval == Gdk::KEY_Escape)
-        {
-            parent::hide();
-        }
+        $this->wrapper->add($content);
     }
     
     /**
-     * Executed when the user closes the window
+     * Close TJQueryDialog's
      */
-    public function onClose()
+    public static function closeWindow()
     {
-        parent::hide();
-        return TRUE;
-    }
-    
-    /**
-     * Close Window
-     */
-    public function closeWindow()
-    {
-        parent::hide();
-    }
-    
-    /**
-     * Show the window
-     */
-    public function show()
-    {
-        if (parent::get_child())
-        {
-            parent::get_child()->show();
-        }
-        parent::show_all();
+        TJQueryDialog::closeAll();
     }
 }

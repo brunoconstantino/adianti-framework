@@ -1,5 +1,5 @@
 <?php
-Namespace Adianti\Widget\Wrapper;
+namespace Adianti\Widget\Wrapper;
 
 use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Widget\Form\TCombo;
@@ -12,11 +12,11 @@ use Exception;
 /**
  * Database ComboBox Widget
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TDBCombo extends TCombo
@@ -58,28 +58,96 @@ class TDBCombo extends TCombo
             throw new Exception(AdiantiCoreTranslator::translate('The parameter (^1) of ^2 is required', 'value', __CLASS__));
         }
         
-        // carrega objetos do banco de dados
         TTransaction::open($database);
-        // instancia um repositório de Estado
+        
+        // creates repository
         $repository = new TRepository($model);
         if (is_null($criteria))
         {
             $criteria = new TCriteria;
         }
         $criteria->setProperty('order', isset($ordercolumn) ? $ordercolumn : $key);
-        // carrega todos objetos
+        
+        // load all objects
         $collection = $repository->load($criteria, FALSE);
         
-        // adiciona objetos na combo
+        // add objects to the options
         if ($collection)
         {
             $items = array();
             foreach ($collection as $object)
             {
-                $items[$object->$key] = $object->$value;
+                if (isset($object->$value))
+                {
+                    $items[$object->$key] = $object->$value;
+                }
+                else
+                {
+                    $items[$object->$key] = $this->replace($value, $object);
+                }
             }
             parent::addItems($items);
         }
         TTransaction::close();
+    }
+    
+    /**
+     * Replace a string with object properties within {pattern}
+     * @param $content String with pattern
+     * @param $object  Any object
+     */
+    private function replace($content, $object)
+    {
+        if (preg_match_all('/\{(.*?)\}/', $content, $matches) )
+        {
+            foreach ($matches[0] as $match)
+            {
+                $property = substr($match, 1, -1);
+                $value    = $object->$property;
+                $content  = str_replace($match, $value, $content);
+            }
+        }
+        
+        return $content;
+    }
+    
+    /**
+     * Reload combo from model data
+     * @param  $formname    form name
+     * @param  $field       field name
+     * @param  $database    database name
+     * @param  $model       model class name
+     * @param  $key         table field to be used as key in the combo
+     * @param  $value       table field to be listed in the combo
+     * @param  $ordercolumn column to order the fields (optional)
+     * @param  $criteria    criteria (TCriteria object) to filter the model (optional)
+     * @param  $startEmpty  if the combo will have an empty first item
+     */
+    public static function reloadFromModel($formname, $field, $database, $model, $key, $value, $ordercolumn = NULL, $criteria = NULL, $startEmpty = FALSE)
+    {
+        TTransaction::open($database);
+        
+        // creates repository
+        $repository = new TRepository($model);
+        if (is_null($criteria))
+        {
+            $criteria = new TCriteria;
+        }
+        $criteria->setProperty('order', isset($ordercolumn) ? $ordercolumn : $key);
+        
+        // load all objects
+        $collection = $repository->load($criteria, FALSE);
+        
+        $items = array();
+        // add objects to the combo
+        if ($collection)
+        {
+            foreach ($collection as $object)
+            {
+                $items[$object->$key] = $object->$value;
+            }
+        }
+        TTransaction::close();
+        parent::reload($formname, $field, $items, $startEmpty);
     }
 }

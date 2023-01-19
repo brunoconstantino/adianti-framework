@@ -1,51 +1,57 @@
 <?php
-Namespace Adianti\Widget\Container;
+namespace Adianti\Widget\Container;
 
-use Gtk;
-use GtkWidget;
-use GtkFrame;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Container\TNotebook;
+use Adianti\Widget\Form\TLabel;
 
 /**
  * Frame Widget: creates a kind of bordered area with a title located at its top-left corner
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TFrame extends GtkFrame
+class TFrame extends TElement
 {
+    private $legend;
+    private $width;
+    private $height;
+    
     /**
-     * Constructor method
-     * @param $label Frame label
+     * Class Constructor
+     * @param  $value text label
      */
     public function __construct($width = NULL, $height = NULL)
     {
-        parent::__construct();
-        if ($width AND $height)
+        parent::__construct('fieldset');
+        $this->{'id'}    = 'tfieldset_' . mt_rand(1000000000, 1999999999);
+        $this->{'class'} = 'tframe';
+        
+        $this->width = $width;
+        $this->height = $height;
+        
+        if ($width)
         {
-            parent::set_size_request($width, $height);
+            $this->{'style'} .= ";width:{$width}px";
+        }
+        
+        if ($height)
+        {
+            $this->{'style'} .= ";height:{$height}px";
         }
     }
     
     /**
-     * Set the frame size
-     * @param $width  Width
-     * @param $height Height
-     */
-    public function setSize($width, $height)
-    {
-        parent::set_size_request($width, $height);
-    }
-    
-    /**
-     * Returns the Notebook size
+     * Returns the frame size
+     * @return array(width, height)
      */
     public function getSize()
     {
-        return parent::get_size_request();
+        return array($this->width, $this->height);
     }
     
     /**
@@ -54,26 +60,26 @@ class TFrame extends GtkFrame
      */
     public function setLegend($legend)
     {
-        if (is_string($legend))
-        {
-            parent::set_label($legend);
-        }
-        else if ($legend instanceof GtkWidget)
-        {
-            parent::set_label_widget($legend);
-        }
+        $obj = new TElement('legend');
+        $obj->add(new TLabel($legend));
+        parent::add($obj);
+        $this->legend = $legend;
     }
     
     /**
-     * Show the Frame
+     * Returns the inner legend
      */
-    public function show()
+    public function getLegend()
     {
-        if (parent::get_child())
-        {
-            // show child object
-            parent::get_child()->show();
-        }
-        parent::show_all();
+        return $this->legend;
+    }
+    
+    /**
+     * Return the Frame ID
+     * @ignore-autocomplete on
+     */
+    public function getId()
+    {
+        return $this->{'id'};
     }
 }

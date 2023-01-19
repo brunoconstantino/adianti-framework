@@ -1,118 +1,83 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
 use Adianti\Widget\Form\AdiantiWidgetInterface;
 use Adianti\Control\TAction;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
 use Adianti\Widget\Form\TForm;
 use Adianti\Widget\Form\TField;
+use Adianti\Widget\Form\TEntry;
 use Adianti\Widget\Util\TImage;
 
 use Adianti\Core\AdiantiCoreTranslator;
-
 use Exception;
-use Gtk;
-use GtkHBox;
-use GtkEntry;
-use GtkObject;
+use ReflectionClass;
 
 /**
  * Record Lookup Widget: Creates a lookup field used to search values from associated entities
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TSeekButton extends TField implements AdiantiWidgetInterface
+class TSeekButton extends TEntry implements AdiantiWidgetInterface
 {
     private $action;
     private $auxiliar;
-    private $entry;
-    private $btn;
-    private $validations;
     private $useOutEvent;
-    protected $widget;
+    private $button;
+    protected $id;
     protected $formName;
+    protected $name;
     
     /**
      * Class Constructor
-     * @param $name Name of the widget
+     * @param  $name name of the field
      */
-    public function __construct($name)
+    public function __construct($name, $icon = NULL)
     {
         parent::__construct($name);
-        $this->widget = new GtkHBox;
-        parent::add($this->widget);
-        
-        $this->entry = new GtkEntry;
-        $this->btn   = new TButton('find');
-        $this->btn->set_image(new TImage('lib/adianti/images/ico_find.png'));
-        $this->btn->set_relief(Gtk::RELIEF_NONE);
-        
         $this->useOutEvent = TRUE;
-        $this->validations = array();
+        $this->setProperty('class', 'tfield tseekentry', TRUE);   // classe CSS
         
-        $this->widget->pack_start($this->entry, false, false);
-        $this->widget->pack_start($this->btn, false, false);
+        $this->button = self::createButton($this->name, $icon);
     }
     
     /**
-     * Define the widget's content
-     * @param  $value  widget's content
+     * Create seek button object
      */
-    public function setValue($value)
+    public static function createButton($name, $icon)
     {
-        $this->entry->set_text($value);
+        $image = new TImage( $icon ? $icon : 'lib/adianti/images/ico_find.png');
+        $button = new TElement('span');
+        $button->{'class'} = 'btn btn-default tseekbutton';
+        $button->{'type'} = 'button';
+        $button->{'onmouseover'} = "style.cursor = 'pointer'";
+        $button->{'name'} = '_' . $name . '_link';
+        $button->{'onmouseout'}  = "style.cursor = 'default'";
+        $button->add($image);
+        
+        return $button;
     }
     
     /**
-     * Return the widget's content
-     * @return A string containing the widget's content
+     * Returns a property value
+     * @param $name     Property Name
      */
-    public function getValue()
+    public function __get($name)
     {
-        return $this->entry->get_text();
-    }
-    
-    /**
-     * Define the Field's size
-     * @param $width Field's width in pixels
-     */
-    public function setSize($width, $height = NULL)
-    {
-        $this->entry->set_size_request($width, 24);
-    }
-    
-    /**
-     * Not implemented
-     */
-    public function setProperty($name, $value, $replace = TRUE)
-    {}
-    
-    /**
-     * Not implemented
-     */
-    public function getProperty($name)
-    {}
-    
-    /**
-     * Define if the widget is editable
-     * @param $boolean A boolean
-     */
-    public function setEditable($editable)
-    {
-        $this->entry->set_sensitive($editable);
-        $this->btn->set_sensitive($editable);
-    }
-    
-    /**
-     * Return if the widget is editable
-     */
-    public function getEditable()
-    {
-        return $this->entry->get_sensitive();
+        if ($name == 'button')
+        {
+            return $this->button;
+        }
+        else
+        {
+            return parent::__get($name);
+        }
     }
     
     /**
@@ -125,93 +90,126 @@ class TSeekButton extends TField implements AdiantiWidgetInterface
     
     /**
      * Define the action for the SeekButton
-     * @param $action Action taken when the user clicks over the Seek Button (A TAction object)
+     * @param $action Action taken when the user
+     * clicks over the Seek Button (A TAction object)
      */
     public function setAction(TAction $action)
     {
-        $callback=$action->getAction();
-        $this->btn->setAction($action, '');
-        $param=array();
-        if (is_array($callback))
-        {
-            $classname = get_class($callback[0]);
-            if (in_array($classname, array('TStandardSeek', 'Adianti\Base\TStandardSeek')))
-            {
-                $param['key'] = 3;
-                $param['parent'] = $action->getParameter('parent');
-                $param['database'] = $action->getParameter('database');
-                $param['model'] =  $action->getParameter('model');
-                $param['display_field'] = $action->getParameter('display_field');
-                $param['receive_key'] =   $action->getParameter('receive_key');
-                $param['receive_field'] = $action->getParameter('receive_field');
-            }
-        }
-        
-        if ($this->useOutEvent)
-        {
-            // get_text aqui não é on-the-fly, tem que chamar um método na hora do evento
-            $this->entry->connect_simple('focus-out-event', array($this, 'onBlur'), $callback, $param);
-        }
-    }
-    
-    /**
-     * Define the action to be executed when the user leaves the form field
-     * @param $action TAction object
-     */
-    function setExitAction(TAction $action)
-    {
-        if ($action->isStatic())
-        {
-            $this->exitAction = $action;
-        }
-        else
-        {
-            $string_action = $action->toString();
-            throw new Exception(AdiantiCoreTranslator::translate('Action (^1) must be static to be used in ^2', $string_action, __METHOD__));
-        }
-        $this->entry->connect_after('focus-out-event', array($this, 'onExecuteExitAction'));
-    }
-    
-    /**
-     * Execute the exit action
-     */
-    public function onExecuteExitAction()
-    {
-        if (!TForm::getFormByName($this->formName) instanceof TForm)
-        {
-            throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->wname, 'TForm::setFields()') );
-        }
-        
-        if (isset($this->exitAction) AND $this->exitAction instanceof TAction)
-        {
-            $callback = $this->exitAction->getAction();
-            $param = (array) TForm::retrieveData($this->formName);
-            call_user_func($callback, $param);
-        }
-    }
-    
-    /**
-     * When the user leaves the input, collects the text and executes the callback
-     * @param $callback = Callback to be executed
-     * @param $param    = array of parameters
-     * @ignore-autocomplete on
-     */
-    public function onBlur($callback, $param)
-    {
-        if (is_callable($callback))
-        {
-            $param['key'] = $this->entry->get_text();
-            call_user_func(array($callback[0], 'onSelect'), $param);
-        }
+        $this->action = $action;
     }
     
     /**
      * Define an auxiliar field
      * @param $object any TField object
      */
-    public function setAuxiliar(GtkObject $object)
+    public function setAuxiliar(TElement $object)
     {
         $this->auxiliar = $object;
-        $this->widget->pack_start($this->auxiliar, false, false);
+    }
+    
+    /**
+     * Enable the field
+     * @param $form_name Form name
+     * @param $field Field name
+     */
+    public static function enableField($form_name, $field)
+    {
+        TScript::create( " tseekbutton_enable_field('{$form_name}', '{$field}'); " );
+    }
+    
+    /**
+     * Disable the field
+     * @param $form_name Form name
+     * @param $field Field name
+     */
+    public static function disableField($form_name, $field)
+    {
+        TScript::create( " tseekbutton_disable_field('{$form_name}', '{$field}'); " );
+    }
+    
+    /**
+     * Show the widget
+     */
+    public function show()
+    {
+        // check if it's not editable
+        if (parent::getEditable())
+        {
+            if (!TForm::getFormByName($this->formName) instanceof TForm)
+            {
+                throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->name, 'TForm::setFields()') );
+            }
+            
+            $serialized_action = '';
+            if ($this->action)
+            {
+                // get the action class name
+                if (is_array($callback = $this->action->getAction()))
+                {
+                    if (is_object($callback[0]))
+                    {
+                        $rc = new ReflectionClass($callback[0]);
+                        $classname = $rc->getShortName();
+                    }
+                    else
+                    {
+                        $classname  = $callback[0];
+                    }
+                    
+                    $inst       = new $classname;
+                    $ajaxAction = new TAction(array($inst, 'onSelect'));
+                    
+                    if (in_array($classname, array('TStandardSeek')))
+                    {
+                        $ajaxAction->setParameter('parent',  $this->action->getParameter('parent'));
+                        $ajaxAction->setParameter('database',$this->action->getParameter('database'));
+                        $ajaxAction->setParameter('model',   $this->action->getParameter('model'));
+                        $ajaxAction->setParameter('display_field', $this->action->getParameter('display_field'));
+                        $ajaxAction->setParameter('receive_key',   $this->action->getParameter('receive_key'));
+                        $ajaxAction->setParameter('receive_field', $this->action->getParameter('receive_field'));
+                        $ajaxAction->setParameter('criteria',      $this->action->getParameter('criteria'));
+                    }
+                    else
+                    {
+                    	if($actionParameters = $this->action->getParameters())
+                    	{
+	                    	foreach ($actionParameters as $key => $value) 
+	                    	{
+	                    		$ajaxAction->setParameter($key, $value);
+	                    	}                    		
+                    	}                    	                    
+                    }
+                    $ajaxAction->setParameter('form_name', $this->formName);
+                    $string_action = $ajaxAction->serialize(FALSE);
+                    if ($this->useOutEvent)
+                    {
+                        $this->setProperty('seekaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', '{$this->id}', 'callback')");
+                        $this->setProperty('onBlur', $this->getProperty('seekaction'), FALSE);
+                    }
+                }
+                $this->action->setParameter('form_name', $this->formName);
+                $serialized_action = $this->action->serialize(FALSE);
+            }
+            
+            $this->button->{'onclick'} = "javascript:serialform=(\$('#{$this->formName}').serialize());
+                  __adianti_append_page('engine.php?{$serialized_action}&'+serialform)";
+                  
+            $wrapper = new TElement('div');
+            $wrapper->{'class'} = 'tseek-group';
+            $wrapper->{'style'} = 'display:inline-table;border-spacing:0';
+            $wrapper->open();
+            parent::show();
+            $this->button->show();
+            
+            if ($this->auxiliar)
+            {
+                $this->auxiliar->show();
+            }
+            $wrapper->close();
+        }
+        else
+        {
+            parent::show();
+        }
     }
 }

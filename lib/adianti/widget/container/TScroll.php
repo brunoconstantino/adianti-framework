@@ -1,22 +1,38 @@
 <?php
-Namespace Adianti\Widget\Container;
+namespace Adianti\Widget\Container;
 
-use Gtk;
-use GtkWidget;
-use GtkScrolledWindow;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TStyle;
+use Adianti\Widget\Util\TSourceCode;
 
 /**
  * Scrolled Window: Allows to add another containers inside, creating scrollbars when its content is bigger than its visual area
  * 
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TScroll extends GtkScrolledWindow
+class TScroll extends TElement
 {
+    private $width;
+    private $height;
+    private $margin;
+    private $transparency;
+    
+    /**
+     * Class Constructor
+     */
+    public function __construct()
+    {
+        $this->{'id'} = 'tscroll_' . mt_rand(1000000000, 1999999999);
+        $this->margin = 2;
+        $this->transparency = FALSE;
+        parent::__construct('div');
+    }
+    
     /**
      * Set the scroll size
      * @param  $width   Panel's width
@@ -24,16 +40,17 @@ class TScroll extends GtkScrolledWindow
      */
     public function setSize($width, $height)
     {
-        parent::set_size_request($width, $height);
+        $this->width = $width;
+        $this->height = $height;
     }
     
     /**
-     * Add a child to the scroll
-     * @param  $object A gtk widget 
+     * Set the scrolling margin
+     * @param  $margin Margin
      */
-    function add(GtkWidget $object)
+    public function setMargin($margin)
     {
-        parent::add_with_viewport($object);
+        $this->margin = $margin;
     }
     
     /** 
@@ -41,15 +58,32 @@ class TScroll extends GtkScrolledWindow
      */
     public function setTransparency($bool)
     {
+        $this->transparency = $bool;
     }
     
     /**
-     * Shows the scroll
+     * Shows the tag
      */
-    function show()
+    public function show()
     {
-        parent::show_all();
-        $child=parent::get_child()->get_child();
-        $child->show();
+        if (!$this->transparency)
+        {
+            $this->{'style'} .= ';border: 1px solid #c2c2c2';
+            $this->{'style'} .= ';background: #ffffff';
+        }
+        $this->{'style'} .= ";padding: {$this->margin}px";
+        
+        if ($this->width)
+        {
+            $this->{'style'} .= ";width:{$this->width}px";
+        }
+        
+        if ($this->height)
+        {
+            $this->{'style'} .= ";height:{$this->height}px";
+        }
+        
+        $this->{'class'} .= " tscroll";
+        parent::show();
     }
 }

@@ -1,177 +1,118 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
 use Adianti\Widget\Form\AdiantiWidgetInterface;
-use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Control\TAction;
+use Adianti\Widget\Base\TElement;
+use Adianti\Widget\Base\TScript;
 use Adianti\Widget\Form\TForm;
 use Adianti\Widget\Form\TField;
 
+use Adianti\Core\AdiantiCoreTranslator;
 use Exception;
-use Gtk;
-use GObject;
-use GtkTreeView;
-use GtkListStore;
-use GtkTreeViewColumn;
-use GtkCellRendererText;
-use GtkScrolledWindow;
 
 /**
  * Select Widget
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TSelect extends TField implements AdiantiWidgetInterface
 {
-    private $columns;
-    private $tree;
-    private $model;
-    protected $widget;
+    protected $id;
+    protected $height;
+    protected $items; // array containing the combobox options
     protected $formName;
+    private   $changeAction;
+    private   $defaultOption;
     
     /**
      * Class Constructor
      * @param  $name widget's name
      */
-    function __construct($name)
+    public function __construct($name)
     {
+        // executes the parent class constructor
         parent::__construct($name);
-        $this->widget = new GtkScrolledWindow;
-        $this->widget->set_policy(GTK::POLICY_AUTOMATIC, GTK::POLICY_ALWAYS);
-        parent::add($this->widget);
-        
-        $this->tree = new GtkTreeView;
-        $this->tree->connect_simple('select-cursor-row', array($this, 'onPreExecuteExitAction'));
-        $this->tree->connect_simple('button-press-event', array($this, 'onPreExecuteExitAction'));
-        
-        $this->model = new GtkListStore(GObject::TYPE_STRING, GObject::TYPE_STRING);
-        $this->tree->set_model($this->model);
-        $this->tree->set_headers_visible(FALSE);
-        $this->tree->set_rubber_banding(TRUE);
-        $this->tree->get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
-        
-        $column = new GtkTreeViewColumn;
-        
-        $cell_renderer = new GtkCellRendererText;
-        $column->pack_start($cell_renderer, true);
-        
-        $column->add_attribute($cell_renderer, 'text', 1);
-        $this->tree->append_column($column);
-        
-        $this->widget->add($this->tree);
-        parent::show_all();
+        $this->id   = 'tselect_' . mt_rand(1000000000, 1999999999);
+        $this->defaultOption = '';
+
+        // creates a <select> tag
+        $this->tag = new TElement('select');
+        $this->tag->{'class'} = 'tcombo'; // CSS
+        $this->tag->{'multiple'} = '1';
+        $this->tag->{'widget'} = 'tselect';
     }
+    
     
     /**
      * Disable multiple selection
      */
     public function disableMultiple()
     {
-        $this->tree->get_selection()->set_mode(Gtk::SELECTION_SINGLE);
+        unset($this->tag->{'multiple'});
+        $this->tag->{'size'} = 3;
     }
-    
-    /**
-     * Define the field's selected values
-     * @param $value An array of option indexes
-     */
-    function setValue($values)
+
+    public function setDefaultOption($option)
     {
-        $this->tree->get_selection()->unselect_all();
-        
-        foreach ($this->model as $row)
-        {
-            if (in_array($row[0], (array) $values))
-            {
-                $this->tree->get_selection()->select_path( $row->{'path'} );
-            }
-        }
+        $this->defaultOption = $option;
     }
-    
-    /**
-     * Returns the field's value
-     */
-    function getValue()
-    {
-        $treeselection = $this->tree->get_selection();
-        list($model, $rows) = $treeselection->get_selected_rows();
-        
-        $selected = array();
-        if ($rows)
-        {
-            foreach ($rows as $path)
-            {
-                $iter = $this->model->get_iter($path);
-                $selected[] = $model->get_value($iter, 0);
-            }
-        }
-        
-        if ($this->tree->get_selection()->get_mode() == Gtk::SELECTION_SINGLE)
-        {
-            return $selected[0];
-        }
-        else
-        {
-            return $selected;
-        }
-    }
-    
-    /**
-     * Define the Field's size
-     * @param $width Field's width in pixels
-     * @param $height Field's height in pixels
-     */
-    public function setSize($width, $height = NULL)
-    {
-        $this->tree->set_size_request($width, $height);
-    }
-    
-    /**
-     * Not implemented
-     */
-    public function setProperty($name, $value, $replace = TRUE)
-    {}
-    
-    /**
-     * Not implemented
-     */
-    public function getProperty($name)
-    {}
     
     /**
      * Add items to the select
      * @param $items An indexed array containing the combo options
      */
-    function addItems($items)
+    public function addItems($items)
     {
         if (is_array($items))
         {
-            foreach ($items as $key => $item)
-            {
-                $iter = $this->model->append();
-                $this->model->set($iter, 0, (string) $key);
-                $this->model->set($iter, 1, (string) $item);
-            }
+            $this->items = $items;
         }
     }
     
     /**
-     * Clear the select
+     * Define the Field's width
+     * @param $width Field's width in pixels
+     * @param $height Field's height in pixels
      */
-    public function clear()
+    public function setSize($width, $height = NULL)
     {
-        $this->model->clear();
+        $this->size = $width;
+        $this->height = $height;
+    }
+    
+    /**
+     * Return the post data
+     */
+    public function getPostData()
+    {
+        if (isset($_POST[$this->name]))
+        {
+            if ($this->tag->{'multiple'})
+            {
+                return $_POST[$this->name];
+            }
+            else
+            {
+                return $_POST[$this->name][0];
+            }
+        }
+        else
+        {
+            return array();
+        }
     }
     
     /**
      * Define the action to be executed when the user changes the combo
      * @param $action TAction object
      */
-    function setChangeAction(TAction $action)
+    public function setChangeAction(TAction $action)
     {
         if ($action->isStatic())
         {
@@ -185,43 +126,48 @@ class TSelect extends TField implements AdiantiWidgetInterface
     }
     
     /**
-     * Execute the exit action
-     */
-    public function onPreExecuteExitAction()
-    {
-        Gtk::timeout_add(10, array($this, 'onExecuteExitAction'));
-    }
-    
-    /**
-     * Execute the exit action
-     */
-    public function onExecuteExitAction()
-    {
-        if (isset($this->changeAction) AND $this->changeAction)
-        {
-            if (!TForm::getFormByName($this->formName) instanceof TForm)
-            {
-                throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->wname, 'TForm::setFields()') );
-            }
-            
-            $callback = $this->changeAction->getAction();
-            $param = (array) TForm::retrieveData($this->formName);
-            call_user_func($callback, $param);
-        }
-    }
-    
-    /**
      * Reload combobox items after it is already shown
      * @param $formname form name (used in gtk version)
      * @param $name field name
      * @param $items array with items
+     * @param $startEmpty ...
      */
-    public static function reload($formname, $name, $items)
+    public static function reload($formname, $name, $items, $startEmpty = FALSE)
     {
-        $form = TForm::getFormByName($formname);
-        $select = $form->getField($name);
-        $select->clear();
-        $select->addItems($items);
+        $code = "tselect_clear('{$formname}', '{$name}'); ";
+        if ($startEmpty)
+        {
+            $code .= "tselect_add_option('{$formname}', '{$name}', '', ''); ";
+        }
+        
+        if ($items)
+        {
+            foreach ($items as $key => $value)
+            {
+                $code .= "tselect_add_option('{$formname}', '{$name}', '{$key}', '{$value}'); ";
+            }
+        }
+        TScript::create($code);
+    }
+    
+    /**
+     * Enable the field
+     * @param $form_name Form name
+     * @param $field Field name
+     */
+    public static function enableField($form_name, $field)
+    {
+        TScript::create( " tselect_enable_field('{$form_name}', '{$field}'); " );
+    }
+    
+    /**
+     * Disable the field
+     * @param $form_name Form name
+     * @param $field Field name
+     */
+    public static function disableField($form_name, $field)
+    {
+        TScript::create( " tselect_disable_field('{$form_name}', '{$field}'); " );
     }
     
     /**
@@ -231,14 +177,101 @@ class TSelect extends TField implements AdiantiWidgetInterface
      */
     public static function clearField($form_name, $field)
     {
-        $form = TForm::getFormByName($form_name);
-        if ($form instanceof TForm)
+        TScript::create( " tselect_clear_field('{$form_name}', '{$field}'); " );
+    }
+    
+    /**
+     * Shows the widget
+     */
+    public function show()
+    {
+        // define the tag properties
+        $this->tag-> name  = $this->name.'[]';    // tag name
+        $this->tag-> id    = $this->id;
+        
+        if (strstr($this->size, '%') !== FALSE)
         {
-            $field = $form->getField($field);
-            if ($field instanceof AdiantiWidgetInterface)
+            $this->setProperty('style', "width:{$this->size};height:{$this->height}", false); //aggregate style info
+        }
+        else
+        {
+            $this->setProperty('style', "width:{$this->size}px;height:{$this->height}px", false); //aggregate style info
+        }
+        
+        if ($this->defaultOption !== FALSE)
+        {
+            // creates an empty <option> tag
+            $option = new TElement('option');
+            
+            $option->add( $this->defaultOption );
+            $option-> value = '';   // tag value
+
+            // add the option tag to the combo
+            $this->tag->add($option);
+        }
+        
+        if ($this->items)
+        {
+            // iterate the combobox items
+            foreach ($this->items as $chave => $item)
             {
-                $field->setValue(array(0));
+                if (substr($chave, 0, 3) == '>>>')
+                {
+                    $optgroup = new TElement('optgroup');
+                    $optgroup-> label = $item;
+                    // add the option to the combo
+                    $this->tag->add($optgroup);
+                }
+                else
+                {
+                    // creates an <option> tag
+                    $option = new TElement('option');
+                    $option-> value = $chave;  // define the index
+                    $option->add($item);      // add the item label
+                    
+                    // verify if this option is selected
+                    if (@in_array($chave, (array) $this->value))
+                    {
+                        // mark as selected
+                        $option-> selected = 1;
+                    }
+                    
+                    if (isset($optgroup))
+                    {
+                        $optgroup->add($option);
+                    }
+                    else
+                    {
+                        $this->tag->add($option);
+                    }                    
+                }
             }
         }
+        
+        // verify whether the widget is editable
+        if (parent::getEditable())
+        {
+            if (isset($this->changeAction))
+            {
+                if (!TForm::getFormByName($this->formName) instanceof TForm)
+                {
+                    throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->name, 'TForm::setFields()') );
+                }
+                
+                $string_action = $this->changeAction->serialize(FALSE);
+                $this->setProperty('changeaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', this, 'callback')");
+                $this->setProperty('onChange', $this->getProperty('changeaction'));
+            }
+        }
+        else
+        {
+            // make the widget read-only
+            //$this->tag-> disabled   = "1"; // the value don't post
+            $this->tag->{'onclick'} = "return false;";
+            $this->tag->{'style'}  .= ';pointer-events:none';
+            $this->tag->{'class'}   = 'tfield_disabled'; // CSS
+        }
+        // shows the combobox
+        $this->tag->show();
     }
 }

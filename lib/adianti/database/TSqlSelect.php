@@ -1,5 +1,5 @@
 <?php
-Namespace Adianti\Database;
+namespace Adianti\Database;
 
 use Adianti\Database\TSqlStatement;
 use Adianti\Database\TTransaction;
@@ -9,10 +9,10 @@ use PDO;
 /**
  * Provides an Interface to create SELECT statements
  *
- * @version    2.0
+ * @version    4.0
  * @package    database
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 final class TSqlSelect extends TSqlStatement
@@ -42,7 +42,7 @@ final class TSqlSelect extends TSqlStatement
         {
             return $this->getSqlServerInstruction( $prepared );
         }
-        if (in_array($driver, array('oci', 'oci8')))
+        else if (in_array($driver, array('oci', 'oci8')))
         {
             return $this->getOracleInstruction( $prepared );
         }

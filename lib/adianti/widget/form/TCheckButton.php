@@ -1,75 +1,59 @@
 <?php
-Namespace Adianti\Widget\Form;
+namespace Adianti\Widget\Form;
 
 use Adianti\Widget\Form\AdiantiWidgetInterface;
 use Adianti\Widget\Form\TField;
 
-use Gtk;
-use GtkCheckButton;
-
 /**
  * CheckButton widget
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TCheckButton extends TField implements AdiantiWidgetInterface
 {
-    protected $widget;
+    private $indexValue;
     
     /**
-     * Class Constructor
-     * @param $name Name of the widget
+     * Define the index value for check button
+     * @index Index value
      */
-    public function __construct($name)
+    public function setIndexValue($index)
+    {        
+        $this->indexValue = $index;
+    }
+    
+    /**
+     * Shows the widget at the screen
+     */
+    public function show()
     {
-        parent::__construct($name);
+        // define the tag properties for the checkbutton
+        $this->tag->{'name'}  = $this->name;    // tag name
+        $this->tag->{'type'}  = 'checkbox';     // input type
+        $this->tag->{'value'} = $this->indexValue;   // value
+        $this->tag->{'class'} = '';
         
-        $this->widget = new GtkCheckButton;
-        parent::add($this->widget);
-        $this->setSize(200);
+        // compare current value with indexValue
+        if ($this->indexValue == $this->value)
+        {
+            $this->tag->{'checked'} = '1';
+        }
+        
+        // check whether the widget is non-editable
+        if (!parent::getEditable())
+        {
+            // make the widget read-only
+            //$this->tag-> disabled   = "1"; // the value don't post
+            $this->tag->{'onclick'} = "return false;";
+            $this->tag->{'style'}   = 'pointer-events:none';
+        }
+        
+        // shows the tag
+        $this->tag->show();
     }
-    
-    /**
-     * Define if CheckButton is active
-     * @param $value A Value indicating if CheckButton is active
-     */
-    public function setValue($value)
-    {
-        $this->widget->set_active($value);
-    }
-
-    /**
-     * Returns if the CheckButton is active
-     * @return A boolean indicating if the CheckButton is active
-     */
-    public function getValue()
-    {
-        return $this->widget->get_active();
-    }
-    
-    /**
-     * Define the Field's size
-     * @param $width Field's width in pixels
-     */
-    public function setSize($width, $height = NULL)
-    {
-        $this->widget->set_size_request($width, -1);
-    }
-    
-    /**
-     * Not implemented
-     */
-    public function setProperty($name, $value, $replace = TRUE)
-    {}
-    
-    /**
-     * Not implemented
-     */
-    public function getProperty($name)
-    {}
 }

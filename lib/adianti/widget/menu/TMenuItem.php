@@ -1,82 +1,57 @@
 <?php
-Namespace Adianti\Widget\Menu;
+namespace Adianti\Widget\Menu;
 
-use Adianti\Core\AdiantiCoreApplication;
 use Adianti\Widget\Menu\TMenu;
+use Adianti\Widget\Base\TElement;
 use Adianti\Widget\Util\TImage;
-
-use Gtk;
-use GtkImageMenuItem;
-use GtkImage;
 
 /**
  * MenuItem Widget
  *
- * @version    2.0
+ * @version    4.0
  * @package    widget
  * @subpackage menu
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-class TMenuItem extends GtkImageMenuItem
+class TMenuItem extends TElement
 {
     private $label;
     private $action;
     private $image;
+    private $menu;
+    private $level;
+    private $link;
+    private $linkClass;
     
     /**
-     * Class Constructor
+     * Class constructor
      * @param $label  The menu label
      * @param $action The menu action
      * @param $image  The menu image
      */
-    public function __construct($label, $action, $image = NULL)
+    public function __construct($label, $action, $image = NULL, $level = 0)
     {
-        parent::__construct($label); // converts into ISO
-        parent::set_image(null);
-        if (OS=='WIN')
-        {
-            parent::set_border_width(3);
-        }
-        $this->label  = $label;
-        $this->action = $action;
-        $this->image  = $image;
+        parent::__construct('li');
+        $this->label     = $label;
+        $this->action    = $action;
+        $this->level     = $level;
+        $this->link      = new TElement('a');
+        $this->linkClass = 'dropdown-toggle';
         
-        if (file_exists($image))
+        if ($image)
         {
-            parent::set_image(GtkImage::new_from_file($image));
-        }
-        $inst = AdiantiCoreApplication::getInstance();
-        if ($inst instanceof AdiantiCoreApplication)
-        {
-            parent::connect_simple('activate', array($inst, 'run'), $action);
+            $this->image = $image;
         }
     }
     
-    
     /**
-     * Returns the item's label
+     * Set link class
      */
-    public function getLabel()
+    public function setLinkClass($class)
     {
-        return $this->label;
-    }
-    
-    /**
-     * Returns the item's action
-     */
-    public function getAction()
-    {
-        return $this->action;
-    }
-    
-    /**
-     * Returns the item's image
-     */
-    public function getImage()
-    {
-        return $this->image;
+        $this->linkClass = $class;
     }
     
     /**
@@ -85,6 +60,72 @@ class TMenuItem extends GtkImageMenuItem
      */
     public function setMenu(TMenu $menu)
     {
-        parent::set_submenu($menu);
+        $this->{'class'} = 'dropdown-submenu';
+        $this->menu = $menu;
+    }
+    
+    /**
+     * Shows the widget at the screen
+     */
+    public function show()
+    {
+        if ($this->action)
+        {
+            //$url['class'] = $this->action;
+            //$url_str = http_build_query($url);
+            $action = str_replace('#', '&', $this->action);
+            if (substr($action,0,7) == 'http://')
+            {
+                $this->link-> href = $action;
+                $this->link-> target = '_blank';
+            }
+            else
+            {
+                $this->link-> href = "index.php?class={$action}";
+                $this->link-> generator = 'adianti';
+            }
+        }
+        else
+        {
+            $this->link-> href = '#';
+        }
+        
+        if (isset($this->image))
+        {
+            $image = new TImage($this->image);
+            $this->link->add($image);
+        }
+        
+        $label = new TElement('span');
+        if (substr($this->label, 0, 3) == '_t{')
+        {
+            $label->add(_t(substr($this->label,3,-1)));
+        }
+        else
+        {
+            $label->add($this->label);
+        }
+        $this->link->add($label);
+        $this->add($this->link);
+        
+        if ($this->menu instanceof TMenu)
+        {
+            $this->link->{'class'} = $this->linkClass;
+            if (strstr($this->linkClass, 'dropdown'))
+            {
+                $this->link->{'data-toggle'} = "dropdown";
+            }
+            
+            if ($this->level == 0)
+            {
+                $caret = new TElement('b');
+                $caret->{'class'} = 'caret';
+                $caret->add('');
+                $this->link->add($caret);
+            }
+            parent::add($this->menu);
+        }
+        
+        parent::show();
     }
 }

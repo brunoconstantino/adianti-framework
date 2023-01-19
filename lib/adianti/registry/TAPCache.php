@@ -1,15 +1,15 @@
 <?php
-Namespace Adianti\Registry;
+namespace Adianti\Registry;
 
 use Adianti\Registry\AdiantiRegistryInterface;
 
 /**
  * Adianti APC Record Cache
  *
- * @version    2.0
+ * @version    4.0
  * @package    registry
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TAPCache implements AdiantiRegistryInterface
@@ -19,7 +19,7 @@ class TAPCache implements AdiantiRegistryInterface
      */
     public static function enabled()
     {
-        return extension_loaded('apc');
+        return extension_loaded('apcu');
     }
     
     /**
@@ -29,7 +29,7 @@ class TAPCache implements AdiantiRegistryInterface
      */
     public static function setValue($key, $value)
     {
-        return apc_store(APPLICATION_NAME . '_' . $key, serialize($value));
+        return apcu_store(APPLICATION_NAME . '_' . $key, serialize($value));
     }
     
     /**
@@ -38,7 +38,7 @@ class TAPCache implements AdiantiRegistryInterface
      */
     public static function getValue($key)
     {
-        return unserialize(apc_fetch(APPLICATION_NAME . '_' . $key));
+        return unserialize(apcu_fetch(APPLICATION_NAME . '_' . $key));
     }
     
     /**
@@ -47,7 +47,7 @@ class TAPCache implements AdiantiRegistryInterface
      */
     public static function delValue($key)
     {
-        return apc_delete(APPLICATION_NAME . '_' . $key);
+        return apcu_delete(APPLICATION_NAME . '_' . $key);
     }
     
     /**
@@ -55,6 +55,6 @@ class TAPCache implements AdiantiRegistryInterface
      */
     public static function clear()
     {
-        return apc_clear_cache();
+        return apcu_clear_cache();
     }
 }

@@ -1,15 +1,15 @@
 <?php
-Namespace Adianti\Database;
+namespace Adianti\Database;
 
 use Adianti\Database\TExpression;
 
 /**
  * Provides an interface for filtering criteria definition
  *
- * @version    2.0
+ * @version    4.0
  * @package    database
  * @author     Pablo Dall'Oglio
- * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
 class TCriteria extends TExpression
@@ -32,6 +32,22 @@ class TCriteria extends TExpression
         $this->properties['direction'] = '';
     }
 
+    /**
+     * create criteria from array of filters
+     */
+    public static function create($simple_filters)
+    {
+        $criteria = new TCriteria;
+        if ($simple_filters)
+        {
+            foreach ($simple_filters as $left_operand => $right_operand)
+            {
+                $criteria->add(new TFilter($left_operand, '=', $right_operand));
+            }
+        }
+        return $criteria;
+    }
+    
     /**
      * When clonning criteria
      */    
