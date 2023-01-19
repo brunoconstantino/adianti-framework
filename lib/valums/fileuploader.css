@@ -1,0 +1,18 @@
+.qq-upload-button {
+    display:inline;
+    border                : solid;
+    -webkit-border-radius : 3px;
+    -moz-border-radius    : 3px;
+    border-color          : #a4a4a4;
+    border-width          : 1px;
+    float                 : left;
+    height                : 19px;
+    color                 : #333;
+    padding-left          : 3px;
+    padding-top           : 2px;
+    padding-bottom        : 1px;
+}
+.qq-upload-list {
+	visibility:hidden;
+	position:absolute
+}

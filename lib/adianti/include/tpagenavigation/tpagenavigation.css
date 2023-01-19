@@ -1,0 +1,52 @@
+.tpagenavigation
+{
+    padding-top: 17px;
+}
+.tpagenavigation a
+{
+    color:#333;
+    display:inline-block;
+    text-decoration:none;
+    font-weight:normal;
+    cursor:pointer;
+    background:transparent url('../../images/tpagenav_left_square.gif') no-repeat top left;
+    font-size:11px;
+    height:24px;
+ }
+.tpagenavigation a span
+{
+    display:block;
+    white-space:nowrap;
+    background:transparent url('../../images/tpagenav_right_square.gif') no-repeat top right;
+    line-height:14px;
+    padding:4px 10px 6px 8px;
+ }
+.tpagenavigation td.prev a
+{
+    background:transparent url('../../images/tpagenav_left.gif') no-repeat top left;
+    padding-left:12px;
+ }
+.tpagenavigation td.prev a span
+{
+    padding-left:0;
+}
+.tpagenavigation td.next a span
+{
+    background:transparent url('../../images/tpagenav_right.gif') no-repeat top right;
+    padding-right:12px;
+}
+.tpagenavigation td.on a
+{
+    color:#fff;
+    font-weight:bold;
+    background:transparent url('../../images/tpagenav_left_square.gif') no-repeat bottom left;
+}
+.tpagenavigation td.on a span
+{
+    background:transparent url('../../images/tpagenav_right_square.gif') no-repeat bottom right;
+}
+.tpagenavigation td.off a
+{
+    color:#c0c0c0;
+    background:transparent url('../../images/tpagenav_left_square.gif') no-repeat bottom left;
+}

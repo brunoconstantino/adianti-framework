@@ -1,0 +1,73 @@
+.multifield_header
+{
+	 font-size: 10pt;
+	 border-left: 1px solid white;
+	 border-top: 1px solid white;
+	 border-right: 1px solid gray;
+	 border-bottom: 1px solid gray;
+	 padding-top: 1px;
+	 background-color: #CCCCCC;
+	 -moz-user-select: none;
+	 cursor: default;
+}
+
+.tmultifield_over
+{
+    background-color:#FFFF88;
+}
+
+.multifield td
+{
+    margin:1px;
+    padding: 1px;
+    height: 1px;
+    border-bottom:1px solid #EAE9E1;
+}
+
+.multifield tbody tr
+{
+    /* background-color:#FFFFFF; */
+}
+
+div.multifieldDiv
+{
+    border:1px solid #ACA899;
+    height: 200px;
+    xoverflow:auto;
+    overflow-y:auto;
+    overflow:-moz-scrollbars-vertical;
+    width:400px;
+    overflow: visible;
+    width:400px;
+    background-color:#FFFFFF;
+}
+
+.multifield thead
+{
+    position:relative;
+}
+
+.multifield thead tr
+{
+    position:relative;
+    top:0px;
+    bottom:0px;
+}
+
+.tmultifield_scrolling
+{
+    overflow-y:auto;
+    overflow:-moz-scrollbars-vertical;
+    width:100%;
+}
+
+.multifield
+{
+	 border-collapse: separate;
+	 xborder-collapse: collapse;
+	 xborder: 1px solid gray;
+	 xborder: none;
+	 font-family: sans-serif,arial,verdana;
+	 font-size: 9pt;
+	 border-spacing: 0pt;
+}

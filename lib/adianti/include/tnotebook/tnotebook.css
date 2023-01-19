@@ -1,0 +1,116 @@
+.tnotebook_aba_sim
+{
+    font-family    : sans-serif,arial,verdana;
+    font-size      : 9pt;
+    padding-left   : 3px;
+    padding-right  : 3px;
+    border-right   : 1px solid #a1a1a1;
+    border-left    : 1px solid #a1a1a1;
+    white-space    : nowrap;
+    -moz-user-select : none;
+    -webkit-user-select : none;
+    user-select    : none;
+    background     : url("../../images/tnotebook_selected.png") repeat bottom center;
+    cursor         : default;
+    text-shadow     : 0 1px 0 #FFFFFF;
+    border-radius  : 3px 3px 0px 0px;
+    font-weight     : bold;
+}
+
+.tnotebook_aba_nao
+{
+    font-family    : sans-serif,arial,verdana;
+    font-size      : 9pt;
+    padding-left   : 3px;
+    padding-right  : 3px;
+    border-right   : 1px solid #a1a1a1;
+    border-left    : 1px solid #a1a1a1;
+    white-space    : nowrap;
+    -moz-user-select : none;
+    -webkit-user-select : none;
+    user-select    : none;
+    background-color : #f0f0f0;
+    background     : url("../../images/tnotebook_background.png") repeat bottom center;
+    text-shadow     : 0 1px 0 #FFFFFF;
+    font-weight     : bold;
+    color           : #ABABAB;
+    border-radius  : 3px 3px 0px 0px;
+}
+
+.tnotebook_aba_pre
+{
+    font-family    : sans-serif,arial,verdana;
+    font-size      : 9pt;
+    padding-left   : 3px;
+    padding-right  : 3px;
+    border-right   : 1px solid #a1a1a1;
+    border-left    : 1px solid #a1a1a1;
+    white-space    : nowrap;
+    -moz-user-select : none;
+    -webkit-user-select : none;
+    white-space    : nowrap;
+    background-color : #f0f0f0;
+    background     : url("../../images/tnotebook_prelight.png") repeat bottom center;
+    cursor         : pointer;
+    text-shadow     : 0 1px 0 #FFFFFF;
+    font-weight     : bold;
+    color           : #757575;
+    border-radius  : 3px 3px 0px 0px;
+}
+
+.tnotebook_down
+{
+    font-family    : sans-serif,arial,verdana;
+    border-right   : 1px solid #a1a1a1;
+    border-left    : 1px solid #a1a1a1;
+    border-bottom  : 1px solid #a1a1a1;
+    white-space    : nowrap;
+    -moz-user-select : none;
+    -webkit-user-select : none;
+    white-space    : nowrap;
+    background-color : #eaeaea;
+}
+
+.tnotebook_spacer
+{
+    width          : 2px;
+    border-bottom  : 1px solid #a1a1a1;
+}
+
+.tnotebook_end
+{
+    border-bottom  : 1px solid #a1a1a1;
+    width          : 100%;
+}
+
+.tnotebook_quadro
+{
+    position       : relative;
+}
+
+.tnotebook_table
+{
+    border-left    : 1px solid #a1a1a1;
+    border-right   : 1px solid #a1a1a1;
+    border-bottom  : 1px solid #a1a1a1;
+    background-color : #FAFAFA;
+    -moz-box-shadow: 3px 3px 3px #BABABA;
+    -webkit-box-shadow: 3px 3px 3px #BABABA;
+    box-shadow: 3px 3px 3px #BABABA;
+    border-radius  : 0px 0px 3px 3px;
+}
+
+.tnotebook_painel_sim
+{
+    position       : absolute;
+    padding-top    : 2px;
+    padding-left   : 3px;
+    visibility     : visible;
+}
+
+.tnotebook_painel_nao
+{
+    position       : absolute;
+    visibility     : hidden;
+    z-index        : 1;
+}

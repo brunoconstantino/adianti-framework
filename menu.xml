@@ -1,0 +1,14 @@
+<menu>
+    <menuitem label='Start here'>
+        <menu>
+            <menuitem label='Wellcome'>
+                <menu>
+                    <menuitem label='Wellcome page'>
+                        <icon>app/images/ico_wellcome.png</icon>
+                        <action>WellcomeView</action>
+                    </menuitem>
+                </menu>
+            </menuitem>
+        </menu>
+    </menuitem>
+</menu>
