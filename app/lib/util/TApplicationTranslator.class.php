@@ -26,8 +26,11 @@ class TApplicationTranslator
         $this->messages['en'][] = 'Tool';
         $this->messages['en'][] = 'Data';
         $this->messages['en'][] = 'Open';
+        $this->messages['en'][] = 'New';
         $this->messages['en'][] = 'Save';
+        $this->messages['en'][] = 'Find';
         $this->messages['en'][] = 'Delete';
+        $this->messages['en'][] = 'Edit';
         $this->messages['en'][] = 'Cancel';
         $this->messages['en'][] = 'Yes';
         $this->messages['en'][] = 'No';
@@ -53,6 +56,12 @@ class TApplicationTranslator
         $this->messages['en'][] = 'The field ^1 has not a valid CNPJ';
         $this->messages['en'][] = 'The field ^1 has not a valid CPF';
         $this->messages['en'][] = 'The field ^1 contains an invalid e-mail';
+        $this->messages['en'][] = 'Permission denied';
+        $this->messages['en'][] = 'Generate';
+        $this->messages['en'][] = 'List';
+        $this->messages['en'][] = 'Detail';
+        $this->messages['en'][] = 'Back';
+        $this->messages['en'][] = 'Clear';
         
         $this->messages['pt'][] = 'Arquivo não encontrado';
         $this->messages['pt'][] = 'Buscar';
@@ -65,8 +74,11 @@ class TApplicationTranslator
         $this->messages['pt'][] = 'Ferramenta';
         $this->messages['pt'][] = 'Dados';
         $this->messages['pt'][] = 'Abrir';
+        $this->messages['pt'][] = 'Novo';
         $this->messages['pt'][] = 'Salvar';
+        $this->messages['pt'][] = 'Buscar';
         $this->messages['pt'][] = 'Excluir';
+        $this->messages['pt'][] = 'Editar';
         $this->messages['pt'][] = 'Cancelar';
         $this->messages['pt'][] = 'Sim';
         $this->messages['pt'][] = 'Não';
@@ -92,6 +104,12 @@ class TApplicationTranslator
         $this->messages['pt'][] = 'O campo ^1 não contém um CNPJ válido';
         $this->messages['pt'][] = 'O campo ^1 não contém um CPF válido';
         $this->messages['pt'][] = 'O campo ^1 contém um e-mail inválido';
+        $this->messages['pt'][] = 'Permissão negada';
+        $this->messages['pt'][] = 'Gerar';
+        $this->messages['pt'][] = 'Listar';
+        $this->messages['pt'][] = 'Detalhe';
+        $this->messages['pt'][] = 'Voltar';
+        $this->messages['pt'][] = 'Limpar';
     }
     
     /**

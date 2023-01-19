@@ -1,0 +1,80 @@
+function __adianti_ajax_lookup(string_action, field)
+{
+    var id = field.value;
+    //if (id)
+    {
+        __adianti_ajax_exec(string_action +'&key='+id);
+    }
+}
+
+function __adianti_ajax_exec(string_action)
+{
+    uri = 'engine.php?' + string_action +'&static=1';
+    
+    $.get(uri, function(data)
+    {
+        tmp = data;
+        /*
+        tmp = new String(tmp.replace(/\<script language=\'JavaScript\'\>/g, ''));
+        tmp = new String(tmp.replace(/\<script type=\'text\/javascript\'\>/g, ''));
+        tmp = new String(tmp.replace(/\<script type=\"text\/javascript\"\>/g, ''));
+        tmp = new String(tmp.replace(/\<\/script\>/g, ''));
+        */
+        tmp = new String(tmp.replace(/window\.opener\./g, ''));
+        tmp = new String(tmp.replace(/window\.close\(\)\;/g, ''));
+        tmp = new String(tmp.replace(/(\n\r|\n|\r)/gm,''));
+        tmp = new String(tmp.replace(/^\s+|\s+$/g,""));
+        if ($('[widget="TWindow"]').length > 0)
+        {
+           // o código dinâmico gerado em ajax lookups (ex: seekbutton)
+           // deve ser modificado se estiver dentro de window para pegar window2
+           tmp = new String(tmp.replace(/TWindow/g, 'TWindow2'));
+        }
+        
+        try {
+            html = $.parseHTML(''+tmp+'');
+            $('#adianti_online_content').append(html);
+            parseScript(tmp);
+        } catch (e) {
+            if (e instanceof SyntaxError) {
+                //alert(e.message + ': ' + tmp);
+                $('<div />').html(e.message + ': ' + tmp).dialog({modal: true, title: 'Error', width : '80%', height : 'auto', resizable: true, closeOnEscape:true, focus:true});
+            }
+        }
+        
+    }).fail(function(jqxhr, settings, exception) {
+       //alert(exception + ': ' + jqxhr.responseText);
+       $('<div />').html(jqxhr.responseText).dialog({modal: true, title: 'Error', width : '80%', height : 'auto', resizable: true, closeOnEscape:true, focus:true});
+    });
+}
+
+function parseScript(strcode)
+{
+    var scripts = new Array();
+
+    while(strcode.indexOf("<script") > -1 || strcode.indexOf("</script") > -1)
+    {
+        var s = strcode.indexOf("<script");
+        var s_e = strcode.indexOf(">", s);
+        var e = strcode.indexOf("</script", s);
+        var e_e = strcode.indexOf(">", e);
+        
+        // Add to scripts array
+        scripts.push(strcode.substring(s_e+1, e));
+        // Strip from strcode
+        strcode = strcode.substring(0, s) + strcode.substring(e_e+1);
+    }
+    
+    // Loop through every script collected and eval it
+    for (var i=0; i<scripts.length; i++)
+    {
+        try
+        {
+            eval(scripts[i]);
+        }
+        catch(e)
+        {
+            throw e;
+        }
+     }
+}

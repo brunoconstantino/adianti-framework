@@ -1,11 +1,11 @@
 <menu>
     <menuitem label='Start here'>
         <menu>
-            <menuitem label='Wellcome'>
+            <menuitem label='Welcome'>
                 <menu>
-                    <menuitem label='Wellcome page'>
-                        <icon>app/images/ico_wellcome.png</icon>
-                        <action>WellcomeView</action>
+                    <menuitem label='Welcome page'>
+                        <icon>app/images/ico_welcome.png</icon>
+                        <action>WelcomeView</action>
                     </menuitem>
                 </menu>
             </menuitem>
