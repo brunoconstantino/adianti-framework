@@ -1,13 +1,18 @@
 <?php
 /**
- * Translation utility class
- * Copyright (c) 2006-2010 Pablo Dall'Oglio
- * @author  Pablo Dall'Oglio <pablo [at] adianti.com.br>
- * @version 2.0, 2007-08-01
+ * ApplicationTranslator
+ *
+ * @version    5.0
+ * @package    util
+ * @author     Pablo Dall'Oglio
+ * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
+ * @license    http://www.adianti.com.br/framework-license
  */
 class ApplicationTranslator
 {
     private static $instance; // singleton instance
+    private $messages;
+    private $enWords;
     private $lang;            // target language
     
     /**
@@ -62,14 +67,17 @@ class ApplicationTranslator
         $this->messages['en'][] = 'Detail';
         $this->messages['en'][] = 'Back';
         $this->messages['en'][] = 'Clear';
+        $this->messages['en'][] = 'Program';
+        $this->messages['en'][] = 'Path';
+        $this->messages['en'][] = 'Results';
         
-        $this->messages['pt'][] = 'Arquivo não encontrado';
+        $this->messages['pt'][] = 'Arquivo nÃ£o encontrado';
         $this->messages['pt'][] = 'Buscar';
         $this->messages['pt'][] = 'Cadastrar';
         $this->messages['pt'][] = 'Registro salvo';
         $this->messages['pt'][] = 'Deseja realmente excluir ?';
-        $this->messages['pt'][] = 'Registro excluído';
-        $this->messages['pt'][] = 'Função';
+        $this->messages['pt'][] = 'Registro excluÃ­do';
+        $this->messages['pt'][] = 'FunÃ§Ã£o';
         $this->messages['pt'][] = 'Tabela';
         $this->messages['pt'][] = 'Ferramenta';
         $this->messages['pt'][] = 'Dados';
@@ -81,10 +89,10 @@ class ApplicationTranslator
         $this->messages['pt'][] = 'Editar';
         $this->messages['pt'][] = 'Cancelar';
         $this->messages['pt'][] = 'Sim';
-        $this->messages['pt'][] = 'Não';
+        $this->messages['pt'][] = 'NÃ£o';
         $this->messages['pt'][] = 'Janeiro';
         $this->messages['pt'][] = 'Fevereiro';
-        $this->messages['pt'][] = 'Março';
+        $this->messages['pt'][] = 'MarÃ§o';
         $this->messages['pt'][] = 'Abril';
         $this->messages['pt'][] = 'Maio';
         $this->messages['pt'][] = 'Junho';
@@ -96,20 +104,30 @@ class ApplicationTranslator
         $this->messages['pt'][] = 'Dezembro';
         $this->messages['pt'][] = 'Hoje';
         $this->messages['pt'][] = 'Fechar';
-        $this->messages['pt'][] = 'O campo ^1 não pode ter menos de ^2 caracteres';
-        $this->messages['pt'][] = 'O campo ^1 não pode ter mais de ^2 caracteres';
-        $this->messages['pt'][] = 'O campo ^1 não pode ser menor que ^2';
-        $this->messages['pt'][] = 'O campo ^1 não pode ser maior que ^2';
-        $this->messages['pt'][] = 'O campo ^1 é obrigatório';
-        $this->messages['pt'][] = 'O campo ^1 não contém um CNPJ válido';
-        $this->messages['pt'][] = 'O campo ^1 não contém um CPF válido';
-        $this->messages['pt'][] = 'O campo ^1 contém um e-mail inválido';
-        $this->messages['pt'][] = 'Permissão negada';
+        $this->messages['pt'][] = 'O campo ^1 nÃ£o pode ter menos de ^2 caracteres';
+        $this->messages['pt'][] = 'O campo ^1 nÃ£o pode ter mais de ^2 caracteres';
+        $this->messages['pt'][] = 'O campo ^1 nÃ£o pode ser menor que ^2';
+        $this->messages['pt'][] = 'O campo ^1 nÃ£o pode ser maior que ^2';
+        $this->messages['pt'][] = 'O campo ^1 Ã© obrigatÃ³rio';
+        $this->messages['pt'][] = 'O campo ^1 nÃ£o contÃ©m um CNPJ vÃ¡lido';
+        $this->messages['pt'][] = 'O campo ^1 nÃ£o contÃ©m um CPF vÃ¡lido';
+        $this->messages['pt'][] = 'O campo ^1 contÃ©m um e-mail invÃ¡lido';
+        $this->messages['pt'][] = 'PermissÃ£o negada';
         $this->messages['pt'][] = 'Gerar';
         $this->messages['pt'][] = 'Listar';
         $this->messages['pt'][] = 'Detalhe';
         $this->messages['pt'][] = 'Voltar';
         $this->messages['pt'][] = 'Limpar';
+        $this->messages['pt'][] = 'Programa';
+        $this->messages['pt'][] = 'Caminho';
+        $this->messages['pt'][] = 'Resultados';
+
+        
+        $this->enWords = [];
+        foreach ($this->messages['en'] as $key => $value)
+        {
+            $this->enWords[$value] = $key;
+        }
     }
     
     /**
@@ -153,14 +171,16 @@ class ApplicationTranslator
      * @param $word     Word to be translated
      * @return          Translated word
      */
-    static public function translate($word, $param1 = NULL, $param2 = NULL, $param3 = NULL)
+    public static function translate($word, $param1 = NULL, $param2 = NULL, $param3 = NULL)
     {
         // get the self unique instance
         $instance = self::getInstance();
         // search by the numeric index of the word
-        $key = array_search($word, $instance->messages['en']);
-        if ($key !== FALSE)
+        
+        if (isset($instance->enWords[$word]) and !is_null($instance->enWords[$word]))
         {
+            $key = $instance->enWords[$word]; //$key = array_search($word, $instance->messages['en']);
+            
             // get the target language
             $language = self::getLanguage();
             // returns the translated word
@@ -189,15 +209,18 @@ class ApplicationTranslator
     /**
      * Translate a template file
      */
-    static public function translateTemplate($template)
+    public static function translateTemplate($template)
     {
         // get the self unique instance
         $instance = self::getInstance();
-        // search by the numeric index of the word
-        foreach ($instance->messages['en'] as $word)
+        // search by translated words
+        if(preg_match_all( '!_t\{(.*?)\}!i', $template, $match ) > 0)
         {
-            $translated = _t($word);
-            $template = str_replace('_t{'.$word.'}', $translated, $template);
+            foreach($match[1] as $word)
+            {
+                $translated = _t($word);
+                $template = str_replace('_t{'.$word.'}', $translated, $template);
+            }
         }
         return $template;
     }
@@ -215,4 +238,3 @@ function _t($msg, $param1 = null, $param2 = null, $param3 = null)
 {
         return ApplicationTranslator::translate($msg, $param1, $param2, $param3);
 }
-

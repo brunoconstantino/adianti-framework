@@ -245,3 +245,11 @@ input, select, textarea, .panel-heading, .panel, .panel-footer {
     border-color: gray !important;
 }
 */
+
+input[widget="tslider"] {
+    margin: auto;
+}
+
+input[widget="tfile"], input[widget="tmultifile"] {
+    padding-top: 0;
+}
