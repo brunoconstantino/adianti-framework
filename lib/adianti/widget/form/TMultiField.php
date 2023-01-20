@@ -19,7 +19,7 @@ use StdClass;
 /**
  * MultiField Widget: Takes a group of input fields and gives them the possibility to register many occurrences
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio

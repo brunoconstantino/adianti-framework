@@ -10,6 +10,7 @@ use Adianti\Database\TTransaction;
 use Adianti\Database\TRepository;
 use Adianti\Database\TRecord;
 use Adianti\Database\TFilter;
+use Adianti\Database\TExpression;
 use Adianti\Database\TCriteria;
 use Adianti\Registry\TSession;
 use Exception;
@@ -17,7 +18,7 @@ use Exception;
 /**
  * Standard List Trait
  *
- * @version    5.5
+ * @version    5.6
  * @package    base
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -31,6 +32,7 @@ trait AdiantiStandardListTrait
     protected $loaded;
     protected $limit;
     protected $operators;
+    protected $logic_operators;
     protected $order;
     protected $direction;
     protected $criteria;
@@ -93,10 +95,11 @@ trait AdiantiStandardListTrait
      * @param $filterField Field name
      * @param $operator Comparison operator
      */
-    public function addFilterField($filterField, $operator = 'like', $formFilter = NULL, $filterTransformer = NULL)
+    public function addFilterField($filterField, $operator = 'like', $formFilter = NULL, $filterTransformer = NULL, $logic_operator = TExpression::AND_OPERATOR)
     {
         $this->filterFields[] = $filterField;
         $this->operators[] = $operator;
+        $this->logic_operators[] = $logic_operator;
         $this->formFilters[] = isset($formFilter) ? $formFilter : $filterField;
         $this->filterTransformers[] = $filterTransformer;
     }
@@ -182,7 +185,7 @@ trait AdiantiStandardListTrait
                 $filterFunction = isset($this->filterTransformers[$filterKey]) ? $this->filterTransformers[$filterKey] : null;
                 
                 // check if the user has filled the form
-                if (isset($data->{$formFilter}) AND $data->{$formFilter})
+                if (!empty($data->{$formFilter}) OR (isset($data->{$formFilter}) AND $data->{$formFilter} == '0'))
                 {
                     // $this->filterTransformers
                     if ($filterFunction)
@@ -231,7 +234,26 @@ trait AdiantiStandardListTrait
     }
     
     /**
-     * method onReload()
+     * clear Filters
+     */
+    public function clearFilters()
+    {
+        TSession::setValue($this->activeRecord.'_filter_data', null);
+        TSession::setValue(get_class($this).'_filter_data', null);
+        $this->form->clear();
+        
+        if ($this->formFilters)
+        {
+            foreach ($this->formFilters as $filterKey => $formFilter)
+            {
+                TSession::setValue($this->activeRecord.'_filter', NULL); // BC compatibility
+                TSession::setValue($this->activeRecord.'_filter_'.$formFilter, NULL);
+                TSession::setValue($this->activeRecord.'_'.$formFilter, '');
+            }
+        }
+    }
+    
+    /**
      * Load the datagrid with the database objects
      */
     public function onReload($param = NULL)
@@ -254,6 +276,7 @@ trait AdiantiStandardListTrait
             // instancia um repositório
             $repository = new TRepository($this->activeRecord);
             $limit = isset($this->limit) ? ( $this->limit > 0 ? $this->limit : NULL) : 10;
+            
             // creates a criteria
             $criteria = isset($this->criteria) ? clone $this->criteria : new TCriteria;
             if ($this->order)
@@ -261,6 +284,7 @@ trait AdiantiStandardListTrait
                 $criteria->setProperty('order',     $this->order);
                 $criteria->setProperty('direction', $this->direction);
             }
+            
             $criteria->setProperties($param); // order, offset
             $criteria->setProperty('limit', $limit);
             
@@ -268,10 +292,12 @@ trait AdiantiStandardListTrait
             {
                 foreach ($this->formFilters as $filterKey => $filterField)
                 {
+                    $logic_operator = isset($this->logic_operators[$filterKey]) ? $this->logic_operators[$filterKey] : TExpression::AND_OPERATOR;
+                    
                     if (TSession::getValue($this->activeRecord.'_filter_'.$filterField))
                     {
                         // add the filter stored in the session to the criteria
-                        $criteria->add(TSession::getValue($this->activeRecord.'_filter_'.$filterField));
+                        $criteria->add(TSession::getValue($this->activeRecord.'_filter_'.$filterField), $logic_operator);
                     }
                 }
             }

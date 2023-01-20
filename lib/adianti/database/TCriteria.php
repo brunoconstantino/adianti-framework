@@ -6,7 +6,7 @@ use Adianti\Database\TExpression;
 /**
  * Provides an interface for filtering criteria definition
  *
- * @version    5.5
+ * @version    5.6
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -105,7 +105,7 @@ class TCriteria extends TExpression
             {
                 foreach ($this->expressions as $expression)
                 {
-                    $preparedVars = array_merge($preparedVars, $expression->getPreparedVars());
+                    $preparedVars = array_merge($preparedVars, (array) $expression->getPreparedVars());
                 }
                 return $preparedVars;
             }
@@ -134,7 +134,10 @@ class TCriteria extends TExpression
                     $result .=  $operator. $expression->dump( $prepared ) . ' ';
                 }
                 $result = trim($result);
-                return "({$result})";
+                if ($result)
+                {
+                    return "({$result})";
+                }
             }
         }
     }

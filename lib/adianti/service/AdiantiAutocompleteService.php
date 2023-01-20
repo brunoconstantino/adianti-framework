@@ -12,7 +12,7 @@ use Exception;
 /**
  * Autocomplete backend
  *
- * @version    5.5
+ * @version    5.6
  * @package    service
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -27,6 +27,7 @@ class AdiantiAutocompleteService
 	{
         $seed = APPLICATION_NAME.'s8dkld83kf73kf094';
         $hash = md5("{$seed}{$param['database']}{$param['column']}{$param['model']}");
+        $mask = $param['mask'];
         
         if ($hash == $param['hash'])
         {
@@ -65,7 +66,10 @@ class AdiantiAutocompleteService
                 {
                     foreach ($collection as $object)
                     {
-                        $c = $object->$column;
+                        $maskvalues = $mask;
+                        $maskvalues = $object->render($maskvalues);
+                        
+                        $c = $maskvalues;
                         if ($c != null )
                         {
                             if (utf8_encode(utf8_decode($c)) !== $c ) // SE NÃO UTF8

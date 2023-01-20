@@ -14,7 +14,7 @@ use Exception;
 /**
  * Abstract Record Lookup Widget: Creates a lookup field used to search values from associated entities
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio
@@ -121,19 +121,21 @@ class TDBSeekButton extends TSeekButton
             $mask     = $this->getAction()->getParameter('mask');
             $display_field = $this->getAction()->getParameter('display_field');
             
-            TTransaction::open($database);
-            $activeRecord = new $model($value);
-            
-            if (!empty($mask))
+            if (!empty($value))
             {
-                $this->auxiliar->setValue($activeRecord->render($mask));
+                TTransaction::open($database);
+                $activeRecord = new $model($value);
+                
+                if (!empty($mask))
+                {
+                    $this->auxiliar->setValue($activeRecord->render($mask));
+                }
+                else if (isset($activeRecord->$display_field))
+                {
+                    $this->auxiliar->setValue( $activeRecord->$display_field );
+                }
+                TTransaction::close();
             }
-            else if (isset($activeRecord->$display_field))
-            {
-                $this->auxiliar->setValue( $activeRecord->$display_field );
-            }
-            
-            TTransaction::close();
         }
     }
 }

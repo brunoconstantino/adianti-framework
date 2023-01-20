@@ -17,6 +17,7 @@ use Adianti\Widget\Form\TSeekButton;
 use Adianti\Widget\Form\TRadioGroup;
 use Adianti\Widget\Form\TCheckGroup;
 use Adianti\Widget\Form\TMultiSearch;
+use Adianti\Widget\Form\TMultiEntry;
 use Adianti\Widget\Util\TActionLink;
 use Adianti\Widget\Wrapper\TDBMultiSearch;
 use Adianti\Widget\Wrapper\TDBRadioGroup;
@@ -29,7 +30,7 @@ use Exception;
 /**
  * Bootstrap form builder for Adianti Framework
  *
- * @version    5.5
+ * @version    5.6
  * @package    wrapper
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -83,6 +84,14 @@ class BootstrapFormBuilder implements AdiantiFormInterface
         $this->column_classes[10] = ['col-sm-1', 'col-sm-1','col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1'];
         $this->column_classes[11] = ['col-sm-1', 'col-sm-1','col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1'];
         $this->column_classes[12] = ['col-sm-1', 'col-sm-1','col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1', 'col-sm-1'];
+    }
+    
+    /**
+     * Returns form id
+     */
+    public function getId()
+    {
+        return $this->id;
     }
     
     /**
@@ -340,6 +349,20 @@ class BootstrapFormBuilder implements AdiantiFormInterface
         if ($args)
         {
             $this->tabcontent[$this->tabcurrent][] = $row;
+            
+            foreach ($args as $arg)
+            {
+                foreach ($arg as $slot)
+                {
+                    if (!empty($slot) && $slot instanceof BootstrapFormBuilder)
+                    {
+                        foreach ($slot->getFields() as $field)
+                        {
+                            $this->addField($field);
+                        }
+                    }
+                }
+            }
         }
         
         // return, because the user may fill aditional attributes
@@ -492,6 +515,7 @@ class BootstrapFormBuilder implements AdiantiFormInterface
         $panel->{'style'}  = 'width: 100%';
         $panel->{'widget'} = 'bootstrapformbuilder';
         $panel->{'form'}   = $this->name;
+        $panel->{'id'}     = $this->id;
         
         if ($this->properties)
         {
@@ -765,7 +789,7 @@ class BootstrapFormBuilder implements AdiantiFormInterface
                     $object->setSize("calc(100% - {$extra_size}px)");
                 }
             }
-            else if ( ($field_size) AND ($object instanceof TMultiSearch OR $object instanceof TDBMultiSearch OR $object instanceof THtmlEditor))
+            else if ( ($field_size) AND ($object instanceof TMultiSearch OR $object instanceof TDBMultiSearch OR $object instanceof THtmlEditor OR $object instanceof TMultiEntry))
             {
                 $object->setSize('100%', $field_size[1] - 3);
             }
@@ -792,5 +816,25 @@ class BootstrapFormBuilder implements AdiantiFormInterface
     public static function hideField($form, $field)
     {
         TScript::create("tform_hide_field('{$form}', '{$field}')");
+    }
+    
+    /**
+     * Converts the object into a string
+     */
+    public function __toString()
+    {
+        return $this->getContents();
+    }
+    
+    /**
+     * Returns the element content as a string
+     */
+    public function getContents()
+    {
+        ob_start();
+        $this->show();
+        $content = ob_get_contents();
+        ob_end_clean();
+        return $content;
     }
 }

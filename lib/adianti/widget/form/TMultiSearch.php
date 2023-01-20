@@ -15,7 +15,7 @@ use Exception;
 /**
  * Multi Search Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Matheus Agnes Dias

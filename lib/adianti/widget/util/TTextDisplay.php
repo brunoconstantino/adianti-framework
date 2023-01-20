@@ -6,7 +6,7 @@ use Adianti\Widget\Base\TElement;
 /**
  * Text Display
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio

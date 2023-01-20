@@ -7,7 +7,7 @@ use Adianti\Core\AdiantiCoreTranslator;
 /**
  * File Save Trait
  *
- * @version    5.5
+ * @version    5.6
  * @package    base
  * @author     Nataniel Rabaioli
  * @author     Pablo Dall'Oglio
@@ -32,6 +32,8 @@ trait AdiantiFileSaveTrait
             $pk = $object->getPrimaryKey();
             
             $target_path.= '/' . $object->$pk;
+            $target_path = str_replace('//', '/', $target_path);
+            
             $source_file = $dados_file->fileName;
             $target_file = strpos($dados_file->fileName, $target_path) === FALSE ? $target_path . '/' . $dados_file->fileName : $dados_file->fileName;
             $target_file = str_replace('tmp/', '', $target_file);
@@ -100,6 +102,8 @@ trait AdiantiFileSaveTrait
             {
                 $data->$input_name = '';
             }
+            
+            return $obj_store;
         }
     }
     
@@ -117,9 +121,11 @@ trait AdiantiFileSaveTrait
     {
         $pk = $object->getPrimaryKey();
         
-        $delFiles   = [];
-        $files_form = [];
-        $target_path.= '/' . $object->$pk;
+        $delFiles      = [];
+        $files_form    = [];
+        $target_path  .= '/' . $object->$pk;
+        $target_path   = str_replace('//', '/', $target_path);
+        $final_objects = [];
         
         if (isset($data->$input_name) AND $data->$input_name)
         {
@@ -156,6 +162,10 @@ trait AdiantiFileSaveTrait
                             }
                         }
                     }
+                    else if (!empty($dados_file->idFile))
+                    {
+                        $final_objects[] = $model_files::find($dados_file->idFile);
+                    }
                     
                     if (!empty($dados_file->newFile))
                     {
@@ -183,6 +193,7 @@ trait AdiantiFileSaveTrait
                                 $model_file->$foreign_key = $object->$pk;
                                 
                                 $model_file->store();
+                                $final_objects[] = $model_file;
                                 
                                 $pk_detail = $model_file->getPrimaryKey();
                                 $file_form['idFile'] = $model_file->$pk_detail;
@@ -200,6 +211,8 @@ trait AdiantiFileSaveTrait
             
             $data->$input_name = $files_form;
         }
+        
+        return $final_objects;
     }
     
     /**

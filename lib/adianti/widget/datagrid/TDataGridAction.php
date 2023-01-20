@@ -8,7 +8,7 @@ use Exception;
 /**
  * Represents an action inside a datagrid
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage datagrid
  * @author     Pablo Dall'Oglio

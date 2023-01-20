@@ -12,7 +12,7 @@ use Exception;
 /**
  * Database CheckBox Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio

@@ -7,7 +7,7 @@ use Adianti\Control\TAction;
 /**
  * Action Link
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio

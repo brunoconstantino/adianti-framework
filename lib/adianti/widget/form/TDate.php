@@ -11,7 +11,7 @@ use DateTime;
 /**
  * DatePicker Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -46,6 +46,7 @@ class TDate extends TEntry implements AdiantiWidgetInterface
         $newmask = str_replace('yyyy', '9999', $newmask);
         parent::setMask($newmask);
         $this->tag->{'widget'} = 'tdate';
+        $this->tag->{'autocomplete'} = 'off';
     }
     
     /**

@@ -7,7 +7,7 @@ use Adianti\Widget\Container\TJQueryDialog;
 /**
  * Window Container (JQueryDialog wrapper)
  *
- * @version    5.5
+ * @version    5.6
  * @package    control
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -75,6 +75,14 @@ class TWindow extends TPage
     public function setModal($modal)
     {
         $this->wrapper->setModal($modal);
+    }
+    
+    /**
+     * Disable Escape
+     */
+    public function disableEscape()
+    {
+        $this->wrapper->disableEscape();
     }
     
     /**

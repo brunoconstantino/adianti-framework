@@ -18,7 +18,7 @@ use Exception;
 /**
  * Base class for Active Records
  *
- * @version    5.5
+ * @version    5.6
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -332,19 +332,22 @@ abstract class TRecord
     
     /**
      * Return the Active Record properties as an indexed array
+     * @param $filter_attributes Array of attributes to be returned.
      * @return An indexed array containing the object properties
      */
-    public function toArray()
+    public function toArray( $filter_attributes = null )
     {
+        $attributes = $filter_attributes ? $filter_attributes : $this->attributes;
+        
         $data = array();
-        if (count($this->attributes) > 0)
+        if (count($attributes) > 0)
         {
             $pk = $this->getPrimaryKey();
             if (!empty($this->data))
             {
                 foreach ($this->data as $key => $value)
                 {
-                    if ((in_array($key, $this->attributes) AND is_string($key)) OR ($key === $pk))
+                    if ((in_array($key, $attributes) AND is_string($key)) OR ($key === $pk))
                     {
                         $data[$key] = $this->data[$key];
                     }
@@ -440,8 +443,8 @@ abstract class TRecord
         if (count($this->attributes) > 0)
         {
             $attributes = $this->attributes;
-            $attributes[] = $this->getPrimaryKey();
-            return implode(',', $attributes);
+            array_unshift($attributes, $this->getPrimaryKey());
+            return implode(', ', array_unique($attributes));
         }
         
         return '*';

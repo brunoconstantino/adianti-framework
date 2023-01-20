@@ -9,7 +9,7 @@ use Adianti\Database\TFilter;
 /**
  * Record rest service
  *
- * @version    5.5
+ * @version    5.6
  * @package    service
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -32,7 +32,8 @@ class AdiantiRecordService
         $object = new $activeRecord($param['id'], FALSE);
         
         TTransaction::close();
-        return $object->toArray();
+        $attributes = defined('static::ATTRIBUTES') ? static::ATTRIBUTES : null;
+        return $object->toArray( $attributes );
     }
     
     /**
@@ -111,13 +112,14 @@ class AdiantiRecordService
         
         $repository = new TRepository($activeRecord);
         $objects = $repository->load($criteria, FALSE);
+        $attributes = defined('static::ATTRIBUTES') ? static::ATTRIBUTES : null;
         
         $return = [];
         if ($objects)
         {
             foreach ($objects as $object)
             {
-                $return[] = $object->toArray();
+                $return[] = $object->toArray( $attributes );
             }
         }
         TTransaction::close();

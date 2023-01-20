@@ -13,7 +13,7 @@ use Adianti\Widget\Util\TExceptionView;
 /**
  * Basic structure to run a web application
  *
- * @version    5.5
+ * @version    5.6
  * @package    core
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -150,6 +150,7 @@ class AdiantiCoreApplication
      */
     public static function gotoPage($class, $method = NULL, $parameters = NULL, $callback = NULL)
     {
+        unset($parameters['static']);
         $query = self::buildHttpQuery($class, $method, $parameters);
         
         TScript::create("__adianti_goto_page('{$query}');");

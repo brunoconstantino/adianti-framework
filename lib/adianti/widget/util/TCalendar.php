@@ -8,7 +8,7 @@ use Adianti\Widget\Base\TElement;
 /**
  * Calendar Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
@@ -35,8 +35,8 @@ class TCalendar extends TElement
         $this->width = 400;
         $this->height = 300;
         $this->selectedDays = array();
-        $this->months = array(_t('January'), _t('February'), _t('March'), _t('April'), _t('May'), _t('June'),
-                              _t('July'), _t('August'), _t('September'), _t('October'), _t('November'), _t('December'));
+        $this->months = [_t('January'), _t('February'), _t('March'), _t('April'), _t('May'), _t('June'),
+                         _t('July'), _t('August'), _t('September'), _t('October'), _t('November'), _t('December')];
     }
     
     /**
@@ -118,21 +118,21 @@ class TCalendar extends TElement
         
         $row = $table->addRow();
         $cell = $row->addCell($this->months[$this->month -1] . ' ' . $this->year);
-        $cell-> colspan = 7;
-        $cell-> class = 'calendar-header';
+        $cell->{'colspan'} = 7;
+        $cell->{'class'} = 'calendar-header';
         
         $row = $table->addRow();
-        $row->addCell('S')->class='calendar-header';
-        $row->addCell('M')->class='calendar-header';
-        $row->addCell('T')->class='calendar-header';
-        $row->addCell('W')->class='calendar-header';
-        $row->addCell('T')->class='calendar-header';
-        $row->addCell('F')->class='calendar-header';
-        $row->addCell('S')->class='calendar-header';
+        $row->addCell(substr(_t('Sunday'),0,1))->{'class'} = 'calendar-header';
+        $row->addCell(substr(_t('Monday'),0,1))->{'class'} = 'calendar-header';
+        $row->addCell(substr(_t('Tuesday'),0,1))->{'class'} = 'calendar-header';
+        $row->addCell(substr(_t('Wednesday'),0,1))->{'class'} = 'calendar-header';
+        $row->addCell(substr(_t('Thursday'),0,1))->{'class'} = 'calendar-header';
+        $row->addCell(substr(_t('Friday'),0,1))->{'class'} = 'calendar-header';
+        $row->addCell(substr(_t('Saturday'),0,1))->{'class'} = 'calendar-header';
         
         
-        $prev_year = $this->year;
-        $next_year = $this->year;
+        $prev_year  = $this->year;
+        $next_year  = $this->year;
         $prev_month = $this->month - 1;
         $next_month = $this->month + 1;
          
@@ -157,7 +157,7 @@ class TCalendar extends TElement
             if (($i % 7) == 0 )
             {
                 $row = $table->addRow();
-                $row-> class = 'calendar-rowdata';
+                $row->{'class'} = 'calendar-rowdata';
             }
             
             if ($i < $startday)
@@ -170,11 +170,11 @@ class TCalendar extends TElement
                 $cell = $row->addCell( $current_day );
                 if (in_array($current_day, $this->selectedDays))
                 {
-                    $cell-> class = 'calendar-data calendar-selected';
+                    $cell->{'class'} = 'calendar-data calendar-selected';
                 }
                 else
                 {
-                    $cell-> class = 'calendar-data';
+                    $cell->{'class'} = 'calendar-data';
                 }
                 $cell-> valign = 'middle';
                 
@@ -184,7 +184,7 @@ class TCalendar extends TElement
                     $this->action->setParameter('month', $this->month);
                     $this->action->setParameter('day', $current_day);
                     $string_action = $this->action->serialize(FALSE);
-                    $cell-> onclick = "__adianti_ajax_exec('{$string_action}')";
+                    $cell->{'onclick'} = "__adianti_ajax_exec('{$string_action}')";
                 }
             }
         }

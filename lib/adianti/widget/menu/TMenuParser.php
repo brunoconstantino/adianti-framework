@@ -10,7 +10,7 @@ use DomElement;
 /**
  * Menu Parser
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage menu
  * @author     Pablo Dall'Oglio

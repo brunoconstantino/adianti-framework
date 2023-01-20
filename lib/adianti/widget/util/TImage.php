@@ -6,7 +6,7 @@ use Adianti\Widget\Base\TElement;
 /**
  * Image Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
@@ -74,6 +74,13 @@ class TImage extends TElement
                 $this->{'style'} = "color: #{$mi_color};";
             }
             parent::add($mi_class);
+        }
+        else if (substr($source,0,4) == 'http')
+        {
+            parent::__construct('img');
+            // assign the image path
+            $this->{'src'} = $source;
+            $this->{'border'} = 0;
         }
         else if (file_exists($source))
         {

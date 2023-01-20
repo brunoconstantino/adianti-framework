@@ -7,7 +7,7 @@ use Adianti\Widget\Base\TScript;
 /**
  * Expander Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio

@@ -15,7 +15,7 @@ use Exception;
 /**
  * Create a field list
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -187,6 +187,7 @@ class TFieldList extends TTable
         if ($this->fields)
         {
             $row = parent::addRow();
+            $row->{'id'} = $uniqid;
             
             if ($this->sorting)
             {

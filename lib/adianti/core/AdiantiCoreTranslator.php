@@ -4,7 +4,7 @@ namespace Adianti\Core;
 /**
  * Framework translation class for internal messages
  *
- * @version    5.5
+ * @version    5.6
  * @package    core
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -128,6 +128,7 @@ class AdiantiCoreTranslator
         $this->messages['en'][] = 'No records found';
         $this->messages['en'][] = '^1 to ^2 from ^3 records';
         $this->messages['en'][] = 'PHP Module not found';
+        $this->messages['en'][] = 'The parameter (^1) of ^2 must not be empty';
         
         $this->messages['pt'][] = 'Carregando';
         $this->messages['pt'][] = 'Arquivo não encontrado';
@@ -236,6 +237,116 @@ class AdiantiCoreTranslator
         $this->messages['pt'][] = 'Nenhum registro encontrado';
         $this->messages['pt'][] = '^1 a ^2 de ^3 registros';
         $this->messages['pt'][] = 'Módulo PHP não encontrado';
+        $this->messages['pt'][] = 'O parâmetro (^1) de ^2 não deve ser vazio';
+		
+        $this->messages['es'][] = 'Cargando';
+        $this->messages['es'][] = 'Archivo no encontrado';
+        $this->messages['es'][] = 'Buscar';
+        $this->messages['es'][] = 'Registrar';
+        $this->messages['es'][] = 'Registro guardado';
+        $this->messages['es'][] = 'Deseas realmente eliminar ?';
+        $this->messages['es'][] = 'Registro eliminado';
+        $this->messages['es'][] = 'Registros eliminados';
+        $this->messages['es'][] = 'Función';
+        $this->messages['es'][] = 'Tabla';
+        $this->messages['es'][] = 'Herramienta';
+        $this->messages['es'][] = 'Datos';
+        $this->messages['es'][] = 'Abrir';
+        $this->messages['es'][] = 'Guardar';
+        $this->messages['es'][] = 'Listar';
+        $this->messages['es'][] = 'Eliminar';
+        $this->messages['es'][] = 'Eliminar seleccionados';
+        $this->messages['es'][] = 'Modificar';
+        $this->messages['es'][] = 'Cancelar';
+        $this->messages['es'][] = 'Si';
+        $this->messages['es'][] = 'No';
+        $this->messages['es'][] = 'Enero';
+        $this->messages['es'][] = 'Febrero';
+        $this->messages['es'][] = 'Marzo';
+        $this->messages['es'][] = 'Abril';
+        $this->messages['es'][] = 'Mayo';
+        $this->messages['es'][] = 'Junio';
+        $this->messages['es'][] = 'Julio';
+        $this->messages['es'][] = 'Agosto';
+        $this->messages['es'][] = 'Septiembre';
+        $this->messages['es'][] = 'Octubre';
+        $this->messages['es'][] = 'Noviembre';
+        $this->messages['es'][] = 'Diciembre';
+        $this->messages['es'][] = 'Hoy';
+        $this->messages['es'][] = 'Cerrar';
+        $this->messages['es'][] = 'Campo para la acción ^1 no definido';
+        $this->messages['es'][] = 'Campo ^1 no existe o contiene valor NULL';
+        $this->messages['es'][] = 'Utilize el método ^1';
+        $this->messages['es'][] = 'Formulário sin campos';
+        $this->messages['es'][] = 'E-mail no enviado';
+        $this->messages['es'][] = 'El campo ^1 no puede ter menos de ^2 caracteres';
+        $this->messages['es'][] = 'El campo ^1 no puede ter mas de ^2 caracteres';
+        $this->messages['es'][] = 'El campo ^1 no puede ser menor que ^2';
+        $this->messages['es'][] = 'El campo ^1 no puede ser mayor que ^2';
+        $this->messages['es'][] = 'El campo ^1 es obligatório';
+        $this->messages['es'][] = 'El campo ^1 no contiene un CNPJ válido';
+        $this->messages['es'][] = 'El campo ^1 no contiene un CPF válido';
+        $this->messages['es'][] = 'El campo ^1 contiene un e-mail inválido';
+        $this->messages['es'][] = 'El campo ^1 debe ser numérico';
+        $this->messages['es'][] = 'Sin transacción activa con la base de datos';
+        $this->messages['es'][] = 'Objeto no encontrado';
+        $this->messages['es'][] = 'Objeto ^1 no encontrado en ^2';
+        $this->messages['es'][] = 'Método ^1 no acepta valores NULOS';
+        $this->messages['es'][] = 'Método ^1 debe recibir un parámetro del tipo ^2';
+        $this->messages['es'][] = 'Estilo ^1 no encontrado en ^2';
+        $this->messages['es'][] = 'Usted debe ejecutar el constructor de ^1';
+        $this->messages['es'][] = 'Usted debe executar ^1 antes de ^2';
+        $this->messages['es'][] = 'Usted debe pasar el ^1 (^2) como parámetro para ^3';
+        $this->messages['es'][] = 'El parámetro (^1) de ^2 es obligatório';
+        $this->messages['es'][] = 'El parámetro (^1) del constructor de ^2 es obligatório';
+        $this->messages['es'][] = 'Usted ya agregó un campo llamado "^1" al formulário';
+        $this->messages['es'][] = 'Cerrar la aplicación ?';
+        $this->messages['es'][] = 'Utilize addField() o setFields() para definir los campos del formulário';
+        $this->messages['es'][] = 'Verifique si la acción (^1) existe';
+        $this->messages['es'][] = 'Información';
+        $this->messages['es'][] = 'Error';
+        $this->messages['es'][] = 'Excepción';
+        $this->messages['es'][] = 'Pregunta';
+        $this->messages['es'][] = 'La classe ^1 no fue aceptada como argumento. El parámetro debe ser subclasse de ^2.';
+        $this->messages['es'][] = 'La classe ^1 no fue aceptada como argumento. El parámetro debe inplementar ^2.';
+        $this->messages['es'][] = 'La classe ^1 no fue encontrada. Verifique el nombre de la classe o del archivo. Ellos deben coincidir ';
+        $this->messages['es'][] = 'Nombre de propiedad reservado (^1) en la classe ^2';
+        $this->messages['es'][] = 'La acción (^1) debe ser estática para ser utilizada en ^2';
+        $this->messages['es'][] = 'Intento de acceso a una propiedad no existente (^1)';
+        $this->messages['es'][] = 'Formulário no encontrado. Verifique si usted envió el campo (^1) para setFields()';
+        $this->messages['es'][] = 'Classe ^1 no encontrada en ^2';
+        $this->messages['es'][] = 'Usted debe ejecutar ^1 antes de agregar el componente';
+        $this->messages['es'][] = 'Driver no encontrado';
+        $this->messages['es'][] = 'Buscar registro';
+        $this->messages['es'][] = 'Campo';
+        $this->messages['es'][] = 'Registro actualizado';
+        $this->messages['es'][] = 'Registros actualizados';
+        $this->messages['es'][] = 'Entrada';
+        $this->messages['es'][] = 'Classe ^1 no encontrada';
+        $this->messages['es'][] = 'Método ^1 no encontrado';
+        $this->messages['es'][] = 'Verifique el nombre de la classe o del archivo';
+        $this->messages['es'][] = 'Limpiar';
+        $this->messages['es'][] = 'Seleccionar';
+        $this->messages['es'][] = 'Usted debe definir el campo para la acción (^1)';
+        $this->messages['es'][] = 'la selección (^1) no fue cerrad correctamente';
+        $this->messages['es'][] = 'El método ^1 solamente acepta valores del tipo ^2 entre ^3 y ^4';
+        $this->messages['es'][] = 'La classe interna ^1 no puede ser ejecutada';
+        $this->messages['es'][] = 'La versión mínima requerida para el PHP es ^1';
+        $this->messages['es'][] = '^1 no definido. Usted debe ejecutar ^2 en ^3';
+        $this->messages['es'][] = 'Database';
+        $this->messages['es'][] = 'Constructor';
+        $this->messages['es'][] = 'Registros';
+        $this->messages['es'][] = 'Descripción';
+        $this->messages['es'][] = 'Falla al copiar archivo para ^1';
+        $this->messages['es'][] = 'Permiso denegado';
+        $this->messages['es'][] = 'Extensión no permitida';
+        $this->messages['es'][] = 'Error de hash';
+        $this->messages['es'][] = 'Parámetro (^1) inválido en ^2';
+        $this->messages['es'][] = 'Atención';
+        $this->messages['es'][] = 'Ningun registro encontrado';
+        $this->messages['es'][] = '^1 a ^2 de ^3 registros';
+        $this->messages['es'][] = 'Módulo PHP no encontrado';
+        $this->messages['es'][] = 'El parametro (^1) de ^2 no puede estar vacío';
     }
     
     /**

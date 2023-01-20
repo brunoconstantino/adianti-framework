@@ -16,7 +16,7 @@ use Exception;
 /**
  * A group of RadioButton's
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -85,6 +85,16 @@ class TRadioGroup extends TField implements AdiantiWidgetInterface
                            '2' => AdiantiCoreTranslator::translate('No') ] );
         $this->setLayout('horizontal');
         $this->setUseButton();
+        
+        // if setValue() was called previously
+        if ($this->value === true)
+        {
+            $this->value = '1';
+        }
+        else if ($this->value === false)
+        {
+            $this->value = '2';
+        }
     }
     
     /**
@@ -298,6 +308,7 @@ class TRadioGroup extends TField implements AdiantiWidgetInterface
                 $button = $this->buttons[$index];
                 $button->setName($this->name);
                 $active = FALSE;
+                $id = $button->getId();
                 
                 // check if contains any value
                 if ( $this->value == $index AND !(is_null($this->value)) AND strlen((string) $this->value) > 0)
@@ -340,7 +351,7 @@ class TRadioGroup extends TField implements AdiantiWidgetInterface
                         }
                         $string_action = $this->changeAction->serialize(FALSE);
                         
-                        $button->setProperty('changeaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', this, 'callback')");
+                        $button->setProperty('changeaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', '{$id}', 'callback')");
                         $button->setProperty('onChange', $button->getProperty('changeaction'), FALSE);
                     }
                     

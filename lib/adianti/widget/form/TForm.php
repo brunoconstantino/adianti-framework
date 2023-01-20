@@ -13,7 +13,7 @@ use ReflectionClass;
 /**
  * Wrapper class to deal with forms
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio

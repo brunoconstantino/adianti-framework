@@ -7,7 +7,7 @@ use Adianti\Core\AdiantiApplicationConfig;
 /**
  * File uploader listener
  *
- * @version    5.5
+ * @version    5.6
  * @package    service
  * @author     Nataniel Rabaioli
  * @author     Pablo Dall'Oglio
@@ -35,7 +35,7 @@ class AdiantiUploaderService
                 // check blocked file extension, not using finfo because file.php.2 problem
                 foreach ($block_extensions as $block_extension)
                 {
-                    if (strpos(strtolower($file['name']), ".{$block_extension}"))
+                    if (strpos(strtolower($file['name']), ".{$block_extension}") !== false)
                     {
                         $response = array();
                         $response['type'] = 'error';

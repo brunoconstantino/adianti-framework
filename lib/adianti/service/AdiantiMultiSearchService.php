@@ -14,7 +14,7 @@ use Exception;
 /**
  * MultiSearch backend
  *
- * @version    5.5
+ * @version    5.6
  * @package    service
  * @author     Pablo Dall'Oglio
  * @author     Matheus Agnes Dias
@@ -67,6 +67,7 @@ class AdiantiMultiSearchService
                         {
                             if (stristr(strtolower($operator),'like') !== FALSE)
                             {
+                                $param['value'] = str_replace(' ', '%', $param['value']);
                                 $filter = new TFilter($column, $operator, "NOESC:'%{$param['value']}%'");
                             }
                             else
@@ -78,10 +79,10 @@ class AdiantiMultiSearchService
                         }
                     }
                     
-                    if ($param['idsearch'] == '1')
+                    if ($param['idsearch'] == '1' and !empty( (int) $param['value']))
                     {
                         $id = (int) $param['value'];
-                        $dynamic_criteria->add( new TFilter($key, '=', "NOESC:'{$id}'" ), TExpression::OR_OPERATOR);
+                        $dynamic_criteria->add( new TFilter($key, '=', $id), TExpression::OR_OPERATOR);
                     }
                 }
                 
@@ -89,11 +90,12 @@ class AdiantiMultiSearchService
                 $criteria->setProperty('order', $param['orderColumn']);
                 $criteria->setProperty('limit', 1000);
                 
-                $collection = $repository->load($criteria, FALSE);
                 $items = array();
                 
-                if ($collection)
+                if (!empty($param['value']))
                 {
+                    $collection = $repository->load($criteria, FALSE);
+                    
                     foreach ($collection as $object)
                     {
                         $k = $object->$key;

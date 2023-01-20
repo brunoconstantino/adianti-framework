@@ -15,7 +15,7 @@ use ReflectionClass;
 /**
  * Implements the Repository Pattern to deal with collections of Active Records
  *
- * @version    5.5
+ * @version    5.6
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -68,7 +68,7 @@ class TRepository
     {
         if (!empty($this->columns))
         {
-            return implode(',', $this->columns);
+            return implode(', ', $this->columns);
         }
         else
         {

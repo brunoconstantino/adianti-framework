@@ -7,7 +7,7 @@ use Adianti\Widget\Container\TTableRow;
 /**
  * Creates a table layout, with rows and columns
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio
@@ -146,8 +146,9 @@ class TTable extends TElement
             $tbody->add($tr);
             $tr->{'class'} = ($i %2==0) ? 'odd': 'even';
             
-            foreach ($row as $cell)
+            foreach ($header as $key)
             {
+                $cell = isset($row[$key]) ? $row[$key] : '';
                 $td = $tr->addCell((string) $cell);
                 if ($body_properties)
                 {

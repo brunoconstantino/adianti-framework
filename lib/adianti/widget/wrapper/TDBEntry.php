@@ -12,7 +12,7 @@ use Exception;
 /**
  * Database Entry Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio
@@ -23,6 +23,7 @@ class TDBEntry extends TEntry
 {
     protected $minLength;
     protected $service;
+    protected $displayMask;
     private $database;
     private $model;
     private $column;
@@ -65,10 +66,20 @@ class TDBEntry extends TEntry
         $this->database = $database;
         $this->model = $model;
         $this->column = $value;
+        $this->displayMask = '{'.$value.'}';
         $this->operator = null;
         $this->orderColumn = isset($orderColumn) ? $orderColumn : NULL;
         $this->criteria = $criteria;
         $this->service = 'AdiantiAutocompleteService';
+    }
+    
+    /**
+     * Define the display mask
+     * @param $mask Show mask
+     */
+    public function setDisplayMask($mask)
+    {
+        $this->displayMask = $mask;
     }
     
     /**
@@ -119,7 +130,7 @@ class TDBEntry extends TEntry
         $class = $this->service;
         $callback = array($class, 'onSearch');
         $method = $callback[1];
-        $url = "engine.php?class={$class}&method={$method}&static=1&database={$this->database}&column={$this->column}&model={$this->model}&orderColumn={$orderColumn}&criteria={$criteria}&operator={$this->operator}&hash={$hash}";
+        $url = "engine.php?class={$class}&method={$method}&static=1&database={$this->database}&column={$this->column}&model={$this->model}&orderColumn={$orderColumn}&criteria={$criteria}&operator={$this->operator}&hash={$hash}&mask={$this->displayMask}";
         
         TScript::create(" tdbentry_start( '{$this->name}', '{$url}', '{$min}' );");
     }

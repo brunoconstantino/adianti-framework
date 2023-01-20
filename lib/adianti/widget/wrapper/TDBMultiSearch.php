@@ -15,7 +15,7 @@ use Exception;
 /**
  * Database Multisearch Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio
@@ -94,7 +94,17 @@ class TDBMultiSearch extends TMultiSearch
         $this->operator = null;
         $this->orderColumn = isset($orderColumn) ? $orderColumn : NULL;
         $this->criteria = $criteria;
-        $this->mask = '{'.$value.'}';
+        
+        if (strpos($value,',') !== false)
+        {
+            $columns = explode(',', $value);
+            $this->mask = '{'.$columns[0].'}';
+        }
+        else
+        {
+            $this->mask = '{'.$value.'}';
+        }
+        
         $this->service = 'AdiantiMultiSearchService';
         $this->seed = APPLICATION_NAME . ( !empty($ini['general']['seed']) ? $ini['general']['seed'] : 's8dkld83kf73kf094' );
         $this->tag->{'widget'} = 'tdbmultisearch';
@@ -142,6 +152,7 @@ class TDBMultiSearch extends TMultiSearch
      */
     public function setValue($values)
     {
+        $original_values = $values;
         $ini = AdiantiApplicationConfig::get();
         
         if (isset($ini['general']['compat']) AND $ini['general']['compat'] ==  '4')
@@ -157,6 +168,11 @@ class TDBMultiSearch extends TMultiSearch
             $items = [];
             if ($values)
             {
+                if (!empty($this->separator))
+                {
+                    $values = explode($this->separator, $values);
+                }
+                
                 TTransaction::open($this->database);
                 foreach ($values as $value)
                 {
@@ -186,7 +202,7 @@ class TDBMultiSearch extends TMultiSearch
                 TTransaction::close();
                 
                 parent::addItems( $items );
-                parent::setValue( $values );
+                parent::setValue( $original_values );
             }
         }
     }
@@ -237,7 +253,14 @@ class TDBMultiSearch extends TMultiSearch
             }
             else
             {
-                return $values;
+                if (empty($this->separator))
+                {
+                    return $values;
+                }
+                else
+                {
+                    return implode($this->separator, $values);
+                }
             }
         }
         else

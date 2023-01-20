@@ -7,7 +7,7 @@ use Adianti\Widget\Form\TField;
 /**
  * Hidden field
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -16,6 +16,23 @@ use Adianti\Widget\Form\TField;
  */
 class THidden extends TField implements AdiantiWidgetInterface
 {
+    /**
+     * Return the post data
+     */
+    public function getPostData()
+    {
+        $name = str_replace(['[',']'], ['',''], $this->name);
+        
+        if (isset($_POST[$name]))
+        {
+            return $_POST[$name];
+        }
+        else
+        {
+            return '';
+        }
+    }
+    
     /**
      * Show the widget at the screen
      */

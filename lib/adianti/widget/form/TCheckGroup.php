@@ -16,7 +16,7 @@ use Exception;
 /**
  * A group of CheckButton's
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -292,6 +292,7 @@ class TCheckGroup extends TField implements AdiantiWidgetInterface
                 $button = $this->buttons[$index];
                 $button->setName($this->name.'[]');
                 $active = FALSE;
+                $id = $button->getId();
                 
                 // verify if the checkbutton is checked
                 if ((@in_array($index, $this->value) AND !(is_null($this->value))) OR $this->allItemsChecked)
@@ -321,7 +322,7 @@ class TCheckGroup extends TField implements AdiantiWidgetInterface
                         }
                         $string_action = $this->changeAction->serialize(FALSE);
                         
-                        $button->setProperty('changeaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', this, 'callback')");
+                        $button->setProperty('changeaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', '{$id}', 'callback')");
                         $button->setProperty('onChange', $button->getProperty('changeaction'), FALSE);
                     }
                     

@@ -8,7 +8,7 @@ use SimpleXMLIterator;
 /**
  * FPDF Adapter that parses XML files from Adianti Framework
  *
- * @version    5.5
+ * @version    5.6
  * @package    wrapper
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)

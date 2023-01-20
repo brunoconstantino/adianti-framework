@@ -7,7 +7,7 @@ use Adianti\Widget\Form\TEntry;
 /**
  * Numeric Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -19,6 +19,9 @@ class TNumeric extends TEntry implements AdiantiWidgetInterface
     public function __construct($name, $decimals, $decimalsSeparator, $thousandSeparator, $replaceOnPost = true)
     {
         parent::__construct($name);
+        $this->tag->{'pattern'}   = '[0-9]*';
+        $this->tag->{'inputmode'} = 'numeric';
+        
         parent::setNumericMask($decimals, $decimalsSeparator, $thousandSeparator, $replaceOnPost);
     }
 }

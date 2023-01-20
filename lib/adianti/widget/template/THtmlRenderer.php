@@ -10,7 +10,7 @@ use Math\Parser;
 /**
  * Html Renderer
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage template
  * @author     Pablo Dall'Oglio
@@ -115,8 +115,11 @@ class THtmlRenderer
                     {
                         foreach ($vars as $propname)
                         {
-                            $content = str_replace('{$'.$variable.'->'.$propname.'}',   $value->$propname, $content);
-                            $content = str_replace('{{'.$variable.'->'.$propname.'}}',  $value->$propname, $content);
+                            if (is_scalar($variable.'->'.$propname))
+                            {
+                                $content = str_replace('{$'.$variable.'->'.$propname.'}',   $value->$propname, $content);
+                                $content = str_replace('{{'.$variable.'->'.$propname.'}}',  $value->$propname, $content);
+                            }
                         }
                     }
                 }
@@ -153,33 +156,37 @@ class THtmlRenderer
      */
     public static function replaceFunctions($content)
     {
-        preg_match_all('/date_format\(([0-9]{4}-[0-9]{2}-[0-9]{2}),\s*\'([A-z_\/\-0-9\s\:]*)\'\)/', $content, $matches1);
+        $date_masks = [];
+        $date_masks[] = '/date_format\(([0-9]{4}-[0-9]{2}-[0-9]{2}),\s*\'([A-z_\/\-0-9\s\:\,\.]*)\'\)/'; // 2018-10-08, mask
+        $date_masks[] = '/date_format\(([0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}),\s*\'([A-z_\/\-0-9\s\:\.\,]*)\'\)/'; // 2018-10-08 10:12:13, mask
+        $date_masks[] = '/date_format\(([0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+),\s*\'([A-z_\/\-0-9\s\:\.\,]*)\'\)/'; // 2018-10-08 10:12:13.17505, mask
+        $date_masks[] = '/date_format\((\s*),\s*\'([A-z_\/\-0-9\s\:\.\,]*)\'\)/'; // empty, mask
         
-        if (count($matches1)>0)
+        foreach ($date_masks as $date_mask)
         {
-            foreach ($matches1[0] as $key => $value)
+            preg_match_all($date_mask, $content, $matches1);
+            
+            if (count($matches1)>0)
             {
-                $raw    = $matches1[0][$key];
-                $date   = $matches1[1][$key];
-                $mask   = $matches1[2][$key];
-                $content = str_replace($raw, date_format(date_create($date), $mask), $content);
+                foreach ($matches1[0] as $key => $value)
+                {
+                    $raw    = $matches1[0][$key];
+                    $date   = $matches1[1][$key];
+                    $mask   = $matches1[2][$key];
+                    
+                    if (!empty(trim($date)))
+                    {
+                        $content = str_replace($raw, date_format(date_create($date), $mask), $content);
+                    }
+                    else
+                    {
+                        $content = str_replace($raw, '', $content);
+                    }
+                }
             }
         }
         
-        preg_match_all('/date_format\(([0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}),\s*\'([A-z_\/\-0-9\s\:]*)\'\)/', $content, $matches1);
-        
-        if (count($matches1)>0)
-        {
-            foreach ($matches1[0] as $key => $value)
-            {
-                $raw    = $matches1[0][$key];
-                $date   = $matches1[1][$key];
-                $mask   = $matches1[2][$key];
-                $content = str_replace($raw, date_format(date_create($date), $mask), $content);
-            }
-        }
-        
-        preg_match_all('/number_format\(([\d+\.\d]*),\s*([0-9])+,\s*\'(\,*\.*)\',\s*\'(\,*\.*)\'\)/', $content, $matches2);
+        preg_match_all('/number_format\(([\d+\.\d]*)\s*,\s*([0-9])+\s*,\s*\'(\,*\.*)\'\s*,\s*\'(\,*\.*)\'\)/', $content, $matches2);
         
         if (count($matches2)>0)
         {
@@ -190,7 +197,14 @@ class THtmlRenderer
                 $decimals = $matches2[2][$key];
                 $dec_sep  = $matches2[3][$key];
                 $tho_sep  = $matches2[4][$key];
-                $content  = str_replace($raw, number_format($number, $decimals, $dec_sep, $tho_sep), $content);
+                if (!empty(trim($number)))
+                {
+                    $content  = str_replace($raw, number_format($number, $decimals, $dec_sep, $tho_sep), $content);
+                }
+                else
+                {
+                    $content  = str_replace($raw, '', $content);
+                }
             }
         }
         

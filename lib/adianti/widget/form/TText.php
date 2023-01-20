@@ -13,7 +13,7 @@ use Exception;
 /**
  * Text Widget (also known as Memo)
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -70,6 +70,18 @@ class TText extends TField implements AdiantiWidgetInterface
     }
     
     /**
+     * Define max length
+     * @param  $length Max length
+     */
+    public function setMaxLength($length)
+    {
+        if ($length > 0)
+        {
+            $this->tag->{'maxlength'} = $length;
+        }
+    }
+    
+    /**
      * Define the action to be executed when the user leaves the form field
      * @param $action TAction object
      */
@@ -92,6 +104,23 @@ class TText extends TField implements AdiantiWidgetInterface
     public function setExitFunction($function)
     {
         $this->exitFunction = $function;
+    }
+    
+    /**
+     * Return the post data
+     */
+    public function getPostData()
+    {
+        $name = str_replace(['[',']'], ['',''], $this->name);
+        
+        if (isset($_POST[$name]))
+        {
+            return $_POST[$name];
+        }
+        else
+        {
+            return '';
+        }
     }
     
     /**

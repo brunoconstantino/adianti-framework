@@ -12,7 +12,7 @@ use Exception;
 /**
  * Entry Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -75,6 +75,15 @@ class TEntry extends TField implements AdiantiWidgetInterface
      */
     public function setNumericMask($decimals, $decimalsSeparator, $thousandSeparator, $replaceOnPost = FALSE)
     {
+        if (empty($decimalsSeparator))
+        {
+            $decimals = 0;
+        }
+        else if (empty($decimals))
+        {
+            $decimalsSeparator = '';
+        }
+        
         $this->numericMask = TRUE;
         $this->decimals = $decimals;
         $this->decimalsSeparator = $decimalsSeparator;
@@ -328,7 +337,7 @@ class TEntry extends TField implements AdiantiWidgetInterface
             
             if ($this->mask)
             {
-                $this->tag->{'onKeyPress'} = "return tentry_mask(this,event,'{$this->mask}')";
+                TScript::create( "tentry_new_mask( '{$this->id}', '{$this->mask}'); ");
             }
         }
         else

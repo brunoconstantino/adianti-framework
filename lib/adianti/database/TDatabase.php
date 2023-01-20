@@ -17,7 +17,7 @@ use Closure;
 /**
  * Database Task manager
  *
- * @version    5.5
+ * @version    5.6
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2018 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -192,7 +192,7 @@ class TDatabase
      * @param $mapping         Mapping between fields
      * @param $prepared_values Parameters for SQL Query
      */
-    public static function getData($conn, $query, $mapping, $prepared_values = null, Closure $action = null)
+    public static function getData($conn, $query, $mapping = null, $prepared_values = null, Closure $action = null)
     {
         $data = [];
         
@@ -202,11 +202,19 @@ class TDatabase
         foreach ($result as $row)
         {
             $values = [];
-            foreach ($mapping as $map)
+            if ($mapping)
             {
-                $newcolumn = $map[1];
-                $values[$newcolumn] = self::transform($row, $map);
+                foreach ($mapping as $map)
+                {
+                    $newcolumn = $map[1];
+                    $values[$newcolumn] = self::transform($row, $map);
+                }
             }
+            else
+            {
+                $values = $row;
+            }
+            
             if (empty($action))
             {
                 $data[] = $values;
@@ -262,8 +270,9 @@ class TDatabase
      * @param $mapping         Mapping between fields
      * @param $criteria        Filter criteria
      * @param $bulk_inserts    Inserts per time
+     * @param $auto_commit     Auto commit after x inserts
      */
-    public static function copyData(PDO $source_conn, PDO $target_conn, $source_table, $target_table, $mapping, $criteria = null, $bulk_inserts = 1)
+    public static function copyData(PDO $source_conn, PDO $target_conn, $source_table, $target_table, $mapping, $criteria = null, $bulk_inserts = 1, $auto_commit = false)
     {
         $driver = $target_conn->getAttribute(PDO::ATTR_DRIVER_NAME);
         $bulk_inserts = $driver == 'oci' ? 1 : $bulk_inserts;
@@ -297,6 +306,7 @@ class TDatabase
         $ins = new TSqlMultiInsert;
         $ins->setEntity($target_table);
         $buffer_counter = 0;
+        $commit_counter = 0;
         
         foreach ($result as $row)
         {
@@ -309,6 +319,8 @@ class TDatabase
             $ins->addRowValues($values);
             
             $buffer_counter ++;
+            $commit_counter ++;
+            
             if ($buffer_counter == $bulk_inserts)
             {
                 TTransaction::log( $ins->getInstruction() );
@@ -318,8 +330,20 @@ class TDatabase
                 // restart bulk insert
                 $ins = new TSqlMultiInsert;
                 $ins->setEntity($target_table);
+                
+                if ($auto_commit)
+                {
+                    if ($commit_counter == $auto_commit)
+                    {
+                        $target_conn->commit();
+                        $target_conn->beginTransaction();
+                        TTransaction::log( 'COMMIT' );
+                        $commit_counter = 0;
+                    }
+                }
             }
         }
+        
         if ($buffer_counter > 0)
         {
             TTransaction::log( $ins->getInstruction() );
@@ -336,8 +360,10 @@ class TDatabase
      * @param $target_table    Target table
      * @param $mapping         Mapping between fields
      * @param $prepared_values Parameters for SQL Query
+     * @param $bulk_inserts    Inserts per time
+     * @param $auto_commit     Auto commit after x inserts
      */
-    public static function copyQuery(PDO $source_conn, PDO $target_conn, $query, $target_table, $mapping, $prepared_values = null, $bulk_inserts = 1)
+    public static function copyQuery(PDO $source_conn, PDO $target_conn, $query, $target_table, $mapping, $prepared_values = null, $bulk_inserts = 1, $auto_commit = false)
     {
         $driver = $target_conn->getAttribute(PDO::ATTR_DRIVER_NAME);
         $bulk_inserts = $driver == 'oci' ? 1 : $bulk_inserts;
@@ -355,6 +381,7 @@ class TDatabase
         $ins = new TSqlMultiInsert;
         $ins->setEntity($target_table);
         $buffer_counter = 0;
+        $commit_counter = 0;
         
         foreach ($result as $row)
         {
@@ -367,6 +394,8 @@ class TDatabase
             $ins->addRowValues($values);
             
             $buffer_counter ++;
+            $commit_counter ++;
+            
             if ($buffer_counter == $bulk_inserts)
             {
                 TTransaction::log( $ins->getInstruction() );
@@ -376,6 +405,17 @@ class TDatabase
                 // restart bulk insert
                 $ins = new TSqlMultiInsert;
                 $ins->setEntity($target_table);
+                
+                if ($auto_commit)
+                {
+                    if ($commit_counter == $auto_commit)
+                    {
+                        $target_conn->commit();
+                        $target_conn->beginTransaction();
+                        TTransaction::log( 'COMMIT' );
+                        $commit_counter = 0;
+                    }
+                }
             }
         }
         
@@ -532,7 +572,7 @@ class TDatabase
         
         if (is_callable($callback))
         {
-            $value = call_user_func($callback, $value);
+            $value = call_user_func($callback, $value, $row);
         }
         
         return $value;

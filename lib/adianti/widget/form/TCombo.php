@@ -12,7 +12,7 @@ use Exception;
 /**
  * ComboBox Widget
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -57,6 +57,16 @@ class TCombo extends TField implements AdiantiWidgetInterface
         $this->is_boolean = true;
         $this->addItems( [ '1' => AdiantiCoreTranslator::translate('Yes'),
                            '2' => AdiantiCoreTranslator::translate('No') ] );
+                           
+        // if setValue() was called previously
+        if ($this->value === true)
+        {
+            $this->value = '1';
+        }
+        else if ($this->value === false)
+        {
+            $this->value = '2';
+        }
     }
     
     /**

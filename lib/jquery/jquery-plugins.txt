@@ -9,3 +9,4 @@ lib/jquery/dataTables.responsive.min.js
 lib/jquery/select2.js
 lib/jquery/moment.min.js
 lib/jquery/fullcalendar.js
+lib/jquery/jquery.mask.min.js

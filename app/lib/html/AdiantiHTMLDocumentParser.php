@@ -5,7 +5,7 @@ use Dompdf\Options;
 /**
  * HTML Document parser
  *
- * @version    5.5
+ * @version    5.6
  * @package    app
  * @subpackage lib
  * @author     Pablo Dall'Oglio
@@ -20,6 +20,7 @@ class AdiantiHTMLDocumentParser
     private $details;
     private $replaces;
     private $totals;
+    private $showEmptyDetails;
     
     /**
      * Constructor
@@ -37,9 +38,15 @@ class AdiantiHTMLDocumentParser
             $this->content  = '';
         }
         
+        $this->showEmptyDetails = true;
         $this->details  = [];
         $this->replaces = [];
         $this->totals   = [];
+    }
+    
+    public function hideEmptyDetails()
+    {
+        $this->showEmptyDetails = false;
     }
     
     /**
@@ -168,6 +175,11 @@ class AdiantiHTMLDocumentParser
                         else
                         {
                             $body->html('');
+                            
+                            if (!$this->showEmptyDetails)
+                            {
+                                $detail->html('');
+                            }
                         }
                     }
                     

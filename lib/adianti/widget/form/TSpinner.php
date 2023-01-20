@@ -14,7 +14,7 @@ use Exception;
 /**
  * Spinner Widget (also known as spin button)
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -143,7 +143,7 @@ class TSpinner extends TField implements AdiantiWidgetInterface
                 throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->name, 'TForm::setFields()') );
             }            
             $string_action = $this->exitAction->serialize(FALSE);
-            $exit_action = "function() { __adianti_post_lookup('{$this->formName}', '{$string_action}', '{$this->id}' ) }";
+            $exit_action = "function() { __adianti_post_lookup('{$this->formName}', '{$string_action}', '{$this->id}', 'callback' ) }";
         }
         
         if (isset($this->exitFunction))

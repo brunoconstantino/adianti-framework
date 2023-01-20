@@ -4,7 +4,7 @@ namespace Adianti\Widget\Base;
 /**
  * Base class for all HTML Elements
  *
- * @version    5.5
+ * @version    5.6
  * @package    widget
  * @subpackage base
  * @author     Pablo Dall'Oglio
@@ -295,10 +295,12 @@ class TElement
             {
                 if ($this->useSingleQuotes)
                 {
+                    $value = str_replace("'", '&#039;', $value);
                     echo " {$name}='{$value}'";
                 }
                 else
                 {
+                    $value = str_replace('"', '&quot;', $value);
                     echo " {$name}=\"{$value}\"";
                 }
             }

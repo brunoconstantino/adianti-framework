@@ -10,7 +10,7 @@ use Exception;
 /**
  * Standard Form Trait
  *
- * @version    5.5
+ * @version    5.6
  * @package    base
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -18,7 +18,18 @@ use Exception;
  */
 trait AdiantiStandardFormTrait
 {
+    protected $afterSaveAction;
+    
     use AdiantiStandardControlTrait;
+    
+    /**
+     * method setAfterSaveAction()
+     * Define after save action
+     */
+    public function setAfterSaveAction($action)
+    {
+        $this->afterSaveAction = $action;
+    }
     
     /**
      * method onSave()
@@ -57,7 +68,7 @@ trait AdiantiStandardFormTrait
             TTransaction::close();
             
             // shows the success message
-            new TMessage('info', AdiantiCoreTranslator::translate('Record saved'));
+            new TMessage('info', AdiantiCoreTranslator::translate('Record saved'), $this->afterSaveAction);
             
             return $object;
         }
