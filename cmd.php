@@ -14,36 +14,7 @@ $method  = isset($_REQUEST['method'])   ? $_REQUEST['method']  : '';
 
 try
 {
-    if (class_exists($class))
-    {
-        if (method_exists($class, $method))
-        {
-            if ($static)
-            {
-                $rf = new ReflectionMethod($class, $method);
-                if ($rf->isStatic())
-                {
-                    call_user_func(array($class, $method),$_REQUEST);
-                }
-                else
-                {
-                    call_user_func(array(new $class($_GET), $method),$_REQUEST);
-                }
-            }
-            else
-            {
-                call_user_func(array(new $class($_GET), $method),$_REQUEST);
-            }
-        }
-        else
-        {
-            echo 'Error: ' . TAdiantiCoreTranslator::translate('Method ^1 not found', "$class::$method")."\n";
-        }
-    }
-    else
-    {
-        echo 'Error: ' . TAdiantiCoreTranslator::translate('Class ^1 not found', $class)."\n";
-    }
+    AdiantiCoreApplication::execute($class, $method, $_REQUEST, 'cli');
 }
 catch (Exception $e)
 {

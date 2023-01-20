@@ -15,3 +15,10 @@
 {
     background: whiteSmoke;
 }
+
+.datetimepicker.dropdown-menu th,
+.datetimepicker.datepicker-inline th,
+.datetimepicker.dropdown-menu td,
+.datetimepicker.datepicker-inline td {
+    padding: 5px;
+}

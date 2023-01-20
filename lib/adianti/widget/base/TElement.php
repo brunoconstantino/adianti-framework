@@ -4,7 +4,7 @@ namespace Adianti\Widget\Base;
 /**
  * Base class for all HTML Elements
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage base
  * @author     Pablo Dall'Oglio
@@ -18,8 +18,10 @@ class TElement
     private $wrapped;
     private $useLineBreaks;
     private $useSingleQuotes;
+    private $afterElement;
     protected $children;
-    private $voidelements;
+    private static $voidelements;
+    private $hidden;
     
     /**
      * Class Constructor
@@ -32,9 +34,14 @@ class TElement
         $this->useLineBreaks = TRUE;
         $this->useSingleQuotes = FALSE;
         $this->wrapped = FALSE;
+        $this->hidden = FALSE;
         $this->properties = [];
-        $this->voidelements = array('area', 'base', 'br', 'col', 'command', 'embed', 'hr',
-                                    'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr');
+        
+        if (empty(self::$voidelements))
+        {
+            self::$voidelements = array('area', 'base', 'br', 'col', 'command', 'embed', 'hr',
+                                        'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr');
+        }
     }
     
     /**
@@ -68,6 +75,30 @@ class TElement
         }
         
         return $object;
+    }
+    
+    /**
+     * hide object
+     */
+    public function hide()
+    {
+        $this->hidden = true;
+    }
+    
+    /**
+     * Insert element after
+     */
+    public function after($element)
+    {
+        $this->afterElement = $element;
+    }
+    
+    /**
+     * Return the after element
+     */
+    public function getAfterElement()
+    {
+        return $this->afterElement;
     }
     
     /**
@@ -273,6 +304,45 @@ class TElement
     }
     
     /**
+     * Find child element
+     * @param $element tag name
+     * @param $properties match properties
+     */
+    public function find($element, $properties = null)
+    {
+        if ($this->children)
+        {
+            foreach ($this->children as $child)
+            {
+                if ($child instanceof TElement)
+                {
+                    if ($child->getName() == $element)
+                    {
+                        $match = true;
+                        if ($properties)
+                        {
+                            foreach ($properties as $key => $value)
+                            {
+                                if ($child->getProperty($key) !== $value)
+                                {
+                                    $match = false;
+                                }
+                            }
+                        }
+                        
+                        if ($match)
+                        {
+                            return array_merge([$child], $child->find($element, $properties));
+                        }
+                    }
+                    return $child->find($element, $properties);
+                }
+            }
+        }
+        return [];
+    }
+    
+    /**
      * Get an child element
      * @param $position Element position
      */
@@ -306,7 +376,7 @@ class TElement
             }
         }
         
-        if (in_array($this->tagname, $this->voidelements))
+        if (in_array($this->tagname, self::$voidelements))
         {
             echo '/>';
         }
@@ -321,6 +391,11 @@ class TElement
      */
     public function show()
     {
+        if ($this->hidden)
+        {
+            return;
+        }
+        
         // open the tag
         $this->open();
         
@@ -337,6 +412,11 @@ class TElement
             // iterate all child elements
             foreach ($this->children as $child)
             {
+                if ($child instanceof self)
+                {
+                    $child->setUseLineBreaks($this->useLineBreaks);
+                }
+                
                 // verify if the child is an object
                 if (is_object($child))
                 {
@@ -350,10 +430,15 @@ class TElement
             }
         }
         
-        if (!in_array($this->tagname, $this->voidelements))
+        if (!in_array($this->tagname, self::$voidelements))
         {
             // closes the tag
             $this->close();
+        }
+        
+        if (!empty($this->afterElement))
+        {
+            $this->afterElement->show();
         }
     }
     

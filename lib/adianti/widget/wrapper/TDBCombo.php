@@ -12,7 +12,7 @@ use Exception;
 /**
  * Database ComboBox Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio

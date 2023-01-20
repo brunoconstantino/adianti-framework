@@ -4,7 +4,7 @@ namespace Adianti\Core;
 /**
  * Framework translation class for internal messages
  *
- * @version    5.7
+ * @version    7.0
  * @package    core
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -129,6 +129,8 @@ class AdiantiCoreTranslator
         $this->messages['en'][] = '^1 to ^2 from ^3 records';
         $this->messages['en'][] = 'PHP Module not found';
         $this->messages['en'][] = 'The parameter (^1) of ^2 must not be empty';
+        $this->messages['en'][] = 'Return is not a valid JSON. Check the URL';
+        $this->messages['en'][] = 'Required fields';
         
         $this->messages['pt'][] = 'Carregando';
         $this->messages['pt'][] = 'Arquivo não encontrado';
@@ -238,6 +240,8 @@ class AdiantiCoreTranslator
         $this->messages['pt'][] = '^1 a ^2 de ^3 registros';
         $this->messages['pt'][] = 'Módulo PHP não encontrado';
         $this->messages['pt'][] = 'O parâmetro (^1) de ^2 não deve ser vazio';
+        $this->messages['pt'][] = 'Retorno não é JSON válido. Verifique a URL';
+        $this->messages['pt'][] = 'Campos obrigatórios';
 		
         $this->messages['es'][] = 'Cargando';
         $this->messages['es'][] = 'Archivo no encontrado';
@@ -347,6 +351,8 @@ class AdiantiCoreTranslator
         $this->messages['es'][] = '^1 a ^2 de ^3 registros';
         $this->messages['es'][] = 'Módulo PHP no encontrado';
         $this->messages['es'][] = 'El parametro (^1) de ^2 no puede estar vacío';
+        $this->messages['es'][] = 'El retorno no es un JSON válido. Verifique la URL';
+        $this->messages['es'][] = 'Campos requeridos';
     }
     
     /**
@@ -372,7 +378,11 @@ class AdiantiCoreTranslator
     public static function setLanguage($lang)
     {
         $instance = self::getInstance();
-        $instance->lang = $lang;
+        
+        if (in_array($lang, array_keys($instance->messages)))
+        {
+            $instance->lang = $lang;
+        }
     }
     
     /**

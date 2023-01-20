@@ -6,13 +6,13 @@ use Adianti\Database\TSqlStatement;
 /**
  * Provides an Interface to create DELETE statements
  *
- * @version    5.7
+ * @version    7.0
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-final class TSqlDelete extends TSqlStatement
+class TSqlDelete extends TSqlStatement
 {
     protected $sql;
     protected $criteria;    // stores the select criteria

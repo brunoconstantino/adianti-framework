@@ -6,7 +6,7 @@ use Adianti\Widget\Base\TElement;
 /**
  * BreadCrumb
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
@@ -57,9 +57,8 @@ class TBreadCrumb extends TElement
     public function addHome()
     {
         $li = new TElement('li');
-        
+        $li->{'class'} = 'home';
         $a = new TElement('a');
-        $a->{'class'} = 'bread';
         $a->generator = 'adianti';
         
         if (self::$homeController)
@@ -73,10 +72,7 @@ class TBreadCrumb extends TElement
         
         $a->{'title'} = 'Home';
         
-        $span = new TElement('span');
-        $span->add( 'h' );
         $li->add( $a );
-        $a->add( $span );
         $this->container->add( $li );
     }
     

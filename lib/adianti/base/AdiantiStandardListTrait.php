@@ -2,6 +2,9 @@
 namespace Adianti\Base;
 
 use Adianti\Core\AdiantiCoreTranslator;
+use Adianti\Core\AdiantiCoreApplication;
+use Adianti\Control\TPage;
+use Adianti\Control\TWindow;
 use Adianti\Widget\Base\TElement;
 use Adianti\Widget\Dialog\TMessage;
 use Adianti\Widget\Dialog\TQuestion;
@@ -13,12 +16,15 @@ use Adianti\Database\TFilter;
 use Adianti\Database\TExpression;
 use Adianti\Database\TCriteria;
 use Adianti\Registry\TSession;
+
 use Exception;
+use DomDocument;
+use Dompdf\Dompdf;
 
 /**
  * Standard List Trait
  *
- * @version    5.7
+ * @version    7.0
  * @package    base
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -26,100 +32,30 @@ use Exception;
  */
 trait AdiantiStandardListTrait
 {
-    protected $filterFields;
-    protected $formFilters;
-    protected $filterTransformers;
-    protected $loaded;
-    protected $limit;
-    protected $operators;
-    protected $logic_operators;
-    protected $order;
-    protected $direction;
-    protected $criteria;
-    protected $transformCallback;
     protected $totalRow;
     
-    use AdiantiStandardControlTrait;
-    
-    /**
-     * method setLimit()
-     * Define the record limit
-     */
-    public function setLimit($limit)
-    {
-        $this->limit = $limit;
-    }
+    use AdiantiStandardCollectionTrait;
     
     /**
      * Enable total row
      */
     public function enableTotalRow()
     {
-        $this->totalRow = true;
-    }
-    
-    /**
-     * Define the default order
-     * @param $order The order field
-     * @param $directiont the order direction (asc, desc)
-     */
-    public function setDefaultOrder($order, $direction = 'asc')
-    {
-        $this->order = $order;
-        $this->direction = $direction;
-    }
-    
-    /**
-     * method setFilterField()
-     * Define wich field will be used for filtering
-     * PS: Just for Backwards compatibility
-     */
-    public function setFilterField($filterField)
-    {
-        $this->addFilterField($filterField);
-    }
-    
-    /**
-     * method setOperator()
-     * Define the filtering operator
-     * PS: Just for Backwards compatibility
-     */
-    public function setOperator($operator)
-    {
-        $this->operators[] = $operator;
-    }
-    
-    /**
-     * method addFilterField()
-     * Add a field that will be used for filtering
-     * @param $filterField Field name
-     * @param $operator Comparison operator
-     */
-    public function addFilterField($filterField, $operator = 'like', $formFilter = NULL, $filterTransformer = NULL, $logic_operator = TExpression::AND_OPERATOR)
-    {
-        $this->filterFields[] = $filterField;
-        $this->operators[] = $operator;
-        $this->logic_operators[] = $logic_operator;
-        $this->formFilters[] = isset($formFilter) ? $formFilter : $filterField;
-        $this->filterTransformers[] = $filterTransformer;
-    }
-    
-    /**
-     * method setCriteria()
-     * Define the criteria
-     */
-    public function setCriteria($criteria)
-    {
-        $this->criteria = $criteria;
-    }
-
-    /**
-     * Define a callback method to transform objects
-     * before load them into datagrid
-     */
-    public function setTransformer($callback)
-    {
-        $this->transformCallback = $callback;
+        $this->setAfterLoadCallback( function($datagrid, $information) {
+            $tfoot = new TElement('tfoot');
+            $tfoot->{'class'} = 'tdatagrid_footer';
+            $row = new TElement('tr');
+            $tfoot->add($row);
+            $datagrid->add($tfoot);
+            
+            $row->{'style'} = 'height: 30px';
+            $cell = new TElement('td');
+            $cell->add( $information['count'] . ' ' . AdiantiCoreTranslator::translate('Records'));
+            $cell->{'colspan'} = $datagrid->getTotalColumns();
+            $cell->{'style'} = 'text-align:center';
+            
+            $row->add($cell);
+        });
     }
     
     /**
@@ -158,250 +94,6 @@ trait AdiantiStandardListTrait
             $this->onReload($param);
             // shows the success message
             new TMessage('info', AdiantiCoreTranslator::translate('Record updated'));
-        }
-        catch (Exception $e) // in case of exception
-        {
-            // shows the exception error message
-            new TMessage('error', $e->getMessage());
-            // undo all pending operations
-            TTransaction::rollback();
-        }
-    }
-    
-    /**
-     * Register the filter in the session
-     */
-    public function onSearch()
-    {
-        // get the search form data
-        $data = $this->form->getData();
-        
-        if ($this->formFilters)
-        {
-            foreach ($this->formFilters as $filterKey => $formFilter)
-            {
-                $operator       = isset($this->operators[$filterKey]) ? $this->operators[$filterKey] : 'like';
-                $filterField    = isset($this->filterFields[$filterKey]) ? $this->filterFields[$filterKey] : $formFilter;
-                $filterFunction = isset($this->filterTransformers[$filterKey]) ? $this->filterTransformers[$filterKey] : null;
-                
-                // check if the user has filled the form
-                if (!empty($data->{$formFilter}) OR (isset($data->{$formFilter}) AND $data->{$formFilter} == '0'))
-                {
-                    // $this->filterTransformers
-                    if ($filterFunction)
-                    {
-                        $fieldData = $filterFunction($data->{$formFilter});
-                    }
-                    else
-                    {
-                        $fieldData = $data->{$formFilter};
-                    }
-                    
-                    // creates a filter using what the user has typed
-                    if (stristr($operator, 'like'))
-                    {
-                        $filter = new TFilter($filterField, $operator, "%{$fieldData}%");
-                    }
-                    else
-                    {
-                        $filter = new TFilter($filterField, $operator, $fieldData);
-                    }
-                    
-                    // stores the filter in the session
-                    TSession::setValue($this->activeRecord.'_filter', $filter); // BC compatibility
-                    TSession::setValue($this->activeRecord.'_filter_'.$formFilter, $filter);
-                    TSession::setValue($this->activeRecord.'_'.$formFilter, $data->{$formFilter});
-                }
-                else
-                {
-                    TSession::setValue($this->activeRecord.'_filter', NULL); // BC compatibility
-                    TSession::setValue($this->activeRecord.'_filter_'.$formFilter, NULL);
-                    TSession::setValue($this->activeRecord.'_'.$formFilter, '');
-                }
-            }
-        }
-        
-        TSession::setValue($this->activeRecord.'_filter_data', $data);
-        TSession::setValue(get_class($this).'_filter_data', $data);
-        
-        // fill the form with data again
-        $this->form->setData($data);
-        
-        $param=array();
-        $param['offset']    =0;
-        $param['first_page']=1;
-        $this->onReload($param);
-    }
-    
-    /**
-     * clear Filters
-     */
-    public function clearFilters()
-    {
-        TSession::setValue($this->activeRecord.'_filter_data', null);
-        TSession::setValue(get_class($this).'_filter_data', null);
-        $this->form->clear();
-        
-        if ($this->formFilters)
-        {
-            foreach ($this->formFilters as $filterKey => $formFilter)
-            {
-                TSession::setValue($this->activeRecord.'_filter', NULL); // BC compatibility
-                TSession::setValue($this->activeRecord.'_filter_'.$formFilter, NULL);
-                TSession::setValue($this->activeRecord.'_'.$formFilter, '');
-            }
-        }
-    }
-    
-    /**
-     * Load the datagrid with the database objects
-     */
-    public function onReload($param = NULL)
-    {
-        try
-        {
-            if (empty($this->database))
-            {
-                throw new Exception(AdiantiCoreTranslator::translate('^1 was not defined. You must call ^2 in ^3', AdiantiCoreTranslator::translate('Database'), 'setDatabase()', AdiantiCoreTranslator::translate('Constructor')));
-            }
-            
-            if (empty($this->activeRecord))
-            {
-                throw new Exception(AdiantiCoreTranslator::translate('^1 was not defined. You must call ^2 in ^3', 'Active Record', 'setActiveRecord()', AdiantiCoreTranslator::translate('Constructor')));
-            }
-            
-            // open a transaction with database
-            TTransaction::open($this->database);
-            
-            // instancia um repositório
-            $repository = new TRepository($this->activeRecord);
-            $limit = isset($this->limit) ? ( $this->limit > 0 ? $this->limit : NULL) : 10;
-            
-            // creates a criteria
-            $criteria = isset($this->criteria) ? clone $this->criteria : new TCriteria;
-            if ($this->order)
-            {
-                $criteria->setProperty('order',     $this->order);
-                $criteria->setProperty('direction', $this->direction);
-            }
-            
-            $criteria->setProperties($param); // order, offset
-            $criteria->setProperty('limit', $limit);
-            
-            if ($this->formFilters)
-            {
-                foreach ($this->formFilters as $filterKey => $filterField)
-                {
-                    $logic_operator = isset($this->logic_operators[$filterKey]) ? $this->logic_operators[$filterKey] : TExpression::AND_OPERATOR;
-                    
-                    if (TSession::getValue($this->activeRecord.'_filter_'.$filterField))
-                    {
-                        // add the filter stored in the session to the criteria
-                        $criteria->add(TSession::getValue($this->activeRecord.'_filter_'.$filterField), $logic_operator);
-                    }
-                }
-            }
-            
-            // load the objects according to criteria
-            $objects = $repository->load($criteria, FALSE);
-            
-            if (is_callable($this->transformCallback))
-            {
-                call_user_func($this->transformCallback, $objects, $param);
-            }
-            
-            $this->datagrid->clear();
-            if ($objects)
-            {
-                // iterate the collection of active records
-                foreach ($objects as $object)
-                {
-                    // add the object inside the datagrid
-                    $this->datagrid->addItem($object);
-                }
-            }
-            
-            // reset the criteria for record count
-            $criteria->resetProperties();
-            $count= $repository->count($criteria);
-            
-            if (isset($this->pageNavigation))
-            {
-                $this->pageNavigation->setCount($count); // count of records
-                $this->pageNavigation->setProperties($param); // order, page
-                $this->pageNavigation->setLimit($limit); // limit
-            }
-            
-            if ($this->totalRow)
-            {
-                $tfoot = new TElement('tfoot');
-                $tfoot->{'class'} = 'tdatagrid_footer';
-                $row = new TElement('tr');
-                $tfoot->add($row);
-                $this->datagrid->add($tfoot);
-                
-                $row->{'style'} = 'height: 30px';
-                $cell = new TElement('td');
-                $cell->add( $count . ' ' . AdiantiCoreTranslator::translate('Records'));
-                $cell->{'colspan'} = $this->datagrid->getTotalColumns();
-                $cell->{'style'} = 'text-align:center';
-                
-                $row->add($cell);
-            }
-            
-            // close the transaction
-            TTransaction::close();
-            $this->loaded = true;
-        }
-        catch (Exception $e) // in case of exception
-        {
-            // shows the exception error message
-            new TMessage('error', $e->getMessage());
-            // undo all pending operations
-            TTransaction::rollback();
-        }
-    }
-    
-    /**
-     * Ask before deletion
-     */
-    public function onDelete($param)
-    {
-        // define the delete action
-        $action = new TAction(array($this, 'Delete'));
-        $action->setParameters($param); // pass the key parameter ahead
-        
-        // shows a dialog to the user
-        new TQuestion(AdiantiCoreTranslator::translate('Do you really want to delete ?'), $action);
-    }
-    
-    /**
-     * Delete a record
-     */
-    public function Delete($param)
-    {
-        try
-        {
-            // get the parameter $key
-            $key=$param['key'];
-            // open a transaction with database
-            TTransaction::open($this->database);
-            
-            $class = $this->activeRecord;
-            
-            // instantiates object
-            $object = new $class($key, FALSE);
-            
-            // deletes the object from the database
-            $object->delete();
-            
-            // close the transaction
-            TTransaction::close();
-            
-            // reload the listing
-            $this->onReload( $param );
-            // shows the success message
-            new TMessage('info', AdiantiCoreTranslator::translate('Record deleted'));
         }
         catch (Exception $e) // in case of exception
         {
@@ -483,23 +175,187 @@ trait AdiantiStandardListTrait
     }
     
     /**
-     * method show()
-     * Shows the page
+     * Export to CSV
+     * @param $output Output file
      */
-    public function show()
+    public function exportToCSV($output)
     {
-        // check if the datagrid is already loaded
-        if (!$this->loaded AND (!isset($_GET['method']) OR !(in_array($_GET['method'],  array('onReload', 'onSearch')))) )
+        $this->limit = 0;
+        $objects = $this->onReload();
+        
+        if ( (!file_exists($output) && is_writable(dirname($output))) OR is_writable($output))
         {
-            if (func_num_args() > 0)
+            TTransaction::open($this->database);
+            $handler = fopen($output, 'w');
+            if ($objects)
             {
-                $this->onReload( func_get_arg(0) );
+                foreach ($objects as $object)
+                {
+                    $row = [];
+                    foreach ($this->datagrid->getColumns() as $column)
+                    {
+                        $column_name = $column->getName();
+                        
+                        if (isset($object->$column_name))
+                        {
+                            $row[] = is_scalar($object->$column_name) ? $object->$column_name : '';
+                        }
+                        else if (method_exists($object, 'render'))
+                        {
+                            $row[] = $object->render($column_name);
+                        }
+                    }
+                    
+                    fputcsv($handler, $row);
+                }
             }
-            else
-            {
-                $this->onReload();
-            }
+            fclose($handler);
+            TTransaction::close();
         }
-        parent::show();
+        else
+        {
+            throw new Exception(_t('Permission denied') . ': ' . $output);
+        }
+    }
+    
+    /**
+     * Export to XML
+     * @param $output Output file
+     */
+    public function exportToXML($output)
+    {
+        $this->limit = 0;
+        $objects = $this->onReload();
+        
+        if ( (!file_exists($output) && is_writable(dirname($output))) OR is_writable($output))
+        {
+            TTransaction::open($this->database);
+            
+            $dom = new DOMDocument('1.0', 'UTF-8');
+            $dom->{'formatOutput'} = true;
+            $dataset = $dom->appendChild( $dom->createElement('dataset') );
+            
+            if ($objects)
+            {
+                foreach ($objects as $object)
+                {
+                    $row = $dataset->appendChild( $dom->createElement( $this->activeRecord ) );
+                    
+                    foreach ($this->datagrid->getColumns() as $column)
+                    {
+                        $column_name = $column->getName();
+                        $column_name_raw = str_replace(['(','{','->', '-','>','}',')', ' '], ['','','_','','','','','_'], $column_name);
+                        
+                        if (isset($object->$column_name))
+                        {
+                            $value = is_scalar($object->$column_name) ? $object->$column_name : '';
+                            $row->appendChild($dom->createElement($column_name_raw, $value)); 
+                        }
+                        else if (method_exists($object, 'render'))
+                        {
+                            $value = $object->render($column_name);
+                            $row->appendChild($dom->createElement($column_name_raw, $value));
+                        }
+                    }
+                }
+            }
+            
+            $dom->save($output);
+            
+            TTransaction::close();
+        }
+        else
+        {
+            throw new Exception(_t('Permission denied') . ': ' . $output);
+        }
+    }
+    
+    /**
+     * Export to PDF
+     * @param $output Output file
+     */
+    public function exportToPDF($output)
+    {
+        if ( (!file_exists($output) && is_writable(dirname($output))) OR is_writable($output))
+        {
+            $this->limit = 0;
+            $this->datagrid->prepareForPrinting();
+            $this->onReload();
+            
+            // string with HTML contents
+            $html = clone $this->datagrid;
+            $contents = file_get_contents('app/resources/styles-print.html') . $html->getContents();
+            
+            // converts the HTML template into PDF
+            $dompdf = new Dompdf;
+            $dompdf->loadHtml($contents);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            
+            // write and open file
+            file_put_contents($output, $dompdf->output());
+        }
+        else
+        {
+            throw new Exception(_t('Permission denied') . ': ' . $output);
+        }
+    }
+    
+    /**
+     * Export to CSV
+     */
+    public function onExportCSV($param)
+    {
+        try
+        {
+            $output = 'app/output/'.uniqid().'.csv';
+            $this->exportToCSV( $output );
+            TPage::openFile( $output );
+        }
+        catch (Exception $e)
+        {
+            return new TMessage('error', $e->getMessage());
+        }
+    }
+    
+    /**
+     * Export to XML
+     */
+    public function onExportXML($param)
+    {
+        try
+        {
+            $output = 'app/output/'.uniqid().'.xml';
+            $this->exportToXML( $output );
+            TPage::openFile( $output );
+        }
+        catch (Exception $e)
+        {
+            return new TMessage('error', $e->getMessage());
+        }
+    }
+    
+    /**
+     * Export datagrid as PDF
+     */
+    public function onExportPDF($param)
+    {
+        try
+        {
+            $output = 'app/output/'.uniqid().'.pdf';
+            $this->exportToPDF($output);
+            
+            $window = TWindow::create('Export', 0.8, 0.8);
+            $object = new TElement('object');
+            $object->data  = $output;
+            $object->type  = 'application/pdf';
+            $object->style = "width: 100%; height:calc(100% - 10px)";
+            $window->add($object);
+            $window->show();
+        }
+        catch (Exception $e)
+        {
+            new TMessage('error', $e->getMessage());
+        }
     }
 }

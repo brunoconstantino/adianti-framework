@@ -7,13 +7,13 @@ use Adianti\Database\TTransaction;
 /**
  * Provides an Interface to create UPDATE statements
  *
- * @version    5.7
+ * @version    7.0
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-final class TSqlUpdate extends TSqlStatement
+class TSqlUpdate extends TSqlStatement
 {
     protected $sql;         // stores the SQL statement
     private $columnValues;

@@ -5,13 +5,13 @@
 @import url("tpagenavigation/tpagenavigation.css");
 @import url("tlabel/tlabel.css");
 @import url("tform/tform.css");
-@import url("tmultifield/tmultifield.css");
 @import url("tfield/tfield.css");
 @import url("tfile/tfile.css");
 @import url("tdate/tdate.css");
 @import url("tdatetime/tdatetime.css");
 @import url("tmenu/tmenu.css");
 @import url("tcombo/tcombo.css");
+@import url("tselect/tselect.css");
 @import url("tseekbutton/tseekbutton.css");
 @import url("tsourcecode/tsourcecode.css");
 @import url("tdialog/tdialog.css");
@@ -24,4 +24,12 @@
 @import url("tcolor/tcolor.css");
 @import url("ticon/ticon.css");
 @import url("tspinner/tspinner.css");
+@import url("tslider/tslider.css");
 @import url("tmultisearch/tmultisearch.css");
+@import url("ticonview/ticonview.css");
+@import url("ttimeline/ttimeline.css");
+@import url("tfieldlist/tfieldlist.css");
+@import url("tkanban/tkanban.css");
+@import url("tcard/tcard.css");
+@import url("ttext/ttext.css");
+@import url("tpagestep/tpagestep.css");

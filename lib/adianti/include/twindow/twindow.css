@@ -26,6 +26,11 @@
     background: white;
 }
 
+.ui-dialog.no-title > .ui-dialog-titlebar
+{
+    display:none;
+}
+
 .ui-dialog-titlebar
 {
     background-color: #f5f5f5;

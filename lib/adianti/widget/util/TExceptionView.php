@@ -11,7 +11,7 @@ use Exception;
 /**
  * Exception visualizer
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio

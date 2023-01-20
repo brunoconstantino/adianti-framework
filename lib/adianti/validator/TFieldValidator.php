@@ -4,7 +4,7 @@ namespace Adianti\Validator;
 /**
  * TFieldValidator abstract validation class
  *
- * @version    5.7
+ * @version    7.0
  * @package    validator
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)

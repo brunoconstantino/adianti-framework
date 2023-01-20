@@ -9,7 +9,7 @@ use SimpleXMLElement;
 /**
  * Menu Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage menu
  * @author     Pablo Dall'Oglio
@@ -23,12 +23,13 @@ class TMenu extends TElement
     private $item_class;
     private $menu_level;
     private $link_class;
+    private $item_transformer;
     
     /**
      * Class Constructor
      * @param $xml SimpleXMLElement parsed from XML Menu
      */
-    public function __construct($xml, $permission_callback = NULL, $menu_level = 1, $menu_class = 'dropdown-menu', $item_class = '', $link_class = 'dropdown-toggle')
+    public function __construct($xml, $permission_callback = NULL, $menu_level = 1, $menu_class = 'dropdown-menu', $item_class = '', $link_class = 'dropdown-toggle', $item_transformer = null)
     {
         parent::__construct('ul');
         $this->items = array();
@@ -38,6 +39,7 @@ class TMenu extends TElement
         $this->menu_level = $menu_level;
         $this->item_class = $item_class;
         $this->link_class = $link_class;
+        $this->item_transformer = $item_transformer;
         
         if ($xml instanceof SimpleXMLElement)
         {
@@ -51,6 +53,10 @@ class TMenu extends TElement
      */
     public function addMenuItem(TMenuItem $menuitem)
     {
+        if (!empty($this->item_transformer))
+        {
+            call_user_func( $this->item_transformer, $menuitem );
+        }
         $this->items[] = $menuitem;
     }
     
@@ -84,7 +90,13 @@ class TMenu extends TElement
             {
                 $menu_atts = $xmlElement->menu->attributes();
                 $menu_class = !empty( $menu_atts['class'] ) ? $menu_atts['class']: $this->menu_class;
-                $menu = new TMenu($xmlElement-> menu-> menuitem, $permission_callback, $this->menu_level +1, $menu_class, $this->item_class, $this->link_class);
+                $menu = new TMenu($xmlElement-> menu-> menuitem, $permission_callback, $this->menu_level +1, $menu_class, $this->item_class, $this->link_class, $this->item_transformer);
+
+                foreach (parent::getProperties() as $property => $value)
+                {
+                    $menu->setProperty($property, $value);
+                }
+
                 $menuItem->setMenu($menu);
                 if ($this->item_class)
                 {
@@ -125,7 +137,7 @@ class TMenu extends TElement
      * Shows the widget at the screen
      */
     public function show()
-    {    
+    {
         if ($this->items)
         {
             foreach ($this->items as $item)

@@ -17,7 +17,7 @@ use Closure;
 /**
  * Database Task manager
  *
- * @version    5.7
+ * @version    7.0
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2018 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -148,8 +148,62 @@ class TDatabase
             $sql->setRowData($key, $value);
         }
         
-        TTransaction::log( $sql->getInstruction() );
-        return $conn->query( $sql->getInstruction() );
+        TTransaction::log($sql->getInstruction());
+        
+        $dbinfo = TTransaction::getDatabaseInfo(); // get dbinfo
+        if (isset($dbinfo['prep']) AND $dbinfo['prep'] == '1') // prepared ON
+        {
+            $result = $conn-> prepare ( $sql->getInstruction( TRUE ) , array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+            $result-> execute ( $sql->getPreparedVars() );
+        }
+        else
+        {
+            // execute the query
+            $result = $conn-> query($sql->getInstruction());
+        }
+        
+        return $result;
+    }
+
+
+    /**
+     * Update data
+     * 
+     * @param $conn           Connection
+     * @param $table          Table name
+     * @param $values         Array of values
+     * @param $avoid_criteria Criteria to avoid insertion
+     */
+    public static function updateData($conn, $table, $values, $criteria = null)
+    {
+        $sql = new TSqlUpdate;
+        $sql->setEntity($table);
+        
+        if ($criteria)
+        {
+            $sql->setCriteria($criteria);
+        }
+        
+        foreach ($values as $key => $value)
+        {
+            $sql->setRowData($key, $value);
+        }
+        
+        TTransaction::log($sql->getInstruction());
+        
+        $dbinfo = TTransaction::getDatabaseInfo(); // get dbinfo
+        if (isset($dbinfo['prep']) AND $dbinfo['prep'] == '1') // prepared ON
+        {
+            $result = $conn-> prepare ( $sql->getInstruction( TRUE ) , array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+            $result-> execute ( $sql->getPreparedVars() );
+        }
+        else
+        {
+            // execute the query
+            $result = $conn-> query($sql->getInstruction());
+        }
+        
+        return $result;
     }
     
     /**
@@ -248,8 +302,20 @@ class TDatabase
             $sql->setCriteria($criteria);
         }
         $sql->addColumn('count(*)');
-        TTransaction::log( $sql->getInstruction() );
-        $result = $conn-> query($sql->getInstruction());
+        
+        TTransaction::log($sql->getInstruction());
+        
+        $dbinfo = TTransaction::getDatabaseInfo(); // get dbinfo
+        if (isset($dbinfo['prep']) AND $dbinfo['prep'] == '1') // prepared ON
+        {
+            $result = $conn-> prepare ( $sql->getInstruction( TRUE ) , array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
+            $result-> execute ( $criteria->getPreparedVars() );
+        }
+        else
+        {
+            // executes the SELECT statement
+            $result= $conn-> query($sql->getInstruction());
+        }
         
         if ($result)
         {

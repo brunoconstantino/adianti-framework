@@ -15,7 +15,7 @@ use Exception;
 /**
  * Database Multisearch Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio
@@ -45,6 +45,7 @@ class TDBMultiSearch extends TMultiSearch
     protected $editable;
     protected $changeFunction;
     protected $idSearch;
+    protected $idTextSearch;
     
     /**
      * Class Constructor
@@ -109,6 +110,7 @@ class TDBMultiSearch extends TMultiSearch
         $this->seed = APPLICATION_NAME . ( !empty($ini['general']['seed']) ? $ini['general']['seed'] : 's8dkld83kf73kf094' );
         $this->tag->{'widget'} = 'tdbmultisearch';
         $this->idSearch = true;
+        $this->idTextSearch = false;
     }
     
     /**
@@ -126,6 +128,14 @@ class TDBMultiSearch extends TMultiSearch
     public function disableIdSearch()
     {
         $this->idSearch = false;
+    }
+    
+    /**
+     * Enable Id textual search
+     */
+    public function enableIdTextualSearch()
+    {
+        $this->idTextSearch = true;
     }
     
     /**
@@ -202,8 +212,8 @@ class TDBMultiSearch extends TMultiSearch
                 TTransaction::close();
                 
                 parent::addItems( $items );
-                parent::setValue( $original_values );
             }
+            parent::setValue( $original_values );
         }
     }
     
@@ -308,8 +318,9 @@ class TDBMultiSearch extends TMultiSearch
         $callback = array($class, 'onSearch');
         $method = $callback[1];
         $id_search_string = $this->idSearch ? '1' : '0';
-        $search_word = AdiantiCoreTranslator::translate('Search');
-        $url = "engine.php?class={$class}&method={$method}&static=1&database={$this->database}&key={$this->key}&column={$this->column}&model={$this->model}&orderColumn={$orderColumn}&criteria={$criteria}&operator={$this->operator}&mask={$this->mask}&idsearch={$id_search_string}&minlength={$length}";
+        $id_text_search = $this->idTextSearch ? '1' : '0';
+        $search_word = !empty($this->getProperty('placeholder'))? $this->getProperty('placeholder') : AdiantiCoreTranslator::translate('Search');
+        $url = "engine.php?class={$class}&method={$method}&static=1&database={$this->database}&key={$this->key}&column={$this->column}&model={$this->model}&orderColumn={$orderColumn}&criteria={$criteria}&operator={$this->operator}&mask={$this->mask}&idsearch={$id_search_string}&idtextsearch={$id_text_search}&minlength={$length}";
         $change_action = 'function() {}';
         
         if (isset($this->changeAction))

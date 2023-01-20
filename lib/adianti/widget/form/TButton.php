@@ -15,7 +15,7 @@ use Exception;
 /**
  * Button Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -26,9 +26,9 @@ class TButton extends TField implements AdiantiWidgetInterface
 {
     private $action;
     private $image;
-    private $properties;
     private $functions;
     private $tagName;
+    protected $properties;
     protected $label;
     protected $formName;
     
@@ -133,7 +133,7 @@ class TButton extends TField implements AdiantiWidgetInterface
      */
     public function getProperty($name)
     {
-        return $this->properties[$name];
+        return isset($this->properties[$name]) ? $this->properties[$name] : null;
     }
     
     /**
@@ -175,6 +175,7 @@ class TButton extends TField implements AdiantiWidgetInterface
             {
                 $url .= '&static=1';
             }
+            $url = htmlspecialchars($url);
             $wait_message = AdiantiCoreTranslator::translate('Loading');
             // define the button's action (ajax post)
             $action = "Adianti.waitMessage = '$wait_message';";
@@ -212,14 +213,19 @@ class TButton extends TField implements AdiantiWidgetInterface
         if ($this->image)
         {
             $image = new TImage($this->image);
-            $image->{'style'} .= ';padding-right:4px';
+            if (!empty($this->label))
+            {
+                $image->{'style'} .= ';padding-right:4px';
+            }
             $span->add($image);
         }
         
         if ($this->label)
         {
             $span->add($this->label);
+            $button->{'aria-label'} = $this->label;
         }
+        
         $button->add($span);
         $button->show();
     }

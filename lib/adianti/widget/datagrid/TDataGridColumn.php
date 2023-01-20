@@ -6,7 +6,7 @@ use Adianti\Control\TAction;
 /**
  * Representes a DataGrid column
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage datagrid
  * @author     Pablo Dall'Oglio
@@ -25,6 +25,7 @@ class TDataGridColumn
     private $properties;
     private $dataProperties;
     private $totalFunction;
+    private $totalTransformed;
     
     /**
      * Class Constructor
@@ -41,6 +42,32 @@ class TDataGridColumn
         $this->width = $width;
         $this->properties = array();
         $this->dataProperties = array();
+    }
+    
+    /**
+     * Define column visibility
+     */
+    public function setVisibility($bool)
+    {
+        if ($bool)
+        {
+            $this->setProperty('style', '');
+            $this->setDataProperty('style', '');
+        }
+        else
+        {
+            $this->setProperty('style', 'display:none');
+            $this->setDataProperty('style', 'display:none');
+        }
+    }
+    
+    /**
+     * Enable column auto hide
+     */
+    public function enableAutoHide($width)
+    {
+        $this->setProperty('hiddable', $width);
+        $this->setDataProperty('hiddable', $width);
     }
     
     /**
@@ -190,6 +217,14 @@ class TDataGridColumn
     }
     
     /**
+     * Remove action
+     */
+    public function removeAction()
+    {
+        $this->action = null;
+    }
+    
+    /**
      * Define the action to be executed when
      * the user clicks do edit the column
      * @param $action   A TDataGridAction object
@@ -233,10 +268,12 @@ class TDataGridColumn
     /**
      * Define a callback function to totalize column
      * @param $callback  A function name of a method of an object
+     * @param $apply_transformer Apply transform function also in total
      */
-    public function setTotalFunction(Callable $callback)
+    public function setTotalFunction(Callable $callback, $apply_transformer = true)
     {
         $this->totalFunction = $callback;
+        $this->totalTransformed = $apply_transformer;
     }
     
     /**
@@ -245,5 +282,13 @@ class TDataGridColumn
     public function getTotalFunction()
     {
         return $this->totalFunction;
+    }
+    
+    /**
+     * Is total transformed
+     */
+    public function totalTransformed()
+    {
+        return $this->totalTransformed;
     }
 }

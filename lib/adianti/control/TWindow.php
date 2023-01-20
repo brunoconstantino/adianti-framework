@@ -7,7 +7,7 @@ use Adianti\Widget\Container\TJQueryDialog;
 /**
  * Window Container (JQueryDialog wrapper)
  *
- * @version    5.7
+ * @version    7.0
  * @package    control
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -48,6 +48,31 @@ class TWindow extends TPage
         $inst->setSize($width, $height);
         unset($inst->wrapper->{'widget'});
         return $inst;
+    }
+    
+    /**
+     * Remove padding
+     */
+    public function removePadding()
+    {
+        $this->setProperty('class', 'window_modal');
+    }
+    
+    /**
+     * Remove titlebar
+     */
+    public function removeTitleBar()
+    {
+        $this->setDialogClass('no-title');
+    }
+    
+    /**
+     * Set Dialog class
+     * @param $class Class name
+     */
+    public function setDialogClass($class)
+    {
+        $this->wrapper->setDialogClass($class);
     }
     
     /**
@@ -101,6 +126,16 @@ class TWindow extends TPage
     public function setSize($width, $height)
     {
         $this->wrapper->setSize($width, $height);
+    }
+    
+    /**
+     * Define the window's min width between percent and absolute
+     * @param  $percent width
+     * @param  $absolute width
+     */
+    public function setMinWidth($percent, $absolute)
+    {
+        $this->wrapper->setMinWidth($percent, $absolute);
     }
     
     /**

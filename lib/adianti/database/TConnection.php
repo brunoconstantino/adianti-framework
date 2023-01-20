@@ -8,15 +8,16 @@ use Exception;
 /**
  * Singleton manager for database connections
  *
- * @version    5.7
+ * @version    7.0
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-final class TConnection
+class TConnection
 {
     private static $config_path;
+    private static $conn_cache;
     
     /**
      * Class Constructor
@@ -208,17 +209,42 @@ final class TConnection
      */
     public static function getDatabaseInfo($database)
     {
-        $path = empty(self::$config_path) ? 'app/config' : self::$config_path;
+        $path  = empty(self::$config_path) ? 'app/config' : self::$config_path;
+        $filei = "{$path}/{$database}.ini";
+        $filep = "{$path}/{$database}.php";
+        
+        if (!empty(self::$conn_cache[ $database ]))
+        {
+            return self::$conn_cache[ $database ];
+        }
         
         // check if the database configuration file exists
-        if (file_exists("{$path}/{$database}.ini"))
+        if (file_exists($filei))
         {
             // read the INI and retuns an array
-            return parse_ini_file("{$path}/{$database}.ini");
+            $ini = parse_ini_file($filei);
+            self::$conn_cache[ $database ] = $ini;
+            return $ini;
+        }
+        else if (file_exists($filep))
+        {
+            $ini = require $filep;
+            self::$conn_cache[ $database ] = $ini;
+            return $ini;
         }
         else
         {
             return FALSE;
         }
+    }
+    
+    /**
+     * Set database info
+     * @param $database Database name
+     * @param $info Database connection information
+     */
+    public static function setDatabaseInfo($database, $info)
+    {
+        self::$conn_cache[ $database ] = $info;
     }
 }

@@ -4,13 +4,14 @@ namespace Adianti\Widget\Menu;
 use Adianti\Widget\Menu\TMenu;
 use Adianti\Widget\Base\TElement;
 use Adianti\Widget\Base\TScript;
+use Adianti\Util\AdiantiStringConversion;
 
 use SimpleXMLElement;
 
 /**
  * Menubar Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage menu
  * @author     Pablo Dall'Oglio
@@ -35,15 +36,8 @@ class TMenuBar extends TElement
     {
         if (file_exists($xml_file))
         {
-            $menu_string = file_get_contents($xml_file);
-            if (utf8_encode(utf8_decode($menu_string)) == $menu_string ) // SE UTF8
-            {
-                $xml = new SimpleXMLElement($menu_string);
-            }
-            else
-            {
-                $xml = new SimpleXMLElement(utf8_encode($menu_string));
-            }
+            $menu_string = AdiantiStringConversion::assureUnicode(file_get_contents($xml_file));
+            $xml = new SimpleXMLElement($menu_string);
             
             $menubar = new TMenuBar;
             $ul = new TElement('ul');

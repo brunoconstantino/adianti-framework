@@ -7,7 +7,7 @@ use Adianti\Database\TSqlStatement;
 /**
  * Provides an interface to define filters to be used inside a criteria
  *
- * @version    5.7
+ * @version    7.0
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)

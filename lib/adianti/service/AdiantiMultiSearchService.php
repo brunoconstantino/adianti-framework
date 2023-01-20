@@ -2,6 +2,7 @@
 namespace Adianti\Service;
 
 use Adianti\Core\AdiantiApplicationConfig;
+use Adianti\Util\AdiantiStringConversion;
 use Adianti\Database\TTransaction;
 use Adianti\Database\TRepository;
 use Adianti\Database\TCriteria;
@@ -14,7 +15,7 @@ use Exception;
 /**
  * MultiSearch backend
  *
- * @version    5.7
+ * @version    7.0
  * @package    service
  * @author     Pablo Dall'Oglio
  * @author     Matheus Agnes Dias
@@ -68,25 +69,29 @@ class AdiantiMultiSearchService
                             if (stristr(strtolower($operator),'like') !== FALSE)
                             {
                                 $param['value'] = str_replace(' ', '%', $param['value']);
-                                $filter = new TFilter($column, $operator, "NOESC:'%{$param['value']}%'");
+                                $filter = new TFilter($column, $operator, "%{$param['value']}%");
                             }
                             else
                             {
-                                $filter = new TFilter($column, $operator, "NOESC:'{$param['value']}'");
+                                $filter = new TFilter($column, $operator, $param['value']);
                             }
         
                             $dynamic_criteria->add($filter, TExpression::OR_OPERATOR);
                         }
                     }
                     
-                    if ($param['idsearch'] == '1' and !empty( (int) $param['value']))
+                    $id_search_value = (!empty($param['idtextsearch']) && $param['idtextsearch'] == '1') ? $param['value'] : (int) $param['value'];
+                    
+                    if ($param['idsearch'] == '1' and !empty( $id_search_value ))
                     {
-                        $id = (int) $param['value'];
-                        $dynamic_criteria->add( new TFilter($key, '=', $id), TExpression::OR_OPERATOR);
+                        $dynamic_criteria->add( new TFilter($key, '=', $id_search_value), TExpression::OR_OPERATOR);
                     }
                 }
                 
-                $criteria->add($dynamic_criteria, TExpression::AND_OPERATOR);
+                if (!$dynamic_criteria->isEmpty())
+                {
+                    $criteria->add($dynamic_criteria, TExpression::AND_OPERATOR);
+                }
                 $criteria->setProperty('order', $param['orderColumn']);
                 $criteria->setProperty('limit', 1000);
                 
@@ -99,7 +104,6 @@ class AdiantiMultiSearchService
                     foreach ($collection as $object)
                     {
                         $k = $object->$key;
-                        $array_object = $object->toArray();
                         $maskvalues = $mask;
                         
                         $maskvalues = $object->render($maskvalues);
@@ -120,10 +124,8 @@ class AdiantiMultiSearchService
                         $c = $maskvalues;
                         if ( $k != null && $c != null )
                         {
-                            if (utf8_encode(utf8_decode($c)) !== $c ) // SE NÃO UTF8
-                            {
-                                $c = utf8_encode($c);
-                            }
+                            $c = AdiantiStringConversion::assureUnicode($c);
+                            
                             if (!empty($k) && !empty($c))
                             {
                                 $items[] = "{$k}::{$c}";

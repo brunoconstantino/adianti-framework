@@ -21,7 +21,7 @@ use Exception;
 /**
  * Create quick forms for input data with a standard container for elements
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio
@@ -42,7 +42,8 @@ class TQuickForm extends TForm
     protected $titleCell;
     protected $actionCell;
     protected $fieldPositions;
-     
+    protected $client_validation;
+    
     /**
      * Class Constructor
      * @param $name Form Name
@@ -54,11 +55,29 @@ class TQuickForm extends TForm
         // creates a table
         $this->table = new TTable;
         $this->hasAction = FALSE;
+        $this->client_validation = FALSE;
         
         $this->fieldsByRow = 1;
         
+        $this->setProperty('novalidate','');
+        
         // add the table to the form
         parent::add($this->table);
+    }
+    
+    /**
+     * Turn on/off client validation
+     */
+    public function setClientValidation($bool)
+    {
+        if ($bool)
+        {
+            $this->unsetProperty('novalidate');
+        }
+        else
+        {
+            $this->setProperty('novalidate','');
+        }
     }
     
     /**
@@ -283,7 +302,7 @@ class TQuickForm extends TForm
      * @param $action TAction Object
      * @param $icon   Action Icon
      */
-    public function addQuickAction($label, TAction $action, $icon = 'ico_save.png')
+    public function addQuickAction($label, TAction $action, $icon = 'fa:save')
     {
         $name   = 'btn_'.strtolower(str_replace(' ', '_', $label));
         $button = new TButton($name);
@@ -318,7 +337,7 @@ class TQuickForm extends TForm
      * @param $action Javascript action
      * @param $icon   Action Icon
      */
-    public function addQuickButton($label, $action, $icon = 'ico_save.png')
+    public function addQuickButton($label, $action, $icon = 'fa:save')
     {
         $name   = strtolower(str_replace(' ', '_', $label));
         $button = new TButton($name);
@@ -391,16 +410,16 @@ class TQuickForm extends TForm
     /**
      *
      */
-    public static function showField($form, $field)
+    public static function showField($form, $field, $speed = 0)
     {
-        TScript::create("tform_show_field('{$form}', '{$field}')");
+        TScript::create("tform_show_field('{$form}', '{$field}', {$speed})");
     }
     
     /**
      *
      */
-    public static function hideField($form, $field)
+    public static function hideField($form, $field, $speed = 0)
     {
-        TScript::create("tform_hide_field('{$form}', '{$field}')");
+        TScript::create("tform_hide_field('{$form}', '{$field}', {$speed})");
     }
 }

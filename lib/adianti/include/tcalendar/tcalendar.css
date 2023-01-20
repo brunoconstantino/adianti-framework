@@ -7,6 +7,7 @@
 	user-select : none;
 	-webkit-user-select : none;
 	-moz-user-select : none;
+	background: white;
 }
 
 .tcalendar table
@@ -30,9 +31,14 @@
 
 div.tcalendar table td.calendar-header
 {
-    background-color: #DEDEDE;
+    background-color: whitesmoke;
     color: black;
     text-shadow: none;
+}
+
+div.tcalendar table td.calendar-header-day
+{
+    color: #007bff;
 }
 
 .tcalendar table tr.calendar-rowdata
@@ -51,6 +57,11 @@ div.tcalendar table td.calendar-header
     color: black;
     text-shadow: none;
     cursor: pointer
+}
+
+.tcalendar table td.calendar-data.weekend
+{
+    color: #DC4C4C;
 }
 
 .tcalendar table tr.calendar-rowdata td.calendar-selected

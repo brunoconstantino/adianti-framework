@@ -10,7 +10,7 @@ use Adianti\Widget\Form\TField;
 /**
  * Html Editor
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -22,6 +22,9 @@ class THtmlEditor extends TField implements AdiantiWidgetInterface
     protected $id;
     protected $size;
     protected $formName;
+    protected $toolbar;
+    protected $completion;
+    protected $options;
     private   $height;
     
     /**
@@ -32,9 +35,20 @@ class THtmlEditor extends TField implements AdiantiWidgetInterface
     {
         parent::__construct($name);
         $this->id = 'THtmlEditor_'.mt_rand(1000000000, 1999999999);
+        $this->toolbar = true;
+        $this->options = [];
         
         // creates a tag
         $this->tag = new TElement('textarea');
+        $this->tag->{'widget'} = 'thtmleditor';
+    }
+    
+    /**
+     * Set extra calendar options
+     */
+    public function setOption($option, $value)
+    {
+        $this->options[$option] = $value;
     }
     
     /**
@@ -58,6 +72,23 @@ class THtmlEditor extends TField implements AdiantiWidgetInterface
     public function getSize()
     {
         return array( $this->size, $this->height );
+    }
+    
+    /**
+     * Disable toolbar
+     */
+    public function disableToolbar()
+    {
+        $this->toolbar = false;
+    }
+    
+    /**
+     * Define options for completion
+     * @param $options array of options for completion
+     */
+    function setCompletion($options)
+    {
+        $this->completion = $options;
     }
     
     /**
@@ -91,13 +122,24 @@ class THtmlEditor extends TField implements AdiantiWidgetInterface
     }
     
     /**
+     * Reload completion
+     * 
+     * @param $field Field name or id
+     * @param $options array of options for autocomplete
+     */
+    public static function reloadCompletion($field, $options)
+    {
+        $options = json_encode($options);
+        TScript::create(" thtml_editor_reload_completion( '{$field}', $options); ");
+    }
+    
+    /**
      * Show the widget
      */
     public function show()
     {
         $this->tag->{'id'} = $this->id;
         $this->tag->{'class'}  = 'thtmleditor';       // CSS
-        $this->tag->{'widget'} = 'thtmleditor';
         $this->tag->{'name'}   = $this->name;   // tag name
         
         $ini = AdiantiApplicationConfig::get();
@@ -109,7 +151,18 @@ class THtmlEditor extends TField implements AdiantiWidgetInterface
         // show the tag
         $this->tag->show();
         
-        TScript::create(" thtmleditor_start( '{$this->tag->{'id'}}', '{$this->size}', '{$this->height}', '{$locale}' ); ");
+        $options = $this->options;
+        if (!$this->toolbar)
+        {
+            $options[ 'airMode'] = true;
+        }
+        if (!empty($this->completion))
+        {
+            $options[ 'completion'] = $this->completion;
+        }
+        
+        $options_json = json_encode( $options );
+        TScript::create(" thtmleditor_start( '{$this->tag->{'id'}}', '{$this->size}', '{$this->height}', '{$locale}', '{$options_json}' ); ");
         
         // check if the field is not editable
         if (!parent::getEditable())

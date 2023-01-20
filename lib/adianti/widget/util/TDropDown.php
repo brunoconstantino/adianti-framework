@@ -9,7 +9,7 @@ use Adianti\Widget\Util\TImage;
 /**
  * TDropDown Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
@@ -47,10 +47,12 @@ class TDropDown extends TElement
             $button->{'title'} = $title;
         }
         $button->add($label);
+        
         if ($use_caret)
         {
             $span = new TElement('span');
             $span->{'class'} = 'caret';
+            $span->{'style'} = 'margin-left: 3px';
             $button->add($span);
         }
         
@@ -60,6 +62,7 @@ class TDropDown extends TElement
         $this->elements = new TElement('ul');
         $this->elements->{'class'} = 'dropdown-menu pull-left';
         $this->elements->{'aria-labelledby'} = 'drop2';
+        $this->elements->{'widget'} = 'tdropdown';
         
         if (!empty($height))
         {
@@ -74,7 +77,7 @@ class TDropDown extends TElement
      */
     public function setPullSide($side)
     {
-        $this->elements->{'class'} = "dropdown-menu pull-{$side}";
+        $this->elements->{'class'} = "dropdown-menu pull-{$side} dropdown-menu-{$side}";
     }
 
     /**
@@ -112,6 +115,7 @@ class TDropDown extends TElement
     public function addAction($title, $action, $icon = NULL, $popover = '', $add = true)
     {
         $li = new TElement('li');
+        // $li->class = "dropdown-item";
         $link = new TElement('a');
         
         if ($action instanceof TAction)

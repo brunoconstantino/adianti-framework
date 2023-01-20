@@ -6,7 +6,7 @@ use Adianti\Database\TExpression;
 /**
  * Provides an interface for filtering criteria definition
  *
- * @version    5.7
+ * @version    7.0
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -30,6 +30,7 @@ class TCriteria extends TExpression
         $this->properties['order']     = '';
         $this->properties['offset']    = 0;
         $this->properties['direction'] = '';
+        $this->properties['group']     = '';
     }
 
     /**
@@ -91,6 +92,14 @@ class TCriteria extends TExpression
         // aggregates the expression to the list of expressions
         $this->expressions[] = $expression;
         $this->operators[]   = $operator;
+    }
+    
+    /**
+     * Return if criteria is empty
+     */
+    public function isEmpty()
+    {
+        return count($this->expressions) == 0;
     }
     
     /**
@@ -170,6 +179,7 @@ class TCriteria extends TExpression
         $this->properties['limit']  = NULL;
         $this->properties['order']  = NULL;
         $this->properties['offset'] = NULL;
+        $this->properties['group']  = NULL;
     }
     
     /**

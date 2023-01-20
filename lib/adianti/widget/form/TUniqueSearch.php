@@ -7,7 +7,7 @@ use Adianti\Widget\Form\AdiantiWidgetInterface;
 /**
  * Unique Search Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -16,6 +16,8 @@ use Adianti\Widget\Form\AdiantiWidgetInterface;
  */
 class TUniqueSearch extends TMultiSearch implements AdiantiWidgetInterface
 {
+    protected $size;
+    
     /**
      * Class Constructor
      * @param  $name Widget's name
@@ -53,6 +55,14 @@ class TUniqueSearch extends TMultiSearch implements AdiantiWidgetInterface
         {
             return '';
         }
+    }
+    
+    /**
+     * Returns the size
+     */
+    public function getSize()
+    {
+        return $this->size;
     }
     
     /**

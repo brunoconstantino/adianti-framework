@@ -2,15 +2,15 @@
 namespace Adianti\Widget\Template;
 
 use Adianti\Core\AdiantiCoreTranslator;
+use Adianti\Util\AdiantiTemplateHandler;
+
 use Exception;
 use ApplicationTranslator;
-
-use Math\Parser;
 
 /**
  * Html Renderer
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage template
  * @author     Pablo Dall'Oglio
@@ -27,6 +27,7 @@ class THtmlRenderer
     private $enabledSections;
     private $repeatSection;
     private $enabledTranslation;
+    private $HTMLOutputConversion;
     
     /**
      * Constructor method
@@ -42,11 +43,20 @@ class THtmlRenderer
         $this->enabledSections = array();
         $this->enabledTranslation = FALSE;
         $this->buffer = array();
+        $this->HTMLOutputConversion = true;
         
         if (file_exists($path))
         {
             $this->template = file_get_contents($path);
         }
+    }
+    
+    /**
+     * Disable htmlspecialchars on output
+     */
+    public function disableHtmlConversion()
+    {
+        $this->HTMLOutputConversion = false;
     }
     
     /**
@@ -72,6 +82,16 @@ class THtmlRenderer
     }
     
     /**
+     * Diable section
+     */
+    public function disableSection($sectionName)
+    {
+        $this->enabledSections = array_diff($this->enabledSections, [$sectionName]);
+        unset($this->replacements[$sectionName]);
+        unset($this->repeatSection[$sectionName]);
+    }
+    
+    /**
      * Replace the content with array of replacements
      * 
      * @param $replacements array of replacements
@@ -85,8 +105,21 @@ class THtmlRenderer
             {
                 if (is_scalar($value))
                 {
+                    $value_original = $value;
+                    
+                    if (substr($value,0,4) == 'RAW:')
+                    {
+                        $value = substr($value,4);
+                    }
+                    else if ($this->HTMLOutputConversion)
+                    {
+                        $value = htmlspecialchars($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');   // TAG value
+                    }
+                    
                     $content = str_replace('{$'.$variable.'}',  $value, $content);
                     $content = str_replace('{{'.$variable.'}}', $value, $content);
+                    $content = str_replace('{$'.$variable.'|raw}',  $value_original, $content);
+                    $content = str_replace('{{'.$variable.'|raw}}', $value_original, $content);
                 }
                 else if (is_object($value))
                 {
@@ -96,9 +129,11 @@ class THtmlRenderer
                         $value->show();
                         $output = ob_get_contents();
                         ob_end_clean();
+                        
                         $content = str_replace('{$'.$variable.'}',  $output, $content);
                         $content = str_replace('{{'.$variable.'}}', $output, $content);
-                        $replacements[$variable] = $output;
+                        
+                        $replacements[$variable] = 'RAW:' . $output;
                     }
                     
                     if (method_exists($value, 'getAttributes'))
@@ -117,8 +152,17 @@ class THtmlRenderer
                         {
                             if (is_scalar($variable.'->'.$propname))
                             {
-                                $content = str_replace('{$'.$variable.'->'.$propname.'}',   $value->$propname, $content);
-                                $content = str_replace('{{'.$variable.'->'.$propname.'}}',  $value->$propname, $content);
+                                $replace = $value->$propname;
+                                if (is_scalar($replace))
+                                {
+                                    if ($this->HTMLOutputConversion)
+                                    {
+                                        $replace = htmlspecialchars($replace, ENT_QUOTES | ENT_HTML5, 'UTF-8');   // TAG value
+                                    }
+                                    
+                                    $content = str_replace('{$'.$variable.'->'.$propname.'}',   $replace, $content);
+                                    $content = str_replace('{{'.$variable.'->'.$propname.'}}',  $replace, $content);
+                                }
                             }
                         }
                     }
@@ -146,90 +190,7 @@ class THtmlRenderer
         }
         
         // replace some php functions
-        $content = self::replaceFunctions($content);
-        
-        return $content;
-    }
-    
-    /**
-     * replace some php functions
-     */
-    public static function replaceFunctions($content)
-    {
-        $date_masks = [];
-        $date_masks[] = '/date_format\(([0-9]{4}-[0-9]{2}-[0-9]{2}),\s*\'([A-z_\/\-0-9\s\:\,\.]*)\'\)/'; // 2018-10-08, mask
-        $date_masks[] = '/date_format\(([0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}),\s*\'([A-z_\/\-0-9\s\:\.\,]*)\'\)/'; // 2018-10-08 10:12:13, mask
-        $date_masks[] = '/date_format\(([0-9]{4}-[0-9]{2}-[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+),\s*\'([A-z_\/\-0-9\s\:\.\,]*)\'\)/'; // 2018-10-08 10:12:13.17505, mask
-        $date_masks[] = '/date_format\((\s*),\s*\'([A-z_\/\-0-9\s\:\.\,]*)\'\)/'; // empty, mask
-        
-        foreach ($date_masks as $date_mask)
-        {
-            preg_match_all($date_mask, $content, $matches1);
-            
-            if (count($matches1)>0)
-            {
-                foreach ($matches1[0] as $key => $value)
-                {
-                    $raw    = $matches1[0][$key];
-                    $date   = $matches1[1][$key];
-                    $mask   = $matches1[2][$key];
-                    
-                    if (!empty(trim($date)))
-                    {
-                        $content = str_replace($raw, date_format(date_create($date), $mask), $content);
-                    }
-                    else
-                    {
-                        $content = str_replace($raw, '', $content);
-                    }
-                }
-            }
-        }
-        
-        preg_match_all('/number_format\(([\d+\.\d]*)\s*,\s*([0-9])+\s*,\s*\'(\,*\.*)\'\s*,\s*\'(\,*\.*)\'\)/', $content, $matches2);
-        
-        if (count($matches2)>0)
-        {
-            foreach ($matches2[0] as $key => $value)
-            {
-                $raw      = $matches2[0][$key];
-                $number   = $matches2[1][$key];
-                $decimals = $matches2[2][$key];
-                $dec_sep  = $matches2[3][$key];
-                $tho_sep  = $matches2[4][$key];
-                if (!empty(trim($number)))
-                {
-                    $content  = str_replace($raw, number_format($number, $decimals, $dec_sep, $tho_sep), $content);
-                }
-                else
-                {
-                    $content  = str_replace($raw, '', $content);
-                }
-            }
-        }
-        
-        preg_match_all('/evaluate\(([-+\/\d\.\s\(\))*]*)\)/', $content, $matches3);
-        
-        if (count($matches3)>0)
-        {
-            $parser = new Parser;
-            foreach ($matches3[0] as $key => $value)
-            {
-                $raw        = $matches3[0][$key];
-                $expression = $matches3[1][$key];
-                
-                $expression = str_replace('+', ' + ', $expression);
-                $expression = str_replace('-', ' - ', $expression);
-                $expression = str_replace('*', ' * ', $expression);
-                $expression = str_replace('/', ' / ', $expression);
-                $expression = str_replace('(', ' ( ', $expression);
-                $expression = str_replace(')', ' ) ', $expression);
-                
-                $result = $parser->evaluate($expression);
-                
-                $content = str_replace($raw, $result, $content);
-            }
-        }
+        $content = AdiantiTemplateHandler::replaceFunctions($content);
         
         return $content;
     }
@@ -284,7 +245,7 @@ class THtmlRenderer
                     }
                     
                     // section inherits replacements from parent session
-                    if (isset($this->replacements[$previousSection][$sectionName]))
+                    if (isset($this->replacements[$previousSection][$sectionName]) && is_array($this->replacements[$previousSection][$sectionName]))
                     {
                         $this->replacements[$sectionName] = $this->replacements[$previousSection][$sectionName];
                     }
@@ -314,10 +275,10 @@ class THtmlRenderer
                             if (isset($this->replacements[$sectionName]))
                             {
                                 foreach ($this->replacements[$sectionName] as $iteration_replacement)
-                                { 
-                                    $processed .= $this->replace($iteration_replacement,
-                                                                 $this->buffer[$sectionName]);
+                                {
+                                    $processed .= $this->replace($iteration_replacement, $this->buffer[$sectionName]);
                                 }
+                                AdiantiTemplateHandler::processAttribution($processed, $this->replacements);
                                 print $processed;
                                 $processed = '';
                             }

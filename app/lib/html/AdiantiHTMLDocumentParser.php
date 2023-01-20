@@ -1,11 +1,13 @@
 <?php
+use Adianti\Util\AdiantiTemplateHandler;
+
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
 /**
  * HTML Document parser
  *
- * @version    5.7
+ * @version    7.0
  * @package    app
  * @subpackage lib
  * @author     Pablo Dall'Oglio
@@ -21,6 +23,7 @@ class AdiantiHTMLDocumentParser
     private $replaces;
     private $totals;
     private $showEmptyDetails;
+    private $enabledTranslation;
     
     /**
      * Constructor
@@ -38,12 +41,24 @@ class AdiantiHTMLDocumentParser
             $this->content  = '';
         }
         
+        $this->enabledTranslation = FALSE;
         $this->showEmptyDetails = true;
         $this->details  = [];
         $this->replaces = [];
         $this->totals   = [];
     }
     
+    /**
+     * Enable translation inside template
+     */
+    public function enableTranslation()
+    {
+        $this->enabledTranslation = TRUE;
+    }
+    
+    /**
+     * Disable empty details
+     */
     public function hideEmptyDetails()
     {
         $this->showEmptyDetails = false;
@@ -239,7 +254,13 @@ class AdiantiHTMLDocumentParser
             $html = str_replace('{$'.$attribute.'}',  $this->masterObject->$attribute, $html);
             $html = str_replace('{{'.$attribute.'}}', $this->masterObject->$attribute, $html);
         }
-        $html = THtmlRenderer::replaceFunctions($html);
+        $html = AdiantiTemplateHandler::replaceFunctions($html);
+        
+        if ($this->enabledTranslation)
+        {
+            $html  = ApplicationTranslator::translateTemplate($html);
+        }
+        
         $this->content = $html;
         return $html;
     }
@@ -345,7 +366,12 @@ class AdiantiHTMLDocumentParser
         $options = new Options();
         $options->set('dpi', '128');
         $options->setIsRemoteEnabled(true);
-
+        
+        if (preg_match("/<!DOCTYPE html>/i", $html))
+        {
+            $options->set('enable_html5_parser', true);
+        }
+        
         // instantiate and use the dompdf class
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml($html);

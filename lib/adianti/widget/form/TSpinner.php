@@ -14,7 +14,7 @@ use Exception;
 /**
  * Spinner Widget (also known as spin button)
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -40,6 +40,7 @@ class TSpinner extends TField implements AdiantiWidgetInterface
     {
         parent::__construct($name);
         $this->id = 'tspinner_'.mt_rand(1000000000, 1999999999);
+        $this->tag->{'widget'} = 'tspinner';
     }
     
     /**
@@ -119,6 +120,16 @@ class TSpinner extends TField implements AdiantiWidgetInterface
         $this->tag->{'name'}  = $this->name;    // TAG name
         $this->tag->{'value'} = $this->value;   // TAG value
         $this->tag->{'type'}  = 'text';         // input type
+        $this->tag->{'data-min'} = $this->min;
+        $this->tag->{'data-max'} = $this->max;
+        $this->tag->{'data-step'} = $this->step;
+        
+        if ($this->step > 0 and $this->step < 1)
+        {
+            $this->tag->{'data-rule'} = 'currency';
+        }
+        
+        $this->setProperty('style', "text-align:right", false); //aggregate style info
         
         if (strstr($this->size, '%') !== FALSE)
         {
@@ -135,26 +146,28 @@ class TSpinner extends TField implements AdiantiWidgetInterface
             $this->tag->{'id'}  = $this->id;
         }
         
-        $exit_action = 'function() {}';
         if (isset($this->exitAction))
         {
             if (!TForm::getFormByName($this->formName) instanceof TForm)
             {
                 throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->name, 'TForm::setFields()') );
-            }            
+            }
             $string_action = $this->exitAction->serialize(FALSE);
-            $exit_action = "function() { __adianti_post_lookup('{$this->formName}', '{$string_action}', '{$this->id}', 'callback' ) }";
+            $this->setProperty('exitaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', '{$this->id}', 'callback')");
         }
         
+        $exit_action = "function() {}";
         if (isset($this->exitFunction))
         {
             $exit_action = "function() { {$this->exitFunction} }";
         }
         
-        $mask = str_repeat('9', strlen($this->max));
-        $this->tag->{'onKeyPress'} = "return tentry_mask(this,event,'{$mask}')";
+        if (!parent::getEditable())
+        {
+            $this->tag->{'tabindex'} = '-1';
+        }
         $this->tag->show();
-        TScript::create(" tspinner_start( '#{$this->id}', '{$this->value}', '{$this->min}', '{$this->max}', '{$this->step}', $exit_action); ");
+        TScript::create(" tspinner_start( '#{$this->id}', $exit_action); ");
         
         // verify if the widget is non-editable
         if (!parent::getEditable())

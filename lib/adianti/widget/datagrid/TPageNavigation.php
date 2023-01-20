@@ -11,7 +11,7 @@ use Exception;
 /**
  * Page Navigation provides navigation for a datagrid
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage datagrid
  * @author     Pablo Dall'Oglio
@@ -230,6 +230,7 @@ class TPageNavigation
             $pages = 1;
         }
         
+        $resto = 0;
         if ($page_size>0)
         {
             $resto = $registros % $page_size;
@@ -244,6 +245,7 @@ class TPageNavigation
         
         $ul = new TElement('ul');
         $ul->{'class'} = 'pagination';
+        $ul->{'style'} = 'display:inline-flex;';
         $nav->add($ul);
         
         if ($first_page > 1)
@@ -262,6 +264,8 @@ class TPageNavigation
             $this->action->setParameter('page',   1);
             $this->action->setParameter('first_page', 1);
             $this->action->setParameter('order', $this->order);
+
+            $link->{'class'}     = "page-link";
             $link->{'href'}      = $this->action->serialize();
             $link->{'generator'} = 'adianti';
             $span->add(TElement::tag('span', '', ['class'=>'fa fa-angle-double-left']));
@@ -280,6 +284,8 @@ class TPageNavigation
             $this->action->setParameter('page',   $first_page - $max);
             $this->action->setParameter('first_page', $first_page - $max);
             $this->action->setParameter('order', $this->order);
+
+            $link->{'class'}     = "page-link";
             $link->{'href'}      = $this->action->serialize();
             $link->{'generator'} = 'adianti';
             $span->add(TElement::tag('span', '', ['class'=>'fa fa-angle-left'])); //$span->add('&laquo;');
@@ -306,10 +312,11 @@ class TPageNavigation
             
             $link->{'href'}      = $this->action->serialize();
             $link->{'generator'} = 'adianti';
-            
+            $link->{'class'}     = 'page-link';
+
             if($this->page == $n)
             {
-                $item->{'class'} = 'active';
+                $item->{'class'} = 'active page-item';
             }
         }
         
@@ -319,7 +326,8 @@ class TPageNavigation
             $item = new TElement('li');
             $link = new TElement('a');
             $span = new TElement('span');
-            $item->{'class'} = 'off';
+            $item->{'class'} = 'off page-item';
+            $link->{'class'} = 'page-link';
             $ul->add($item);
             $item->add($link);
             $link->add($span);
@@ -343,6 +351,7 @@ class TPageNavigation
             $this->action->setParameter('page',    $n);
             $this->action->setParameter('first_page', $n);
             $this->action->setParameter('order', $this->order);
+            $link->{'class'}     = "page-link";
             $link->{'href'}      = $this->action->serialize();
             $link->{'generator'} = 'adianti';
             $span->add(TElement::tag('span', '', ['class'=>'fa fa-angle-right'])); //$span->add('&raquo;');
@@ -361,6 +370,7 @@ class TPageNavigation
             $this->action->setParameter('page',    ceil($registros / $page_size));
             $this->action->setParameter('first_page', (int) ($registros / ($page_size *10)) *10 +1);
             $this->action->setParameter('order', $this->order);
+            $link->{'class'}     = "page-link";
             $link->{'href'}      = $this->action->serialize();
             $link->{'generator'} = 'adianti';
             $span->add(TElement::tag('span', '', ['class'=>'fa fa-angle-double-right']));

@@ -1,16 +1,18 @@
 <?php
 namespace Adianti\Widget\Util;
 
+use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Control\TAction;
 use Adianti\Widget\Base\TScript;
 use Adianti\Widget\Base\TElement;
+use Adianti\Util\AdiantiTemplateHandler;
 
 use stdClass;
 
 /**
  * FullCalendar Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
@@ -19,21 +21,22 @@ use stdClass;
  */
 class TFullCalendar extends TElement
 {
-    private $current_date;
-    private $event_action;
-    private $day_action;
-    private $update_action;
-    private $reload_action;
-    private $default_view;
-    private $min_time;
-    private $max_time;
-    private $events;
-    private $enabled_days;
-    private $popover;
-    private $poptitle;
-    private $popcontent;
-    private $resizable;
-    private $movable;
+    protected $current_date;
+    protected $event_action;
+    protected $day_action;
+    protected $update_action;
+    protected $reload_action;
+    protected $default_view;
+    protected $min_time;
+    protected $max_time;
+    protected $events;
+    protected $enabled_days;
+    protected $popover;
+    protected $poptitle;
+    protected $popcontent;
+    protected $resizable;
+    protected $movable;
+    protected $options;
 
 
     /**
@@ -54,6 +57,15 @@ class TFullCalendar extends TElement
         $this->popover = FALSE;
         $this->resizable = TRUE;
         $this->movable = TRUE;
+        $this->options = [];
+    }
+    
+    /**
+     * Set extra datepicker options (ex: autoclose, startDate, daysOfWeekDisabled, datesDisabled)
+     */
+    public function setOption($option, $value)
+    {
+        $this->options[$option] = $value;
     }
     
     /**
@@ -171,8 +183,8 @@ class TFullCalendar extends TElement
         
         if ($this->popover and !empty($object))
         {
-            $poptitle   = $this->replace($this->poptitle, $object);
-            $popcontent = $this->replace($this->popcontent, $object);
+            $poptitle   = AdiantiTemplateHandler::replace($this->poptitle, $object);
+            $popcontent = AdiantiTemplateHandler::replace($this->popcontent, $object);
             $event->{'title'} = self::renderPopover($title, $poptitle, $popcontent);
         }
         else
@@ -199,42 +211,18 @@ class TFullCalendar extends TElement
     }
     
     /**
-     * Replace a string with object properties within {pattern}
-     * @param $content String with pattern
-     * @param $object  Any object
-     */
-    private function replace($content, $object, $cast = null)
-    {
-        if (preg_match_all('/\{(.*?)\}/', $content, $matches) )
-        {
-            foreach ($matches[0] as $match)
-            {
-                $property = substr($match, 1, -1);
-                $value    = $object->$property;
-                if ($cast)
-                {
-                    settype($value, $cast);
-                }
-                
-                $content  = str_replace($match, $value, $content);
-            }
-        }
-        
-        return $content;
-    }
-    
-    /**
      * Show the callendar and execute required scripts
      */
     public function show()
     {
         $id = $this->{'id'};
         
-        $language = strtolower(LANG);
+        $language = strtolower( AdiantiCoreTranslator::getLanguage() );
         $reload_action_string = '';
         $event_action_string  = '';
         $day_action_string    = '';
         $update_action_string = '';
+        $options = json_encode($this->options);
         
         if ($this->event_action)
         {
@@ -270,7 +258,7 @@ class TFullCalendar extends TElement
         $resizable = ($this->resizable) ? 'true' : 'false';
         $hidden_days = json_encode(array_values(array_diff([0,1,2,3,4,5,6], $this->enabled_days)));
         
-        TScript::create("tfullcalendar_start( '{$id}', {$editable}, '{$this->default_view}', '{$this->current_date}', '$language', $events, '{$day_action_string}', '{$event_action_string}', '{$update_action_string}', '{$this->min_time}', '{$this->max_time}', $hidden_days, {$movable}, {$resizable} );");
+        TScript::create("tfullcalendar_start( '{$id}', {$editable}, '{$this->default_view}', '{$this->current_date}', '$language', $events, '{$day_action_string}', '{$event_action_string}', '{$update_action_string}', '{$this->min_time}', '{$this->max_time}', $hidden_days, {$movable}, {$resizable}, '{$options}');");
         parent::show();
     }
 }

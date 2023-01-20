@@ -8,7 +8,7 @@ use Adianti\Widget\Base\TScript;
 /**
  * Message Dialog
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage dialog
  * @author     Pablo Dall'Oglio
@@ -20,7 +20,7 @@ class TMessage
 {
     /**
      * Class Constructor
-     * @param $type    Type of the message (info, error)
+     * @param $type    Type of the message (info, warning, error)
      * @param $message Message to be shown
      * @param $action  Action to be processed when closing the dialog
      * @param $title_msg  Dialog Title
@@ -40,7 +40,7 @@ class TMessage
             $title = !empty($titles[$type])? $titles[$type] : '';
         }
         
-        $callback = "function () {}";
+        $callback = 'undefined';
         
         if ($action)
         {

@@ -6,7 +6,7 @@ use Adianti\Widget\Base\TElement;
 /**
  * Bootstrap datagrid decorator for Adianti Framework
  *
- * @version    5.7
+ * @version    7.0
  * @package    wrapper
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -28,7 +28,7 @@ class BootstrapNotebookWrapper
         $this->decorated = $notebook;
         $this->properties = array();
         $this->direction = '';
-        $this->divisions = array(3,9);
+        $this->divisions = array(2,10);
     }
     
     /**
@@ -83,9 +83,14 @@ class BootstrapNotebookWrapper
         {
             foreach ($sessions as $section)
             {
-                if ($section->{'class'} == 'tabs')
+                if ($section->{'class'} == 'nav nav-tabs')
                 {
                     $section->{'class'} = "nav nav-tabs " . $this->direction;
+                    if ($this->direction)
+                    {
+                        $section->{'class'} .= " flex-column";
+
+                    }
                     $section->{'role'}  = "tablist";
                     $tabs = $section;
                 }
@@ -104,8 +109,8 @@ class BootstrapNotebookWrapper
         if ($this->direction == 'tabs-left')
         {
             $rendered->clearChildren();
-            $left_pack = TElement::tag('div', '', array('class'=> 'left-pack col-xs-'.$this->divisions[0], 'style' => 'padding:0'));
-            $right_pack = TElement::tag('div', '', array('class'=> 'right-pack col-xs-'.$this->divisions[1], 'style' => 'padding-right:0; margin-right:0'));
+            $left_pack = TElement::tag('div', '', array('class'=> 'left-pack col-'.$this->divisions[0], 'style' => 'padding:0'));
+            $right_pack = TElement::tag('div', '', array('class'=> 'right-pack col-'.$this->divisions[1], 'style' => 'padding-right:0; margin-right:0'));
             $rendered->add($left_pack);
             $rendered->add($right_pack);
             $left_pack->add($tabs);
@@ -114,14 +119,19 @@ class BootstrapNotebookWrapper
         else if ($this->direction == 'tabs-right')
         {
             $rendered->clearChildren();
-            $left_pack = TElement::tag('div', '', array('class'=> 'left-pack col-xs-'.$this->divisions[1]));
-            $right_pack = TElement::tag('div', '', array('class'=> 'right-pack col-xs-'.$this->divisions[0]));
+            $left_pack = TElement::tag('div', '', array('class'=> 'left-pack col-'.$this->divisions[1]));
+            $right_pack = TElement::tag('div', '', array('class'=> 'right-pack col-'.$this->divisions[0]));
             $rendered->add($left_pack);
             $rendered->add($right_pack);
             $left_pack->add($panel);
             $right_pack->add($tabs);
         }
         
+        if (!empty($this->direction))
+        {
+            $rendered->{'class'} .= ' row';
+        }
+
         $rendered->show();
     }
 }

@@ -15,7 +15,7 @@ use Exception;
 /**
  * Create a field list
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -25,6 +25,7 @@ use Exception;
 class TFieldList extends TTable
 {
     private $fields;
+    private $labels;
     private $body_created;
     private $detail_row;
     private $remove_function;
@@ -32,6 +33,11 @@ class TFieldList extends TTable
     private $sort_action;
     private $sorting;
     private $fields_properties;
+    private $row_functions;
+    private $automatic_aria;
+    private $summarize;
+    private $totals;
+    private $total_functions;
     
     /**
      * Class Constructor
@@ -44,11 +50,15 @@ class TFieldList extends TTable
         
         $this->fields = [];
         $this->fields_properties = [];
+        $this->row_functions = [];
         $this->body_created = false;
         $this->detail_row = 0;
         $this->sorting = false;
+        $this->automatic_aria = false;
         $this->remove_function = 'ttable_remove_row(this)';
         $this->clone_function  = 'ttable_clone_previous_row(this)';
+        $this->summarize = false;
+        $this->total_functions = null;
     }
     
     /**
@@ -57,6 +67,14 @@ class TFieldList extends TTable
     public function enableSorting()
     {
         $this->sorting = true;
+    }
+    
+    /**
+     * Generate automatic aria-labels
+     */
+    public function generateAria()
+    {
+        $this->automatic_aria = true;
     }
     
     /**
@@ -93,6 +111,14 @@ class TFieldList extends TTable
     }
     
     /**
+     * Add function
+     */
+    public function addButtonFunction($function, $icon, $title)
+    {
+        $this->row_functions[] = [$function, $icon, $title];
+    }
+    
+    /**
      * Add a field
      * @param $label  Field Label
      * @param $object Field Object
@@ -114,6 +140,11 @@ class TFieldList extends TTable
                 $this->fields_properties[$name] = $properties;
             }
             
+            if (isset($properties['sum']) && $properties['sum'] == true)
+            {
+                $this->summarize = true;
+            }
+            
             if ($label instanceof TLabel)
             {
                 $label_field = $label;
@@ -126,6 +157,7 @@ class TFieldList extends TTable
             }
             
             $field->setLabel($label_value);
+            $this->labels[$name] = $label_field;
         }
     }
     
@@ -165,6 +197,19 @@ class TFieldList extends TTable
                     }
                 }
             }
+            
+            if ($this->row_functions)
+            {
+                foreach ($this->row_functions as $row_function)
+                {
+                    $cell = $row->addCell( '' );
+                    $cell->{'style'} = 'display:none';
+                }
+            }
+            
+            // aligned with remove button
+            $cell = $row->addCell( '' );
+            $cell->{'style'} = 'display:none';
         }
         
         return $section;
@@ -191,7 +236,7 @@ class TFieldList extends TTable
             
             if ($this->sorting)
             {
-                $move = new TImage('fa:arrows gray');
+                $move = new TImage('fas:arrows-alt gray');
                 $move->{'class'} .= ' handle';
                 $move->{'style'} .= ';font-size:100%;cursor:move';
                 $row->addCell( $move );
@@ -199,6 +244,9 @@ class TFieldList extends TTable
             
             foreach ($this->fields as $field)
             {
+                $field_name = $field->getName();
+                $name  = str_replace( ['[', ']'], ['', ''], $field->getName());
+                
                 if ($this->detail_row == 0)
                 {
                     $clone = $field;
@@ -208,11 +256,45 @@ class TFieldList extends TTable
                     $clone = clone $field;
                 }
                 
-                $name  = str_replace( ['[', ']'], ['', ''], $field->getName());
+                if (isset($this->fields_properties[$field_name]['sum']) && $this->fields_properties[$field_name]['sum'] == true)
+                {
+                    $field->{'exitaction'} = "tfieldlist_update_sum('{$name}', 'callback')";
+                    $field->{'onBlur'}     = "tfieldlist_update_sum('{$name}', 'callback')";
+                    
+                    $this->total_functions .= $field->{'exitaction'} . ';';
+                    
+                    $value = isset($item->$name) ? $item->$name : 0;
+                    
+                    if (isset($field->{'data-nmask'}))
+                    {
+                        $dec_sep = substr($field->{'data-nmask'},1,1);
+                        $tho_sep = substr($field->{'data-nmask'},2,1);
+                        $value   = str_replace($tho_sep, '', $value);
+                        $value   = str_replace($dec_sep, '.', $value);
+                    }
+                    
+                    if (isset($this->totals[$name]))
+                    {
+                        $this->totals[$name] += $value;
+                    }
+                    else
+                    {
+                        $this->totals[$name] = $value;
+                    }
+                }
+                
+                if ($this->automatic_aria)
+                {
+                    $label = $this->labels[ $field->getName() ];
+                    $aria_label = $label->getValue();
+                    $field->{'aria-label'} = $aria_label;
+                }
+                
                 $clone->setId($name.'_'.$uniqid);
                 $clone->{'data-row'} = $this->detail_row;
                 
                 $cell = $row->addCell( $clone );
+                $cell->{'class'} = 'field';
                 
                 if ($clone instanceof THidden)
                 {
@@ -229,12 +311,26 @@ class TFieldList extends TTable
                 }
             }
             
+            if ($this->row_functions)
+            {
+                foreach ($this->row_functions as $row_function)
+                {
+                    $btn = new TElement('div');
+                    $btn->{'class'} = 'btn btn-default btn-sm';
+                    //$btn->{'style'} = 'padding:3px 7px';
+                    $btn->{'onclick'} = $row_function[0];
+                    $btn->{'title'} = $row_function[2];
+                    $btn->add(new TImage($row_function[1]));
+                    $row->addCell( $btn );
+                }
+            }
+            
             $del = new TElement('div');
             $del->{'class'} = 'btn btn-default btn-sm';
-            $del->{'style'} = 'padding:3px 7px';
-            $del->{'onclick'} = $this->remove_function;
+            //$del->{'style'} = 'padding:3px 7px';
+            $del->{'onclick'} = $this->total_functions . $this->remove_function;
+            $del->{'title'} = _t('Delete');
             $del->add('<i class="fa fa-times red"></i>');
-            
             $row->addCell( $del );
         }
         $this->detail_row ++;
@@ -260,17 +356,43 @@ class TFieldList extends TTable
         {
             foreach ($this->fields as $field)
             {
+                $field_name = $field->getName();
+                
                 $cell = $row->addCell('');
                 if ($field instanceof THidden)
                 {
                     $cell->{'style'} = 'display:none';
                 }
+                else if (isset($this->fields_properties[$field_name]['sum']) && $this->fields_properties[$field_name]['sum'] == true)
+                {
+                    $field_name = str_replace('[]', '', $field_name);
+                    $grand_total = clone $field;
+                    $grand_total->setName('grandtotal_'.$field_name);
+                    $grand_total->{'field_name'} = $field_name;
+                    $grand_total->setEditable(FALSE);
+                    $grand_total->{'style'}  .= ';font-weight:bold;border:0 !important;background:none';
+                    
+                    if (!empty($this->totals[$field_name]))
+                    {
+                        $grand_total->setValue($this->totals[$field_name]);
+                    }
+                    
+                    $cell->add($grand_total);
+                }
+            }
+        }
+        
+        if ($this->row_functions)
+        {
+            foreach ($this->row_functions as $row_function)
+            {
+                $cell = $row->addCell('');
             }
         }
         
         $add = new TElement('div');
         $add->{'class'} = 'btn btn-default btn-sm';
-        $add->{'style'} = 'padding:3px 7px';
+        //$add->{'style'} = 'padding:3px 7px';
         $add->{'onclick'} = $this->clone_function;
         $add->add('<i class="fa fa-plus green"></i>');
         

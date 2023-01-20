@@ -6,7 +6,7 @@ use Adianti\Widget\Base\TElement;
 /**
  * Image Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
@@ -19,29 +19,38 @@ class TImage extends TElement
     
     /**
      * Class Constructor
-     * @param $source Image path, of bs:bs-glyphicon, fa:font-awesome
+     * @param $source Image path, of bs:bs-glyphicon, fab:font-awesome
      */
     public function __construct($source)
     {
-        if (substr($source,0,3) == 'bs:')
-        {
-            parent::__construct('i');
-            $this->{'class'} = 'glyphicon glyphicon-'.substr($source,3);
-            parent::add('');
-        }
-        else if (substr($source,0,3) == 'fa:')
+        if (substr($source,0,3) == 'fa:')
         {
             parent::__construct('i');
             
             $fa_class = substr($source,3);
             if (strstr($source, '#') !== FALSE)
             {
-                $pieces = explode('#', $fa_class);
-                $fa_class = $pieces[0];
-                $fa_color = $pieces[1];
+                list($fa_class, $fa_color) = explode('#', $fa_class);
             }
-            $this->{'style'} = 'padding-right:4px;';
+            
             $this->{'class'} = 'fa fa-'.$fa_class;
+            if (isset($fa_color))
+            {
+                $this->{'style'} .= "; color: #{$fa_color};";
+            }
+            parent::add('');
+        }
+        else if ( ( substr($source,0,4) == 'far:') || (substr($source,0,4) == 'fas:') )
+        {
+            parent::__construct('i');
+            
+            $fa_class = substr($source,4);
+            if (strstr($source, '#') !== FALSE)
+            {
+                list($fa_class, $fa_color) = explode('#', $fa_class);
+            }
+            
+            $this->{'class'} = substr($source,0,3) . ' fa-'.$fa_class;
             if (isset($fa_color))
             {
                 $this->{'style'} .= "; color: #{$fa_color};";
@@ -83,6 +92,13 @@ class TImage extends TElement
             $this->{'border'} = 0;
         }
         else if (file_exists($source))
+        {
+            parent::__construct('img');
+            // assign the image path
+            $this->{'src'} = $source;
+            $this->{'border'} = 0;
+        }
+        else if (substr($source,0,12) == 'download.php')
         {
             parent::__construct('img');
             // assign the image path

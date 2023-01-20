@@ -7,7 +7,7 @@ use Exception;
 /**
  * Master Detail Trait
  *
- * @version    5.7
+ * @version    7.0
  * @package    base
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -57,6 +57,7 @@ trait AdiantiMasterDetailTrait
                     call_user_func($transformer, $master_object, $detail_object);
                 }
                 
+                $detail_object->__session__id = $key;
                 $detail_object->store();
                 $detail_objects[] = $detail_object;
                 $detail_ids[] = $detail_object->$detail_pkey;

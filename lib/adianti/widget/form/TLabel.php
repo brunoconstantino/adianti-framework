@@ -9,7 +9,7 @@ use Adianti\Widget\Form\TField;
 /**
  * Label Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -30,8 +30,8 @@ class TLabel extends TField implements AdiantiWidgetInterface
      */
     public function __construct($value, $color = null, $fontsize = null, $decoration = null, $size = null)
     {
-        $this->id = mt_rand(1000000000, 1999999999);
-        $stylename = 'tlabel_'.$this->id;
+        $this->id   = 'tlabel_' . mt_rand(1000000000, 1999999999);
+        $stylename = 'tlabel_style_'.$this->id;
         
         // set the label's content
         $this->setValue($value);
@@ -164,6 +164,8 @@ class TLabel extends TField implements AdiantiWidgetInterface
         {
             $this->setProperty('style', $this->embedStyle->getInline() . $this->getProperty('style'), TRUE);
         }
+        
+        $this->tag->{'id'} = $this->id;
         
         // add content to the tag
         $this->tag->add($this->value);

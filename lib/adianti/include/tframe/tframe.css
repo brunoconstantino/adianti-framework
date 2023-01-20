@@ -1,21 +1,19 @@
 .tframe
 {
-  -webkit-box-sizing: content-box !important;
-  -moz-box-sizing: content-box !important;
-  box-sizing: content-box !important;
+    -webkit-box-sizing: content-box !important;
+    -moz-box-sizing: content-box !important;
+    box-sizing: content-box !important;
 }
 
 .tframe
 {
-    border          : solid;
-    border-color    : #a0a0a0;
-    border-width    : 1px;
-    padding-left    : 3px;
-    padding-right   : 3px;
-    padding-top     : 3px;
-    padding-bottom  : 3px;
-    border-radius   : 3px;
-    margin: 2px;
+    margin: 10px;
+    padding-top: 5px;
+    padding-bottom: 8px;
+    padding-left: 15px;
+    padding-right: 5px;
+    border-radius: 0px;
+    border: 1px solid #ddd;
 }
 
 .tframe legend
@@ -24,7 +22,19 @@
     margin: 0;
     border:0;
     font-size: inherit;
-    height: 15px;
     padding-left: 5px;
+    background: white;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    box-shadow: 0 0 0 1px #C7C7C7;
+    margin-left: 3px;
     padding-right: 5px;
+    margin-right: 5px;
+    height: 28px;
+}
+
+.tframe legend label
+{
+    padding-left: 3px;
+    font-weight: bold;
 }

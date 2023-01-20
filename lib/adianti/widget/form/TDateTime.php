@@ -1,6 +1,7 @@
 <?php
 namespace Adianti\Widget\Form;
 
+use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Widget\Form\AdiantiWidgetInterface;
 use Adianti\Widget\Base\TElement;
 use Adianti\Widget\Base\TScript;
@@ -11,7 +12,7 @@ use DateTime;
 /**
  * DateTimePicker Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -172,7 +173,7 @@ class TDateTime extends TEntry implements AdiantiWidgetInterface
     public function show()
     {
         $js_mask = str_replace('yyyy', 'yy', $this->mask);
-        $language = strtolower(LANG);
+        $language = strtolower( AdiantiCoreTranslator::getLanguage() );
         $options = json_encode($this->options);
         
         if (parent::getEditable())

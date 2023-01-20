@@ -7,7 +7,7 @@ use Adianti\Widget\Form\TField;
 /**
  * RadioButton Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -26,6 +26,7 @@ class TRadioButton extends TField implements AdiantiWidgetInterface
     {
         parent::__construct($name);
         $this->id = 'tradiobutton_' . mt_rand(1000000000, 1999999999);
+        $this->tag->{'class'} = '';
     }
     
     /**
@@ -37,7 +38,6 @@ class TRadioButton extends TField implements AdiantiWidgetInterface
         $this->tag->{'name'}  = $this->name;
         $this->tag->{'value'} = $this->value;
         $this->tag->{'type'}  = 'radio';
-        $this->tag->{'class'} = '';
         
         if ($this->id and empty($this->tag->{'id'}))
         {
@@ -51,6 +51,7 @@ class TRadioButton extends TField implements AdiantiWidgetInterface
             //$this->tag-> disabled   = "1"; // the value don't post
             $this->tag->{'onclick'} = "return false;";
             $this->tag->{'style'}   = 'pointer-events:none';
+            $this->tag->{'tabindex'} = '-1';
         }
         // show the tag
         $this->tag->show();

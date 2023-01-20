@@ -30,7 +30,7 @@ use StdClass;
 /**
  * Standard Page controller for Seek buttons
  *
- * @version    5.7
+ * @version    7.0
  * @package    base
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -54,6 +54,7 @@ class TStandardSeek extends TWindow
         parent::__construct();
         parent::setTitle( AdiantiCoreTranslator::translate('Search record') );
         parent::setSize(0.7, null);
+        parent::removePadding();
         
         // creates a new form
         $this->form = new TForm('form_standard_seek');
@@ -128,7 +129,7 @@ class TStandardSeek extends TWindow
         // create a datagrid action
         $action1 = new TDataGridAction(array($this, 'onSelect'));
         $action1->setLabel('');
-        $action1->setImage('fa:hand-pointer-o green');
+        $action1->setImage('far:hand-pointer green');
         $action1->setUseButton(TRUE);
         $action1->setButtonClass('nopadding');
         $action1->setField('id');
@@ -230,7 +231,7 @@ class TStandardSeek extends TWindow
                 }
             }
             
-            if ($param['order'] == 'display_field')
+            if (!empty($param['order']) AND $param['order'] == 'display_field')
             {
                 $param['order'] = $display_field;
             }
@@ -306,9 +307,9 @@ class TStandardSeek extends TWindow
             TSession::setValue('standard_seek_model',         $param['model']);
             TSession::setValue('standard_seek_database',      $param['database']);
             TSession::setValue('standard_seek_parent',        $param['parent']);
-            TSession::setValue('standard_seek_operator',      $param['operator']);
-            TSession::setValue('standard_seek_mask',          $param['mask']);
-            TSession::setValue('standard_seek_label',         $param['label']);
+            TSession::setValue('standard_seek_operator',      ($param['operator'] ?? null) );
+            TSession::setValue('standard_seek_mask',          ($param['mask']  ?? null) );
+            TSession::setValue('standard_seek_label',         ($param['label']  ?? null) );
             
             if (isset($param['criteria']) AND $param['criteria'])
             {
@@ -334,28 +335,51 @@ class TStandardSeek extends TWindow
         try
         {
             TTransaction::open($database);
+            
             // load the active record
             $model = isset($param['model']) ? $param['model'] : TSession::getValue('standard_seek_model');
-            $activeRecord = new $model($key);
-            
             $pk = constant("{$model}::PRIMARYKEY");
             
-            $object = new StdClass;
-            $object->$receive_key   = isset($activeRecord->$pk) ? $activeRecord->$pk : '';
-            
-            if (!empty($seek_mask))
+            // creates a criteria
+            if (TSession::getValue('standard_seek_criteria'))
             {
-                $object->$receive_field = $activeRecord->render($seek_mask);
+                $criteria = clone TSession::getValue('standard_seek_criteria');
             }
             else
             {
-                $object->$receive_field = isset($activeRecord->$display_field) ? $activeRecord->$display_field : '';
+                $criteria = new TCriteria;
             }
             
-            TTransaction::close();
+            $criteria->add(new TFilter( $pk, '=', $key));
+            $criteria->setProperty('limit', 1);
+            $repository = new TRepository($model);
+            $objects = $repository->load($criteria);
             
-            TForm::sendData($parent, $object);
-            parent::closeWindow(); // closes the window
+            if ($objects)
+            {
+                $activeRecord = $objects[0];
+            
+                $object = new StdClass;
+                $object->$receive_key   = isset($activeRecord->$pk) ? $activeRecord->$pk : '';
+                
+                if (!empty($seek_mask))
+                {
+                    $object->$receive_field = $activeRecord->render($seek_mask);
+                }
+                else
+                {
+                    $object->$receive_field = isset($activeRecord->$display_field) ? $activeRecord->$display_field : '';
+                }
+                
+                TTransaction::close();
+                
+                TForm::sendData($parent, $object);
+                parent::closeWindow(); // closes the window
+            }
+            else
+            {
+                throw new Exception;
+            }
         }
         catch (Exception $e) // in case of exception
         {

@@ -26,6 +26,11 @@ table tr td
     min-height: 42px;
 }
 
+.popover
+{
+    z-index: 2060;
+}
+
 .btn-group > .btn, .btn-group > .dropdown-menu, .btn-group > .popover
 {
     font-size: 12px;

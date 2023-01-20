@@ -9,7 +9,7 @@ use Adianti\Widget\Container\TFrame;
 /**
  * Notebook
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio
@@ -159,7 +159,7 @@ class TNotebook extends TElement
         $this->container->{'class'} = 'tnotebook';
         
         $ul = new TElement('ul');
-        $ul->{'class'} = 'tabs';
+        $ul->{'class'} = 'nav nav-tabs';
         $this->container->add($ul);
         
         $space = new TElement('div');
@@ -191,6 +191,7 @@ class TNotebook extends TElement
                     $link->{'role'} = "tab";
                     $link->{'data-toggle'} = "tab";
                     $link->{'href'} = "#"."panel_{$id}_{$i}";
+                    $link->{'class'} = $classe . " nav-link";
                     
                     if (!$this->tabsSensibility)
                     {
@@ -199,7 +200,7 @@ class TNotebook extends TElement
                     
                     $item->add($link);
                     $link->add("$title");
-                    $item->{'class'} = $classe;
+                    $item->{'class'} = $classe . " nav-item";
                     $item->{'role'} = "presentation";
                     $item->{'id'} = "tab_{$id}_{$i}";
                     

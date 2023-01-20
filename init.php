@@ -13,6 +13,7 @@ date_default_timezone_set($ini['general']['timezone']);
 AdiantiCoreTranslator::setLanguage( $ini['general']['language'] );
 ApplicationTranslator::setLanguage( $ini['general']['language'] );
 AdiantiApplicationConfig::load($ini);
+AdiantiApplicationConfig::apply();
 
 // define constants
 define('APPLICATION_NAME', $ini['general']['application']);
@@ -20,7 +21,10 @@ define('OS', strtoupper(substr(PHP_OS, 0, 3)));
 define('PATH', dirname(__FILE__));
 define('LANG', $ini['general']['language']);
 
-if (version_compare(PHP_VERSION, '5.5.0') == -1)
+// custom session name
+session_name('PHPSESSID_'.$ini['general']['application']);
+
+if (version_compare(PHP_VERSION, '7.0.0') == -1)
 {
-    die(AdiantiCoreTranslator::translate('The minimum version required for PHP is ^1', '5.5.0'));
+    die(AdiantiCoreTranslator::translate('The minimum version required for PHP is ^1', '7.0.0'));
 }

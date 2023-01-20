@@ -2,11 +2,12 @@
 namespace Adianti\Widget\Base;
 
 use Adianti\Control\TPage;
+use Adianti\Widget\Base\TElement;
 
 /**
  * StyleSheet Manager
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage base
  * @author     Pablo Dall'Oglio
@@ -28,6 +29,17 @@ class TStyle
     {
         $this->name = $name;
         $this->properties = array();
+    }
+    
+    /**
+     * Import style
+     * @param $style Style file name
+     */
+    public static function importFromFile($filename)
+    {
+        $style = new TElement('style');
+        $style->add( file_get_contents( $filename ) );
+        $style->show();
     }
     
     /**

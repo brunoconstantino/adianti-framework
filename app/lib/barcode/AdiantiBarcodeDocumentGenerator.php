@@ -7,7 +7,7 @@ use BaconQrCode\Writer;
 /**
  * Barcode generator
  *
- * @version    5.7
+ * @version    7.0
  * @package    app
  * @subpackage lib
  * @author     Pablo Dall'Oglio

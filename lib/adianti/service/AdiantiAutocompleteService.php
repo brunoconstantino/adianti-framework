@@ -5,6 +5,7 @@ use Adianti\Database\TTransaction;
 use Adianti\Database\TRepository;
 use Adianti\Database\TCriteria;
 use Adianti\Database\TFilter;
+use Adianti\Util\AdiantiStringConversion;
 
 use StdClass;
 use Exception;
@@ -12,7 +13,7 @@ use Exception;
 /**
  * Autocomplete backend
  *
- * @version    5.7
+ * @version    7.0
  * @package    service
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -48,11 +49,11 @@ class AdiantiAutocompleteService
                 $column = $param['column'];
                 if (stristr(strtolower($operator),'like') !== FALSE)
                 {
-                    $filter = new TFilter($column, $operator, "NOESC:'%{$param['query']}%'");
+                    $filter = new TFilter($column, $operator, "%{$param['query']}%");
                 }
                 else
                 {
-                    $filter = new TFilter($column, $operator, "NOESC:'{$param['query']}'");
+                    $filter = new TFilter($column, $operator, $param['query']);
                 }
                 
                 $criteria->add($filter);
@@ -72,10 +73,8 @@ class AdiantiAutocompleteService
                         $c = $maskvalues;
                         if ($c != null )
                         {
-                            if (utf8_encode(utf8_decode($c)) !== $c ) // SE NÃO UTF8
-                            {
-                                $c = utf8_encode($c);
-                            }
+                            $c = AdiantiStringConversion::assureUnicode($c);
+                            
                             if (!empty($c))
                             {
                                 $items[] = $c;

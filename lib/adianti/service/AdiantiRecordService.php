@@ -9,7 +9,7 @@ use Adianti\Database\TFilter;
 /**
  * Record rest service
  *
- * @version    5.7
+ * @version    7.0
  * @package    service
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -47,8 +47,8 @@ class AdiantiRecordService
         
         TTransaction::open($database);
         
-        $object = new $activeRecord;
-        $return = $object->delete($param['id']);
+        $object = new $activeRecord($param['id']);
+        $object->delete();
         
         TTransaction::close();
         return;
@@ -66,7 +66,7 @@ class AdiantiRecordService
         TTransaction::open($database);
         
         $object = new $activeRecord;
-        $object->fromArray($param['data']);
+        $object->fromArray( (array) $param['data']);
         $object->store();
         
         TTransaction::close();

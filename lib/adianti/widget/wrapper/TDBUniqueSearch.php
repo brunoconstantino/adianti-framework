@@ -14,7 +14,7 @@ use Exception;
 /**
  * DBUnique Search Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -29,6 +29,7 @@ class TDBUniqueSearch extends TDBMultiSearch implements AdiantiWidgetInterface
     protected $key;
     protected $column;
     protected $items;
+    protected $size;
     
     /**
      * Class Constructor
@@ -108,6 +109,14 @@ class TDBUniqueSearch extends TDBMultiSearch implements AdiantiWidgetInterface
         {
             return '';
         }
+    }
+    
+    /**
+     * Returns the size
+     */
+    public function getSize()
+    {
+        return $this->size;
     }
     
     /**

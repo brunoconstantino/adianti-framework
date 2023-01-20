@@ -29,7 +29,7 @@ table.tdatagrid_table > tfoot.tdatagrid_footer
 table.tdatagrid_table > thead.tdatagrid_head > tr > td,
 table.tdatagrid_table > thead.tdatagrid_head > tr > th
 {
-    height: 30px;
+    height: 35px;
 }
 
 table.tdatagrid_table > tfoot.tdatagrid_footer > tr > td
@@ -40,6 +40,10 @@ table.tdatagrid_table > tfoot.tdatagrid_footer > tr > td
     padding-right: 5px;
 }
 
+table.table > tfoot.tdatagrid_footer > tr > td
+{
+    font-weight: 600;
+}
 
 table.tdatagrid_table > thead.tdatagrid_head > tr > th.tdatagrid_col,
 table.tdatagrid_table > thead.tdatagrid_head > tr > th.tdatagrid_action
@@ -48,12 +52,11 @@ table.tdatagrid_table > thead.tdatagrid_head > tr > th.tdatagrid_action
     border-left: 0px solid;
     border-top: 0px;
     padding-left: 1px;
-    border-bottom: 1px solid gray;
+    border-bottom: 1px solid #bbb;
     background-color: #E8E8E8;
-    box-shadow: inset 0 1px 0 #ffffff;
     user-select: none;
     cursor: default;
-    font-weight: bold;
+    font-weight: 600;
     color: #2B2B2B;
     border-right: 0px;
     padding-right: 2px;
@@ -67,7 +70,7 @@ table.tdatagrid_table > thead.tdatagrid_head > tr > th.tdatagrid_col[generator=a
     border-right: 1px solid gray;
     padding-right: 0px;
     user-select: none;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 table.tdatagrid_table > tbody.tdatagrid_body
@@ -76,14 +79,15 @@ table.tdatagrid_table > tbody.tdatagrid_body
 
 table.tdatagrid_table > tbody.tdatagrid_body > tr > td
 {
-    height: 30px;
+    height: 35px;
 }
 
 table.tdatagrid_table > tbody.tdatagrid_body > tr.tdatagrid_group
 {
-    background-color: #8D8BC8;
+    background-color: #a5a3a3;
     color: white;
     text-shadow: none;
+    user-select: none;
 }
 
 table.tdatagrid_table > tbody.tdatagrid_body > tr.tdatagrid_group > td
@@ -105,13 +109,12 @@ table.tdatagrid_table > tbody.tdatagrid_body > tr.tdatagrid_row_odd
 table.tdatagrid_table > tbody.tdatagrid_body > tr.tdatagrid_row_even:hover,
 table.tdatagrid_table > tbody.tdatagrid_body > tr.tdatagrid_row_odd:hover
 {
-    background-color: #D7D7D7;
+    background-color: #e8e8e8;
     cursor: pointer;
 }
 
 table.tdatagrid_table > tbody.tdatagrid_body > tr > td.tdatagrid_cell
 {
-    border-top: 1px solid #ffffff;
     border-bottom: 1px solid #e0e0e0;
     border-left: 1px solid #e0e0e0;
     padding-left: 5px;
@@ -161,4 +164,125 @@ table.tdatagrid_body tr td input
     padding: 0px;
     padding-left: 3px;
     padding-right: 3px;
+}
+
+/** hiddable **/
+@media screen and (max-width: 100px) 
+{
+    [hiddable="100"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 200px) 
+{
+    [hiddable="200"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 300px) 
+{
+    [hiddable="300"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 400px) 
+{
+    [hiddable="400"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 500px) 
+{
+    [hiddable="500"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 600px) 
+{
+    [hiddable="600"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 700px) 
+{
+    [hiddable="700"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 800px) 
+{
+    [hiddable="800"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 900px) 
+{
+    [hiddable="900"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 1000px) 
+{
+    [hiddable="1000"]
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 1100px) 
+{
+    td.hiddable_1100
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 1200px) 
+{
+    td.hiddable_1200
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 1300px) 
+{
+    td.hiddable_1300
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 1400px) 
+{
+    td.hiddable_1400
+    {
+        display:none;
+    }
+}
+
+@media screen and (max-width: 1500px) 
+{
+    td.hiddable_1500
+    {
+        display:none;
+    }
 }

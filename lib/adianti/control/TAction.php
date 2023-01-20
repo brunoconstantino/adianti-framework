@@ -9,7 +9,7 @@ use ReflectionMethod;
 /**
  * Structure to encapsulate an action
  *
- * @version    5.7
+ * @version    7.0
  * @package    control
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -40,6 +40,27 @@ class TAction
         {
             $this->setParameters($parameters);
         }
+    }
+    
+    /**
+     * Return fields used in parameters
+     */
+    public function getFieldParameters()
+    {
+        $field_parameters = [];
+        
+        if ($this->param)
+        {
+            foreach ($this->param as $parameter)
+            {
+                if (substr($parameter,0,1) == '{' && substr($parameter,-1) == '}')
+                {
+                    $field_parameters[] = substr($parameter,1,-1);
+                }
+            }
+        }
+        
+        return $field_parameters;
     }
     
     /**
@@ -130,7 +151,7 @@ class TAction
      */
     public function getProperty($property)
     {
-        return $this->properties[$property];
+        return $this->properties[$property] ?? null;
     }
     
     /**
@@ -144,6 +165,20 @@ class TAction
         
         if ($parameters)
         {
+            if (isset($parameters['*']))
+            {
+                unset($parameters['*']);
+                unset($action->param['*']);
+                
+                foreach ($object as $attribute => $value)
+                {
+                    if (is_scalar($value))
+                    {
+                        $parameters[$attribute] = $value;
+                    }
+                }
+            }
+            
             foreach ($parameters as $parameter => $value)
             {
                 // replace {attribute}s
@@ -187,6 +222,21 @@ class TAction
             $url['class'] = is_object($this->action[0]) ? get_class($this->action[0]) : $this->action[0];
             // get the method name
             $url['method'] = $this->action[1];
+            
+            if (isset($_GET['register_state']) AND $_GET['register_state'] == 'false' AND empty($this->param['register_state']))
+            {
+                $url['register_state'] = 'false';
+            }
+            
+            if (isset($_GET['target_container']) AND !empty($_GET['target_container']) AND empty($this->param['target_container']) AND ($_GET['target_container'] !== 'adianti_div_content'))
+            {
+                $url['target_container'] = $_GET['target_container'];
+            }
+            
+            if ($this->isStatic())
+            {
+                $url['static'] = '1';
+            }
         }
         // otherwise the callback is a function
         else if (is_string($this->action))
@@ -231,7 +281,7 @@ class TAction
             if (method_exists($class, $method))
             {
                 $rm = new ReflectionMethod( $class, $method );
-                return $rm-> isStatic ();
+                return $rm-> isStatic () || (isset($this->param['static']) && $this->param['static'] == '1');
             }
             else
             {

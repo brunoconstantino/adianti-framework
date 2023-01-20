@@ -16,7 +16,7 @@ use Exception;
 /**
  * A group of RadioButton's
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -288,15 +288,20 @@ class TRadioGroup extends TField implements AdiantiWidgetInterface
     {
         if ($this->useButton)
         {
-            echo '<div data-toggle="buttons">';
+            echo '<div '.$this->getPropertiesAsString('aria').' data-toggle="buttons">';
+            
             if (strpos($this->getSize(), '%') !== FALSE)
             {
-                echo '<div class="btn-group" style="clear:both;float:left;width:100%">';
+                echo '<div class="btn-group" style="clear:both;float:left;width:100%" role="group">';
             }
             else
             {
-                echo '<div class="btn-group" style="clear:both;float:left">';
+                echo '<div class="btn-group" style="clear:both;float:left" role="group">';
             }
+        }
+        else
+        {
+            echo '<div '.$this->getPropertiesAsString('aria').' role="group">';
         }
         
         if ($this->items)
@@ -367,8 +372,23 @@ class TRadioGroup extends TField implements AdiantiWidgetInterface
                     $obj->setFontColor('gray');
                 }
                 
-                $obj->add($button);
-                $obj->show();
+                if ($this->useButton)
+                {
+                    $obj->add($button);
+                    $obj->show();
+                }
+                else
+                {
+                    $button->setProperty('class', 'filled-in');
+                    $obj->{'for'} = $button->getId();
+                    
+                    $wrapper = new TElement('div');
+                    $wrapper->{'style'} = 'display:inline-flex;align-items:center;';
+                    $wrapper->add($button);
+                    $wrapper->add($obj);
+                    $wrapper->show();
+                }
+                
                 $i ++;
                 
                 if ($this->layout == 'vertical' OR ($this->breakItems == $i))
@@ -393,6 +413,10 @@ class TRadioGroup extends TField implements AdiantiWidgetInterface
         if ($this->useButton)
         {
             echo '</div>';
+            echo '</div>';
+        }
+        else
+        {
             echo '</div>';
         }
     }

@@ -5,7 +5,7 @@ use Adianti\Widget\Datagrid\TDataGrid;
 /**
  * Bootstrap datagrid decorator for Adianti Framework
  *
- * @version    5.7
+ * @version    7.0
  * @package    wrapper
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -25,6 +25,14 @@ class BootstrapDatagridWrapper
         $this->decorated = $datagrid;
         $this->decorated->{'class'} = 'table table-striped table-hover';
         $this->decorated->{'type'}  = 'bootstrap';
+    }
+    
+    /**
+     * Clone datagrid
+     */
+    public function __clone()
+    {
+        $this->decorated = clone $this->decorated;
     }
     
     /**
@@ -73,10 +81,16 @@ class BootstrapDatagridWrapper
                         if ($row->{'class'} == 'tdatagrid_group')
                         {
                             $row->{'class'} = 'info';
+                            $row->{'style'} = 'user-select:none';
                         }
                         else
                         {
                             unset($row->{'class'});
+                            
+                            if (!empty($row->{'className'}))
+                            {
+                                $row->{'class'} = $row->{'className'};
+                            }
                         }
                     }
                 }

@@ -10,7 +10,7 @@ use Adianti\Control\TAction;
 /**
  * Color Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -32,6 +32,7 @@ class TIcon extends TEntry implements AdiantiWidgetInterface
     {
         parent::__construct($name);
         $this->id = 'ticon_'.mt_rand(1000000000, 1999999999);
+        $this->tag->{'autocomplete'} = 'off';
     }
     
     /**

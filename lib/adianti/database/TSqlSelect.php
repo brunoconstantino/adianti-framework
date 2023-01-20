@@ -9,13 +9,13 @@ use PDO;
 /**
  * Provides an Interface to create SELECT statements
  *
- * @version    5.7
+ * @version    7.0
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-final class TSqlSelect extends TSqlStatement
+class TSqlSelect extends TSqlStatement
 {
     private $columns;   // array with the column names to be returned
     
@@ -80,10 +80,15 @@ final class TSqlSelect extends TSqlStatement
             
             // get the criteria properties
             $order     = $this->criteria->getProperty('order');
+            $group     = $this->criteria->getProperty('group');
             $limit     = (int) $this->criteria->getProperty('limit');
             $offset    = (int) $this->criteria->getProperty('offset');
             $direction = in_array($this->criteria->getProperty('direction'), array('asc', 'desc')) ? $this->criteria->getProperty('direction') : '';
             
+            if ($group)
+            {
+                $this->sql .= ' GROUP BY ' . $group;
+            }
             if ($order)
             {
                 $this->sql .= ' ORDER BY ' . $order . ' ' . $direction;
@@ -141,8 +146,14 @@ final class TSqlSelect extends TSqlStatement
             }
             
             // get the criteria properties
+            $group     = $this->criteria->getProperty('group');
             $order     = $this->criteria->getProperty('order');
             $direction = in_array($this->criteria->getProperty('direction'), array('asc', 'desc')) ? $this->criteria->getProperty('direction') : '';
+            
+            if ($group)
+            {
+                $this->sql .= ' GROUP BY ' . $group;
+            }
             
             if ($order)
             {
@@ -166,6 +177,7 @@ final class TSqlSelect extends TSqlStatement
             $expression = $this->criteria->dump( $prepared );
             
             // obtém as propriedades do critério
+            $group    = $this->criteria->getProperty('group');
             $order    = $this->criteria->getProperty('order');
             $limit    = (int) $this->criteria->getProperty('limit');
             $offset   = (int) $this->criteria->getProperty('offset');
@@ -219,6 +231,11 @@ final class TSqlSelect extends TSqlStatement
             {
                 $this->sql .= ' WHERE ' . $expression;
             }
+            
+            if ($group)
+            {
+                $this->sql .= ' GROUP BY ' . $group;
+            }
             if (isset($order) AND !empty($order))
             {
                 $this->sql .= ' ORDER BY ' . $order . ' ' . $direction;
@@ -239,6 +256,7 @@ final class TSqlSelect extends TSqlStatement
             $expression = $this->criteria->dump( $prepared );
             
             // obtém as propriedades do critério
+            $group    = $this->criteria->getProperty('group');
             $order    = $this->criteria->getProperty('order');
             $limit    = (int) $this->criteria->getProperty('limit');
             $offset   = (int) $this->criteria->getProperty('offset');
@@ -253,6 +271,11 @@ final class TSqlSelect extends TSqlStatement
         if (!empty($expression))
         {
             $basicsql .= ' WHERE ' . $expression;
+        }
+        
+        if ($group)
+        {
+            $basicsql .= ' GROUP BY ' . $group;
         }
         if (isset($order) AND !empty($order))
         {

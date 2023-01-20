@@ -1,5 +1,5 @@
 <!--[main]-->
-<div id="chart_bar_div_{$uniqid}" style="width: {$width}; height: {$height};"> <i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>Loading </div>
+<div id="chart_bar_div_{$uniqid}" class="chart" style="width: {$width}; height: {$height};"> <i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>Loading </div>
 <script>
 $(function() {
     if (typeof Adianti.chartsQueue == 'undefined')
@@ -17,7 +17,7 @@ $(function() {
     }
     
     var render_bar_chart = function() {
-        var data = google.visualization.arrayToDataTable( {$data} );
+        var data = google.visualization.arrayToDataTable( {$data|raw} );
         var options = {
           title : '{$title}',
           vAxis: {title: '{$ytitle}'},
@@ -25,7 +25,7 @@ $(function() {
           seriesType: 'bars'
         };
         
-        var chart = new google.charts.Bar(document.getElementById('chart_bar_div_{$uniqid}'));
+        var chart = new google.visualization.BarChart(document.getElementById('chart_bar_div_{$uniqid}'));
         chart.draw(data, options);
     };
     

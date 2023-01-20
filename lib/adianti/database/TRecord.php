@@ -14,17 +14,19 @@ use Adianti\Database\TSqlDelete;
 use Math\Parser;
 use PDO;
 use Exception;
+use IteratorAggregate;
+use ArrayIterator;
 
 /**
  * Base class for Active Records
  *
- * @version    5.7
+ * @version    7.0
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-abstract class TRecord
+abstract class TRecord implements IteratorAggregate
 {
     protected $data;  // array containing the data of the object
     protected $vdata; // array with virtual data (non-persistant properties)
@@ -60,6 +62,14 @@ abstract class TRecord
                 throw new Exception(AdiantiCoreTranslator::translate('Object ^1 not found in ^2', $id, constant(get_class($this).'::TABLENAME')));
             }
         }
+    }
+    
+    /**
+     * Returns iterator
+     */
+    public function getIterator()
+    {
+        return new ArrayIterator( $this->data );
     }
     
     /**
@@ -107,6 +117,12 @@ abstract class TRecord
             {
                 throw new Exception(AdiantiCoreTranslator::translate('Method ^1 not found', $class_name.'::'.$method.'()'));
             }
+        }
+        else if (method_exists('TRepository', $method))
+        {
+            $class = get_called_class(); // get the Active Record class name
+            $repository = new TRepository( $class ); // create the repository
+            return call_user_func_array( array($repository, $method), $parameters );
         }
         else
         {
@@ -251,7 +267,7 @@ abstract class TRecord
      * Returns the name of database entity
      * @return A String containing the name of the entity
      */
-    protected function getEntity()
+    public function getEntity()
     {
         // get the Active Record class name
         $class = get_class($this);
@@ -269,6 +285,38 @@ abstract class TRecord
         $class = get_class($this);
         // returns the PRIMARY KEY Active Record class constant
         return constant("{$class}::PRIMARYKEY");
+    }
+    
+    /**
+     * Returns the the name of the created at column
+     * @return A String containing the created at column
+     */
+    public function getCreatedAtColumn()
+    {
+        // get the Active Record class name
+        $class = get_class($this);
+        
+        if (defined("{$class}::CREATEDAT"))
+        {
+            // returns the CREATEDAT Active Record class constant
+            return constant("{$class}::CREATEDAT");
+        }
+    }
+    
+    /**
+     * Returns the the name of the updated at column
+     * @return A String containing the updated at column
+     */
+    public function getUpdatedAtColumn()
+    {
+        // get the Active Record class name
+        $class = get_class($this);
+        
+        if (defined("{$class}::UPDATEDAT"))
+        {
+            // returns the UPDATEDAT Active Record class constant
+            return constant("{$class}::UPDATEDAT");
+        }
     }
     
     /**
@@ -509,6 +557,12 @@ abstract class TRecord
                     }
                 }
             }
+            
+            $createdat = $this->getCreatedAtColumn();
+            if (!empty($createdat))
+            {
+                $sql->setRowData($createdat, date('Y-m-d H:i:s'));
+            }
         }
         else
         {
@@ -543,6 +597,12 @@ abstract class TRecord
                         }
                     }
                 }
+            }
+            
+            $updated = $this->getUpdatedAtColumn();
+            if (!empty($updated))
+            {
+                $sql->setRowData($updated, date('Y-m-d H:i:s'));
             }
         }
         // get the connection of the active transaction
@@ -1203,9 +1263,18 @@ abstract class TRecord
      */
     public static function select()
     {
-        $class = get_called_class(); // get the Active Record class name
-        $repository = new TRepository( $class ); // create the repository
+        $repository = new TRepository( get_called_class() ); // create the repository
         return $repository->select( func_get_args() );
+    }
+    
+    /**
+     * Creates a Repository with group
+     * @returns the TRepository object with a group
+     */
+    public static function groupBy($group)
+    {
+        $repository = new TRepository( get_called_class() ); // create the repository
+        return $repository->groupBy($group);
     }
     
     /**
@@ -1214,8 +1283,7 @@ abstract class TRecord
      */
     public static function where($variable, $operator, $value, $logicOperator = TExpression::AND_OPERATOR)
     {
-        $class = get_called_class(); // get the Active Record class name
-        $repository = new TRepository( $class ); // create the repository
+        $repository = new TRepository( get_called_class() ); // create the repository
         return $repository->where($variable, $operator, $value, $logicOperator);
     }
     
@@ -1225,8 +1293,7 @@ abstract class TRecord
      */
     public static function orWhere($variable, $operator, $value)
     {
-        $class = get_called_class(); // get the Active Record class name
-        $repository = new TRepository( $class ); // create the repository
+        $repository = new TRepository( get_called_class() ); // create the repository
         return $repository->orWhere($variable, $operator, $value);
     }
     
@@ -1238,9 +1305,28 @@ abstract class TRecord
      */
     public static function orderBy($order, $direction = 'asc')
     {
-        $class = get_called_class(); // get the Active Record class name
-        $repository = new TRepository( $class ); // create the repository
+        $repository = new TRepository( get_called_class() ); // create the repository
         return $repository->orderBy( $order, $direction );
+    }
+    
+    /**
+     * Creates a Repository with limit
+     * @returns the TRepository object
+     */
+    public static function take($limit)
+    {
+        $repository = new TRepository( get_called_class() ); // create the repository
+        return $repository->take($limit);
+    }
+    
+    /**
+     * Creates a Repository with offset
+     * @returns the TRepository object
+     */
+    public static function skip($offset)
+    {
+        $repository = new TRepository( get_called_class() ); // create the repository
+        return $repository->skip($offset);
     }
     
     private function underscoreFromCamelCase($string)

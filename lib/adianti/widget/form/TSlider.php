@@ -9,7 +9,7 @@ use Adianti\Widget\Form\TField;
 /**
  * Slider Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -31,6 +31,7 @@ class TSlider extends TField implements AdiantiWidgetInterface
     {
         parent::__construct($name);
         $this->id   = 'tslider_'.mt_rand(1000000000, 1999999999);
+        $this->tag->{'widget'} = 'tslider';
     }
     
     /**
@@ -75,7 +76,10 @@ class TSlider extends TField implements AdiantiWidgetInterface
         // define the tag properties
         $this->tag->{'name'}  = $this->name;    // TAG name
         $this->tag->{'value'} = $this->value;   // TAG value
-        $this->tag->{'type'}  = 'text';         // input type
+        $this->tag->{'type'}  = 'range';         // input type
+        $this->tag->{'min'}   = $this->min;
+        $this->tag->{'max'}   = $this->max;
+        $this->tag->{'step'}  = $this->step;
         
         if (strstr($this->size, '%') !== FALSE)
         {
@@ -92,31 +96,13 @@ class TSlider extends TField implements AdiantiWidgetInterface
         }
         
         $this->tag->{'readonly'} = "1";
-        $this->tag->{'style'}    = "width:40px;-moz-user-select:none;border:0;text-align:center";
+        $this->tag->show();
         
-        $div = new TElement('div');
-        $div->{'id'} = $this->id.'_div';
-        $div->{'style'} = "width:{$this->size}px";
-        
-        $main_div = new TElement('div');
-        $main_div->{'style'} = "text-align:center;width:{$this->size}px";
-        $main_div->add($this->tag);
-        $main_div->add($div);
-        $main_div->show();
-        
-        TScript::create(" tslider_start( '#{$this->id}', {$this->value}, {$this->min}, {$this->max}, {$this->step}); ");
+        TScript::create(" tslider_start( '#{$this->id}'); ");
         
         if (!parent::getEditable())
         {
             self::disableField($this->formName, $this->name);
         }
-    }
-    
-    /**
-     * Set the value
-     */
-    public function setValue($value)
-    {
-        parent::setValue( (int) $value);
     }
 }

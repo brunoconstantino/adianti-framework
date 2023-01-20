@@ -13,7 +13,7 @@ use Exception;
 /**
  * Multi Entry Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Matheus Agnes Dias
@@ -149,7 +149,6 @@ class TMultiEntry extends TSelect implements AdiantiWidgetInterface
             $size  = "{$this->size}px";
         }
         
-        $search_word = AdiantiCoreTranslator::translate('Search');
         $change_action = 'function() {}';
         
         $this->renderItems( false );

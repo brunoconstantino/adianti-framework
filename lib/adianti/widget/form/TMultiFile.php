@@ -15,7 +15,7 @@ use Exception;
 /**
  * FileChooser widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Nataniel Rabaioli
@@ -32,6 +32,12 @@ class TMultiFile extends TField implements AdiantiWidgetInterface
     protected $extensions;
     protected $seed;
     protected $fileHandling;
+    protected $imageGallery;
+    protected $galleryWidth;
+    protected $galleryHeight;
+    protected $popover;
+    protected $poptitle;
+    protected $popcontent;
     
     /**
      * Constructor method
@@ -41,12 +47,36 @@ class TMultiFile extends TField implements AdiantiWidgetInterface
     {
         parent::__construct($name);
         $this->id = $this->name . '_' . mt_rand(1000000000, 1999999999);
-        $this->height = 25;
+        // $this->height = 25;
         $this->uploaderClass = 'AdiantiUploaderService';
         $this->fileHandling = FALSE;
         
         $ini = AdiantiApplicationConfig::get();
         $this->seed = APPLICATION_NAME . ( !empty($ini['general']['seed']) ? $ini['general']['seed'] : 's8dkld83kf73kf094' );
+        $this->imageGallery = false;
+        $this->popover = false;
+    }
+    
+    /**
+     * Enable image gallery view
+     */
+    public function enableImageGallery($width = null, $height = 100)
+    {
+        $this->imageGallery  = true;
+        $this->galleryWidth  = is_null($width) ? 'unset' : $width;
+        $this->galleryHeight = is_null($height) ? 'unset' : $height;
+    }
+    
+    /**
+     * Enable popover
+     * @param $title Title
+     * @param $content Content
+     */
+    public function enablePopover($title = null, $content = '')
+    {
+        $this->popover    = TRUE;
+        $this->poptitle   = $title;
+        $this->popcontent = $content;
     }
     
     /**
@@ -165,13 +195,16 @@ class TMultiFile extends TField implements AdiantiWidgetInterface
         $this->tag->{'type'}      = 'file';       // input type
         $this->tag->{'multiple'}  = '1';
         
-        if (strstr($this->size, '%') !== FALSE)
+        if ($this->size)
         {
-            $this->setProperty('style', "width:{$this->size};height:{$this->height}", false); //aggregate style info
+            $size = (strstr($this->size, '%') !== FALSE) ? $this->size : "{$this->size}px";
+            $this->setProperty('style', "width:{$size};", FALSE); //aggregate style info
         }
-        else
+        
+        if ($this->height)
         {
-            $this->setProperty('style', "width:{$this->size}px;height:{$this->height}px", false); //aggregate style info
+            $height = (strstr($this->height, '%') !== FALSE) ? $this->height : "{$this->height}px";
+            $this->setProperty('style', "height:{$height}", FALSE); //aggregate style info
         }
         
         $complete_action = "'undefined'";
@@ -201,7 +234,6 @@ class TMultiFile extends TField implements AdiantiWidgetInterface
         $id_div = mt_rand(1000000000, 1999999999);
         
         $div = new TElement('div');
-        $div->{'style'} = "width:{$this->size}px;";
         $div->{'id'}    = 'div_file_'.$id_div;
         
         foreach( (array)$this->value as $val )
@@ -226,8 +258,10 @@ class TMultiFile extends TField implements AdiantiWidgetInterface
         }
         
         $fileHandling = $this->fileHandling ? '1' : '0';
+        $imageGallery = json_encode(['enabled'=> $this->imageGallery ? '1' : '0', 'width' => $this->galleryWidth, 'height' => $this->galleryHeight]);
+        $popover = json_encode(['enabled' => $this->popover ? '1' : '0', 'title' => $this->poptitle, 'content' => base64_encode($this->popcontent)]);
         
-        TScript::create(" tmultifile_start( '{$this->tag-> id}', '{$div-> id}', '{$action}', {$complete_action}, $fileHandling);");
+        TScript::create(" tmultifile_start( '{$this->tag-> id}', '{$div-> id}', '{$action}', {$complete_action}, $fileHandling, '$imageGallery', '$popover');");
     }
     
     /**

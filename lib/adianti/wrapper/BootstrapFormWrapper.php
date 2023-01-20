@@ -13,7 +13,7 @@ use Adianti\Widget\Form\AdiantiWidgetInterface;
 /**
  * Bootstrap form decorator for Adianti Framework
  *
- * @version    5.7
+ * @version    7.0
  * @package    wrapper
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -40,6 +40,22 @@ class BootstrapFormWrapper implements AdiantiFormInterface
         $this->element->{'method'}  = 'post';
         $this->element->{'name'}    = $this->decorated->getName();
         $this->element->{'id'}      = $this->decorated->getName();
+        $this->element->{'novalidate'}  = '';
+    }
+    
+    /**
+     * Turn on/off client validation
+     */
+    public function setClientValidation($bool)
+    {
+        if ($bool)
+        {
+            unset($this->element->{'novalidate'});
+        }
+        else
+        {
+            $this->element->{'novalidate'}  = '';
+        }
     }
     
     /**
@@ -191,7 +207,7 @@ class BootstrapFormWrapper implements AdiantiFormInterface
                         $this->currentGroup->$property = $value;
                     }
                     
-                    $this->currentGroup->{'class'}  = 'tformrow form-group';
+                    $this->currentGroup->{'class'}  = 'row tformrow form-group';
                     $this->currentGroup->{'class'} .= ( ( strpos($this->element->{'class'}, 'form-vertical') !== FALSE ) ? ' col-sm-'.(12/$fieldsByRow) : '');
                     $this->element->add($this->currentGroup);
                 }

@@ -1,6 +1,7 @@
 <?php
 namespace Adianti\Widget\Form;
 
+use Adianti\Core\AdiantiCoreTranslator;
 use Adianti\Widget\Form\AdiantiWidgetInterface;
 use Adianti\Widget\Base\TElement;
 use Adianti\Widget\Base\TScript;
@@ -11,7 +12,7 @@ use DateTime;
 /**
  * DatePicker Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -20,11 +21,12 @@ use DateTime;
  */
 class TDate extends TEntry implements AdiantiWidgetInterface
 {
-    private $mask;
-    private $dbmask;
+    protected $mask;
+    protected $dbmask;
     protected $id;
     protected $size;
     protected $options;
+    protected $value;
     protected $replaceOnPost;
     
     /**
@@ -124,11 +126,27 @@ class TDate extends TEntry implements AdiantiWidgetInterface
     }
     
     /**
+     * Return mask
+     */
+    public function getMask()
+    {
+        return $this->mask;
+    }
+    
+    /**
      * Set the mask to be used to colect the data
      */
     public function setDatabaseMask($mask)
     {
         $this->dbmask = $mask;
+    }
+    
+    /**
+     * Return database mask
+     */
+    public function getDatabaseMask()
+    {
+        return $this->dbmask;
     }
     
     /**
@@ -197,7 +215,7 @@ class TDate extends TEntry implements AdiantiWidgetInterface
     public function show()
     {
         $js_mask = str_replace('yyyy', 'yy', $this->mask);
-        $language = strtolower(LANG);
+        $language = strtolower( AdiantiCoreTranslator::getLanguage() );
         $options = json_encode($this->options);
         
         if (parent::getEditable())

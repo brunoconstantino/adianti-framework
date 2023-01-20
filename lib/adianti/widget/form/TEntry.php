@@ -12,7 +12,7 @@ use Exception;
 /**
  * Entry Widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -34,6 +34,9 @@ class TEntry extends TField implements AdiantiWidgetInterface
     protected $formName;
     protected $name;
     protected $value;
+    protected $minLength;
+    protected $delimiter;
+    protected $exitOnEnterOn;
     
     /**
      * Class Constructor
@@ -45,6 +48,8 @@ class TEntry extends TField implements AdiantiWidgetInterface
         $this->id   = 'tentry_' . mt_rand(1000000000, 1999999999);
         $this->numericMask = FALSE;
         $this->replaceOnPost = FALSE;
+        $this->minLength = 1;
+        $this->exitOnEnterOn = FALSE;
         $this->tag->{'type'}   = 'text';
         $this->tag->{'widget'} = 'tentry';
     }
@@ -55,6 +60,14 @@ class TEntry extends TField implements AdiantiWidgetInterface
     public function setInputType($type)
     {
         $this->tag->{'type'}  = $type;
+    }
+    
+    /**
+     * Turn on exit on enter
+     */
+    public function exitOnEnter()
+    {
+        $this->exitOnEnterOn = true;
     }
     
     /**
@@ -84,11 +97,14 @@ class TEntry extends TField implements AdiantiWidgetInterface
             $decimalsSeparator = '';
         }
         
+        $this->{'style'} = 'text-align:right';
         $this->numericMask = TRUE;
         $this->decimals = $decimals;
         $this->decimalsSeparator = $decimalsSeparator;
         $this->thousandSeparator = $thousandSeparator;
         $this->replaceOnPost = $replaceOnPost;
+        
+        $this->tag->{'data-nmask'}  = $decimals.$decimalsSeparator.$thousandSeparator;
     }
     
     /**
@@ -101,20 +117,20 @@ class TEntry extends TField implements AdiantiWidgetInterface
         {
             if ($this->numericMask && is_numeric($value))
             {
-                $this->value = number_format($value, $this->decimals, $this->decimalsSeparator, $this->thousandSeparator);
+                parent::setValue(number_format($value, $this->decimals, $this->decimalsSeparator, $this->thousandSeparator));
             }
             else if ($this->mask)
             {
-                $this->value = $this->formatMask($this->mask, $value);
+                parent::setValue($this->formatMask($this->mask, $value));
             }
             else
             {
-                $this->value = $value;
+                parent::setValue($value);
             }
         }
         else
         {
-            $this->value = $value;
+            parent::setValue($value);
         }
     }
     
@@ -228,15 +244,38 @@ class TEntry extends TField implements AdiantiWidgetInterface
     }
     
     /**
+     * Set autocomplete delimiter
+     * @param $delimiter autocomplete delimiter
+     */
+    public function setDelimiter($delimiter)
+    {
+        $this->delimiter = $delimiter;
+    }
+    
+    /**
+     * Define the minimum length for search
+     */
+    public function setMinLength($length)
+    {
+        $this->minLength = $length;
+    }
+    
+    /**
      * Reload completion
      * 
      * @param $field Field name or id
      * @param $options array of options for autocomplete
      */
-    public static function reloadCompletion($field, $options)
+    public static function reloadCompletion($field, $list, $options = null)
     {
-        $options = json_encode($options);
-        TScript::create(" tentry_autocomplete( '{$field}', $options); ");
+        $list_json = json_encode($list);
+        if (is_null($options))
+        {
+            $options = [];
+        }
+        
+        $options_json = json_encode( $options );
+        TScript::create(" tentry_autocomplete_by_name( '{$field}', {$list_json}, '{$options_json}'); ");
     }
     
     /**
@@ -280,7 +319,7 @@ class TEntry extends TField implements AdiantiWidgetInterface
     {
         // define the tag properties
         $this->tag->{'name'}  = $this->name;    // TAG name
-        $this->tag->{'value'} = $this->value;   // TAG value
+        $this->tag->{'value'} = htmlspecialchars($this->value, ENT_QUOTES | ENT_HTML5, 'UTF-8');   // TAG value
         
         if (!empty($this->size))
         {
@@ -299,19 +338,21 @@ class TEntry extends TField implements AdiantiWidgetInterface
             $this->tag->{'id'} = $this->id;
         }
         
+        if (isset($this->exitAction))
+        {
+            if (!TForm::getFormByName($this->formName) instanceof TForm)
+            {
+                throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->name, 'TForm::setFields()') );
+            }
+            $string_action = $this->exitAction->serialize(FALSE);
+            $this->setProperty('exitaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', '{$this->id}', 'callback')");
+        }
+        
         // verify if the widget is non-editable
         if (parent::getEditable())
         {
             if (isset($this->exitAction))
             {
-                if (!TForm::getFormByName($this->formName) instanceof TForm)
-                {
-                    throw new Exception(AdiantiCoreTranslator::translate('You must pass the ^1 (^2) as a parameter to ^3', __CLASS__, $this->name, 'TForm::setFields()') );
-                }
-                $string_action = $this->exitAction->serialize(FALSE);
-
-                $this->setProperty('exitaction', "__adianti_post_lookup('{$this->formName}', '{$string_action}', '{$this->id}', 'callback')");
-                
                 // just aggregate onBlur, if the previous one does not have return clause
                 if (strstr($this->getProperty('onBlur'), 'return') == FALSE)
                 {
@@ -344,6 +385,7 @@ class TEntry extends TField implements AdiantiWidgetInterface
         {
             $this->tag->{'readonly'} = "1";
             $this->tag->{'class'} .= ' tfield_disabled'; // CSS
+            $this->tag->{'tabindex'} = '-1';
             $this->tag->{'onmouseover'} = "style.cursor='default'";
         }
         
@@ -352,12 +394,23 @@ class TEntry extends TField implements AdiantiWidgetInterface
         
         if (isset($this->completion))
         {
-            $options = json_encode($this->completion);
-            TScript::create(" tentry_autocomplete( '{$this->id}', $options); ");
+            $options = [ 'minChars' => $this->minLength ];
+            if (!empty($this->delimiter))
+            {
+                $options[ 'delimiter'] = $this->delimiter;
+            }
+            $options_json = json_encode( $options );
+            $list = json_encode($this->completion);
+            TScript::create(" tentry_autocomplete( '{$this->id}', $list, '{$options_json}'); ");
         }
         if ($this->numericMask)
         {
             TScript::create( "tentry_numeric_mask( '{$this->id}', {$this->decimals}, '{$this->decimalsSeparator}', '{$this->thousandSeparator}'); ");
+        }
+        
+        if ($this->exitOnEnterOn)
+        {
+            TScript::create( "tentry_exit_on_enter( '{$this->id}' ); ");
         }
     }
 }

@@ -10,7 +10,7 @@ use Exception;
 /**
  * Page Controller Pattern: used as container for all elements inside a page and also as a page controller
  *
- * @version    5.7
+ * @version    7.0
  * @package    control
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -31,6 +31,14 @@ class TPage extends TElement
     {
         parent::__construct('div');
         $this->constructed = TRUE;
+    }
+    
+    /**
+     * Set target container for page content
+     */
+    public function setTargetContainer($container)
+    {
+        $this->{'adianti_target_container'} = $container;
     }
     
     /**

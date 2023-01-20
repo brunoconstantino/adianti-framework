@@ -6,14 +6,18 @@ use Adianti\Widget\Base\TElement;
 use Adianti\Widget\Base\TScript;
 use Adianti\Validator\TFieldValidator;
 use Adianti\Validator\TRequiredValidator;
+use Adianti\Validator\TEmailValidator;
+use Adianti\Validator\TMinLengthValidator;
+use Adianti\Validator\TMaxLengthValidator;
 
 use Exception;
 use ReflectionClass;
+use Closure;
 
 /**
  * Base class to construct all the widgets
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -30,6 +34,8 @@ abstract class TField
     protected $tag;
     protected $formName;
     protected $label;
+    protected $properties;
+    protected $valueCallback;
     private   $validations;
     
     /**
@@ -51,7 +57,8 @@ abstract class TField
         self::setName(trim($name));
         
         // initialize validations array
-        $this->validations = array();
+        $this->validations = [];
+        $this->properties  = [];
         
         // creates a <input> tag
         $this->tag = new TElement('input');
@@ -84,6 +91,15 @@ abstract class TField
     }
     
     /**
+     * Returns if the property is set
+     * @param $name     Property Name
+     */
+    public function __isset($name)
+    {
+        return isset($this->tag->$name);
+    }
+    
+    /**
      * Clone the object
      */
     function __clone()
@@ -106,6 +122,14 @@ abstract class TField
         {
             throw new Exception(AdiantiCoreTranslator::translate("Method ^1 not found", $method.'()'));
         }
+    }
+    
+    /**
+     * Set callback for setValue method
+     */
+    public function setValueCallback($callback)
+    {
+        $this->valueCallback = $callback;
     }
     
     /**
@@ -166,6 +190,12 @@ abstract class TField
     public function setValue($value)
     {
         $this->value = $value;
+        
+        if (!empty($this->valueCallback) && ($this->valueCallback instanceof Closure))
+        {
+            $callback = $this->valueCallback;
+            $callback($this, $value);
+        }
     }
     
     /**
@@ -262,6 +292,30 @@ abstract class TField
                 $this->tag->$name = $value;
             }
         }
+        
+        $this->properties[ $name ] = $this->tag->$name;
+    }
+    
+    /**
+     * Get properties as string
+     */
+    public function getPropertiesAsString($filter = null)
+    {
+        $content = '';
+        
+        if ($this->properties)
+        {
+            foreach ($this->properties as $name => $value)
+            {
+                if ( empty($filter) || ($filter && strpos($name, $filter) !== false))
+                {
+                    $value = str_replace('"', '&quot;', $value);
+                    $content .= " {$name}=\"{$value}\"";
+                }
+            }
+        }
+        
+        return $content;
     }
     
     /**
@@ -300,6 +354,26 @@ abstract class TField
     public function addValidation($label, TFieldValidator $validator, $parameters = NULL)
     {
         $this->validations[] = array($label, $validator, $parameters);
+        
+        if ($validator instanceof TRequiredValidator)
+        {
+            $this->tag->{'required'} = '';
+        }
+        
+        if ($validator instanceof TEmailValidator)
+        {
+            $this->tag->{'type'} = 'email';
+        }
+        
+        if ($validator instanceof TMinLengthValidator)
+        {
+            $this->tag->{'minlength'} = $parameters[0];
+        }
+        
+        if ($validator instanceof TMaxLengthValidator)
+        {
+            $this->tag->{'maxlength'} = $parameters[0];
+        }
     }
     
     /**

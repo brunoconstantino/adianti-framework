@@ -10,7 +10,7 @@
     background: #EEEEEE;
     align: center;
     display: block;
-    padding:20px;
+    padding:20px !important;
     overflow: auto;
     margin: 0px;
     scroll: none;

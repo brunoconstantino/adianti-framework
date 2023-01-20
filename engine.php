@@ -1,20 +1,20 @@
 <?php
 require_once 'init.php';
 
-// define the Home controller for breadcrumb
-TXMLBreadCrumb::setHomeController('WelcomeView');
-
 class TApplication extends AdiantiCoreApplication
 {
-    static public function run($debug = FALSE)
+    public static function run($debug = null)
     {
         new TSession;
+        
         if ($_REQUEST)
         {
+            $ini    = AdiantiApplicationConfig::get();
+            $debug  = is_null($debug)? $ini['general']['debug'] : $debug;
+            
             parent::run($debug);
         }
     }
 }
 
-TApplication::run(TRUE);
-
+TApplication::run();

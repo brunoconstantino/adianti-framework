@@ -36,19 +36,21 @@ class TAccordion extends TElement
     {
         foreach ($this->elements as $child)
         {
-            $title = new TElement('h3');
+            $title = new TElement('button');
+            $title->class = 'taccordion';
             $title->add($child[0]);
             
             $content = new TElement('div');
+            $content->class = 'taccordion-content';
             $content->add($child[1]);
             
             parent::add($title);
             parent::add($content);
         }
         
-        TScript::create('$(document).ready( function() {
-                            $( "#'.$this->id.'" ).accordion();
-                        });');
+        TStyle::importFromFile('app/lib/include/taccordion/taccordion.css');
+        TScript::importFromFile('app/lib/include/taccordion/taccordion.js');
+        
         parent::show();
     }
 }

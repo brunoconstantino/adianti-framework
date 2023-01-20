@@ -15,7 +15,7 @@ use Exception;
 /**
  * FileChooser widget
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Nataniel Rabaioli
@@ -34,6 +34,12 @@ class TFile extends TField implements AdiantiWidgetInterface
     protected $displayMode;
     protected $seed;
     protected $fileHandling;
+    protected $imageGallery;
+    protected $galleryWidth;
+    protected $galleryHeight;
+    protected $popover;
+    protected $poptitle;
+    protected $popcontent;
     
     /**
      * Constructor method
@@ -48,6 +54,30 @@ class TFile extends TField implements AdiantiWidgetInterface
         
         $ini = AdiantiApplicationConfig::get();
         $this->seed = APPLICATION_NAME . ( !empty($ini['general']['seed']) ? $ini['general']['seed'] : 's8dkld83kf73kf094' );
+        $this->imageGallery = false;
+        $this->popover = false;
+    }
+    
+    /**
+     * Enable image gallery view
+     */
+    public function enableImageGallery($width = null, $height = 100)
+    {
+        $this->imageGallery  = true;
+        $this->galleryWidth  = is_null($width) ? 'unset' : $width;
+        $this->galleryHeight = is_null($height) ? 'unset' : $height;
+    }
+    
+    /**
+     * Enable popover
+     * @param $title Title
+     * @param $content Content
+     */
+    public function enablePopover($title = null, $content = '')
+    {
+        $this->popover    = TRUE;
+        $this->poptitle   = $title;
+        $this->popcontent = $content;
     }
     
     /**
@@ -250,8 +280,10 @@ class TFile extends TField implements AdiantiWidgetInterface
         }
         
         $fileHandling = $this->fileHandling ? '1' : '0';
+        $imageGallery = json_encode(['enabled'=> $this->imageGallery ? '1' : '0', 'width' => $this->galleryWidth, 'height' => $this->galleryHeight]);
+        $popover = json_encode(['enabled' => $this->popover ? '1' : '0', 'title' => $this->poptitle, 'content' => base64_encode($this->popcontent)]);
         
-        TScript::create(" tfile_start( '{$this->tag-> id}', '{$div-> id}', '{$action}', {$complete_action}, $fileHandling);");
+        TScript::create(" tfile_start( '{$this->tag-> id}', '{$div-> id}', '{$action}', {$complete_action}, $fileHandling, '$imageGallery', '$popover');");
     }
     
     /**

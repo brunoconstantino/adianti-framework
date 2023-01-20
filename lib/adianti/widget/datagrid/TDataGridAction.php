@@ -8,7 +8,7 @@ use Exception;
 /**
  * Represents an action inside a datagrid
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage datagrid
  * @author     Pablo Dall'Oglio
@@ -24,6 +24,21 @@ class TDataGridAction extends TAction
     private $buttonClass;
     private $useButton;
     private $displayCondition;
+    
+    /**
+     * Class Constructor
+     * @param $action Callback to be executed
+     * @param $parameters = array of parameters
+     */
+    public function __construct($action, $parameters = null)
+    {
+        parent::__construct($action, $parameters);
+        
+        if ($parameters)
+        {
+            $this->setFields( parent::getFieldParameters() );
+        }
+    }
     
     /**
      * Define wich Active Record's property will be passed along with the action
@@ -47,7 +62,7 @@ class TDataGridAction extends TAction
         
         if ($fields)
         {
-            if (empty($this->field))
+            if (empty($this->field) && empty(parent::getParameter('key')))
             {
                 $this->setParameter('key', '{'.$fields[0].'}');
             }

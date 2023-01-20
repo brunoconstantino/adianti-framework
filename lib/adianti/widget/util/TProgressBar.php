@@ -6,7 +6,7 @@ use Adianti\Widget\Base\TElement;
 /**
  * TProgressBar
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage util
  * @author     Ademilson Nunes
@@ -35,7 +35,9 @@ class TProgressBar extends TElement
      */
     public function setMask($mask)
     {
-        $this->mask = $mask;
+        $span = new TElement("span");
+        $span->add($mask);
+        $this->mask = $span;
     }
     
     /**

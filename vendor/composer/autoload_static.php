@@ -12,6 +12,10 @@ class ComposerStaticInit9ca02ded2ffb55c884817c3c88c86343
             'Picqer\\Barcode\\' => 15,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
+        'L' => 
+        array (
+            'Linfo\\' => 6,
+        ),
         'F' => 
         array (
             'FontLib\\' => 8,
@@ -31,6 +35,10 @@ class ComposerStaticInit9ca02ded2ffb55c884817c3c88c86343
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
+        ),
+        'Linfo\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/linfo/linfo/src/Linfo',
         ),
         'FontLib\\' => 
         array (

@@ -14,7 +14,7 @@ use Exception;
 /**
  * Abstract Record Lookup Widget: Creates a lookup field used to search values from associated entities
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio

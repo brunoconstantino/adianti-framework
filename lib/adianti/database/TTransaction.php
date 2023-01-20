@@ -3,6 +3,8 @@ namespace Adianti\Database;
 
 use Adianti\Database\TConnection;
 use Adianti\Log\TLogger;
+use Adianti\Log\TLoggerSTD;
+use Adianti\Log\TLoggerTXT;
 use Adianti\Log\AdiantiLoggerInterface;
 use PDO;
 use Closure;
@@ -10,19 +12,20 @@ use Closure;
 /**
  * Manage Database transactions
  *
- * @version    5.7
+ * @version    7.0
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license
  */
-final class TTransaction
+class TTransaction
 {
     private static $conn;     // active connection
     private static $logger;   // Logger object
     private static $database; // database name
     private static $dbinfo;   // database info
     private static $counter;
+    private static $uniqid;
     
     /**
      * Class Constructor
@@ -48,15 +51,17 @@ final class TTransaction
         
         if ($dbinfo)
         {
-            self::$conn[self::$counter] = TConnection::openArray($dbinfo);
+            self::$conn[self::$counter]   = TConnection::openArray($dbinfo);
             self::$dbinfo[self::$counter] = $dbinfo;
         }
         else
         {
-            self::$conn[self::$counter] = TConnection::open($database);
+            self::$conn[self::$counter]   = TConnection::open($database);
             self::$dbinfo[self::$counter] = TConnection::getDatabaseInfo($database);
         }
+        
         self::$database[self::$counter] = $database;
+        self::$uniqid[self::$counter] = uniqid();
         
         $driver = self::$conn[self::$counter]->getAttribute(PDO::ATTR_DRIVER_NAME);
         if ($driver !== 'dblib')
@@ -99,7 +104,7 @@ final class TTransaction
      */
     public static function rollback()
     {
-        if (self::$conn[self::$counter])
+        if (isset(self::$conn[self::$counter]))
         {
             $driver = self::$conn[self::$counter]->getAttribute(PDO::ATTR_DRIVER_NAME);
             if ($driver !== 'dblib')
@@ -108,7 +113,10 @@ final class TTransaction
                 self::$conn[self::$counter]->rollBack();
             }
             self::$conn[self::$counter] = NULL;
+            self::$uniqid[self::$counter] = NULL;
             self::$counter --;
+            
+            return true;
         }
     }
     
@@ -117,7 +125,7 @@ final class TTransaction
      */
     public static function close()
     {
-        if (self::$conn[self::$counter])
+        if (isset(self::$conn[self::$counter]))
         {
             $driver = self::$conn[self::$counter]->getAttribute(PDO::ATTR_DRIVER_NAME);
             $info = self::getDatabaseInfo();
@@ -129,7 +137,36 @@ final class TTransaction
                 self::$conn[self::$counter]->commit();
             }
             self::$conn[self::$counter] = NULL;
+            self::$uniqid[self::$counter] = NULL;
             self::$counter --;
+            
+            return true;
+        }
+    }
+    
+    /**
+     * close all transactions
+     */
+    public static function closeAll()
+    {
+        $has_connection = true;
+        
+        while ($has_connection)
+        {
+            $has_connection = self::close();
+        }
+    }
+    
+    /**
+     * rollback all transactions
+     */
+    public static function rollbackAll()
+    {
+        $has_connection = true;
+        
+        while ($has_connection)
+        {
+            $has_connection = self::rollback();
         }
     }
     
@@ -174,7 +211,7 @@ final class TTransaction
     public static function log($message)
     {
         // check if exist a logger
-        if (self::$logger[self::$counter])
+        if (!empty(self::$logger[self::$counter]))
         {
             $log = self::$logger[self::$counter];
             
@@ -201,7 +238,10 @@ final class TTransaction
      */
     public static function getDatabase()
     {
-        return self::$database[self::$counter];
+        if (!empty(self::$database[self::$counter]))
+        {
+            return self::$database[self::$counter];
+        }
     }
     
     /**
@@ -209,6 +249,35 @@ final class TTransaction
      */
     public static function getDatabaseInfo()
     {
-        return self::$dbinfo[self::$counter];
+        if (!empty(self::$dbinfo[self::$counter]))
+        {
+            return self::$dbinfo[self::$counter];
+        }
+    }
+    
+    /**
+     * Returns the Transaction uniqid
+     */
+    public static function getUniqId()
+    {
+        if (!empty(self::$uniqid[self::$counter]))
+        {
+            return self::$uniqid[self::$counter];
+        }
+    }
+    
+    /**
+     * Enable transaction log
+     */
+    public static function dump( $file = null )
+    {
+        if ($file)
+        {
+            self::setLogger( new TLoggerTXT($file) );
+        }
+        else
+        {
+            self::setLogger( new TLoggerSTD );
+        }
     }
 }

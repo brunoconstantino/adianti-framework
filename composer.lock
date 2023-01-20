@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "9017bfd2a8d5306f343d79a1f7b76b62",
+    "content-hash": "dc30b6614ef7b8212beb236314904dd4",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -54,29 +54,33 @@
         },
         {
             "name": "dompdf/dompdf",
-            "version": "v0.8.2",
+            "version": "v0.8.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dompdf/dompdf.git",
-                "reference": "5113accd9ae5d466077cce5208dcf3fb871bf8f6"
+                "reference": "75f13c700009be21a1965dc2c5b68a8708c22ba2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dompdf/dompdf/zipball/5113accd9ae5d466077cce5208dcf3fb871bf8f6",
-                "reference": "5113accd9ae5d466077cce5208dcf3fb871bf8f6",
+                "url": "https://api.github.com/repos/dompdf/dompdf/zipball/75f13c700009be21a1965dc2c5b68a8708c22ba2",
+                "reference": "75f13c700009be21a1965dc2c5b68a8708c22ba2",
                 "shasum": ""
             },
             "require": {
                 "ext-dom": "*",
-                "ext-gd": "*",
                 "ext-mbstring": "*",
                 "phenx/php-font-lib": "0.5.*",
                 "phenx/php-svg-lib": "0.3.*",
                 "php": ">=5.4.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "4.8.*",
+                "phpunit/phpunit": "^4.8|^5.5|^6.5",
                 "squizlabs/php_codesniffer": "2.*"
+            },
+            "suggest": {
+                "ext-gd": "Needed to process images",
+                "ext-gmagick": "Improves image processing performance",
+                "ext-imagick": "Improves image processing performance"
             },
             "type": "library",
             "extra": {
@@ -112,7 +116,7 @@
             ],
             "description": "DOMPDF is a CSS 2.1 compliant HTML to PDF converter",
             "homepage": "https://github.com/dompdf/dompdf",
-            "time": "2017-11-26T14:49:08+00:00"
+            "time": "2018-12-14T02:40:31+00:00"
         },
         {
             "name": "firebase/php-jwt",
@@ -159,6 +163,59 @@
             "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
             "homepage": "https://github.com/firebase/php-jwt",
             "time": "2017-06-27T22:17:23+00:00"
+        },
+        {
+            "name": "linfo/linfo",
+            "version": "v4.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jrgp/linfo.git",
+                "reference": "63992c032b1d906527a0390e5bd0282c17b7b564"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jrgp/linfo/zipball/63992c032b1d906527a0390e5bd0282c17b7b564",
+                "reference": "63992c032b1d906527a0390e5bd0282c17b7b564",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pcre": "*",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.8.*"
+            },
+            "suggest": {
+                "ext-com": "On Windows"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Linfo\\": "src/Linfo"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Joe Gillotti",
+                    "role": "Author",
+                    "email": "joe@joegillotti.com",
+                    "homepage": "http://joegillotti.com"
+                }
+            ],
+            "description": "App and library for easily parsing and displaying system information of the host, like network/torrents/cpu/memory/usb/pci/sound cards/filesystems/raid array/ipmi/etc.",
+            "homepage": "http://github.com/jrgp/linfo",
+            "keywords": [
+                "CPU",
+                "health",
+                "linux",
+                "specs",
+                "system"
+            ],
+            "time": "2019-01-31T03:53:02+00:00"
         },
         {
             "name": "pablodalloglio/ole",
@@ -308,16 +365,16 @@
         },
         {
             "name": "phenx/php-svg-lib",
-            "version": "v0.3",
+            "version": "v0.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PhenX/php-svg-lib.git",
-                "reference": "a85f7fe9fe08d093a4a8583cdd306b553ff918aa"
+                "reference": "ccc46ef6340d4b8a4a68047e68d8501ea961442c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PhenX/php-svg-lib/zipball/a85f7fe9fe08d093a4a8583cdd306b553ff918aa",
-                "reference": "a85f7fe9fe08d093a4a8583cdd306b553ff918aa",
+                "url": "https://api.github.com/repos/PhenX/php-svg-lib/zipball/ccc46ef6340d4b8a4a68047e68d8501ea961442c",
+                "reference": "ccc46ef6340d4b8a4a68047e68d8501ea961442c",
                 "shasum": ""
             },
             "require": {
@@ -344,20 +401,20 @@
             ],
             "description": "A library to read, parse and export to PDF SVG files.",
             "homepage": "https://github.com/PhenX/php-svg-lib",
-            "time": "2017-05-24T10:07:27+00:00"
+            "time": "2018-06-03T10:10:03+00:00"
         },
         {
             "name": "phpmailer/phpmailer",
-            "version": "v6.0.5",
+            "version": "v6.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPMailer/PHPMailer.git",
-                "reference": "cb3ea134d4d3729e7857737d5f320cce9caf4d32"
+                "reference": "0c41a36d4508d470e376498c1c0c527aa36a2d59"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/cb3ea134d4d3729e7857737d5f320cce9caf4d32",
-                "reference": "cb3ea134d4d3729e7857737d5f320cce9caf4d32",
+                "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/0c41a36d4508d470e376498c1c0c527aa36a2d59",
+                "reference": "0c41a36d4508d470e376498c1c0c527aa36a2d59",
                 "shasum": ""
             },
             "require": {
@@ -410,7 +467,7 @@
                 }
             ],
             "description": "PHPMailer is a full-featured email creation and transfer class for PHP",
-            "time": "2018-03-27T13:49:45+00:00"
+            "time": "2019-02-01T15:04:28+00:00"
         },
         {
             "name": "phprtflite/phprtflite",

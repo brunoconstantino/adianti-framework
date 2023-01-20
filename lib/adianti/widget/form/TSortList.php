@@ -14,7 +14,7 @@ use Exception;
 /**
  * A Sortable list
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -283,7 +283,11 @@ class TSortList extends TField implements AdiantiWidgetInterface
                 {
                     $item->add($this->itemIcon);
                 }
-                $item->add(new TLabel($label));
+
+                $label = new TLabel($label);
+                $label->style = 'width: 100%;';
+
+                $item->add($label);
                 $item->{'class'} = 'tsortlist_item btn btn-default';
                 $item->{'style'} = 'display:block;';
                 $item->{'id'} = "tsortlist_{$this->name}_item_{$i}_li";

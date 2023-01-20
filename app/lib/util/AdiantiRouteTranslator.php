@@ -2,7 +2,7 @@
 /**
  * Route translator
  *
- * @version    5.7
+ * @version    7.0
  * @package    core
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006-2014 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -79,19 +79,23 @@ class AdiantiRouteTranslator
      */
     public static function parseHtAccess()
     {
-        $rules = file('.htaccess');
-        foreach ($rules as $rule)
+        $rotas = [];
+        if (file_exists('.htaccess'))
         {
-            $rule_parts = explode(' ', $rule);
-            if ($rule_parts[0] == 'RewriteRule')
+            $rules = file('.htaccess');
+            foreach ($rules as $rule)
             {
-                $source = $rule_parts[1];
-                $target = $rule_parts[2];
-                $source = str_replace(['^', '$'], ['',''], $source);
-                $target = str_replace('&%{QUERY_STRING}', '', $target);
-                $target = str_replace(' [NC]', '', $target);
-                $target = str_replace('index.php?', '', $target);
-                $rotas[$target] = $source;
+                $rule_parts = explode(' ', $rule);
+                if ($rule_parts[0] == 'RewriteRule')
+                {
+                    $source = $rule_parts[1];
+                    $target = $rule_parts[2];
+                    $source = str_replace(['^', '$'], ['',''], $source);
+                    $target = str_replace('&%{QUERY_STRING}', '', $target);
+                    $target = str_replace(' [NC]', '', $target);
+                    $target = str_replace('index.php?', '', $target);
+                    $rotas[$target] = $source;
+                }
             }
         }
         

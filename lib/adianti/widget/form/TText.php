@@ -13,7 +13,7 @@ use Exception;
 /**
  * Text Widget (also known as Memo)
  *
- * @version    5.7
+ * @version    7.0
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio
@@ -153,6 +153,7 @@ class TText extends TField implements AdiantiWidgetInterface
             // make the widget read-only
             $this->tag->{'readonly'} = "1";
             $this->tag->{'class'} = $this->tag->{'class'} == 'tfield' ? 'tfield_disabled' : $this->tag->{'class'} . ' tfield_disabled'; // CSS
+            $this->tag->{'tabindex'} = '-1';
         }
         
         if (isset($this->exitAction))
