@@ -11,7 +11,7 @@ use ReflectionClass;
 /**
  * Page Controller Pattern: used as container for all elements inside a page and also as a page controller
  *
- * @version    7.4
+ * @version    7.5
  * @package    control
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -32,6 +32,18 @@ class TPage extends TElement
     {
         parent::__construct('div');
         $this->constructed = TRUE;
+
+        $this->{'page-name'} = $this->getClassName();
+        $this->{'page_name'} = $this->getClassName();
+    }
+    
+    /**
+     * Set page name
+     */
+    public function setPageName($name)
+    {
+        $this->setProperty('page-name', $name);
+        $this->setProperty('page_name', $name);
     }
     
     /**
@@ -40,7 +52,7 @@ class TPage extends TElement
     public function getClassName()
     {
         $rc = new ReflectionClass( $this );
-        return $rc->getShortName();
+        return $rc-> getShortName ();
     }
     
     /**
@@ -60,13 +72,11 @@ class TPage extends TElement
         {
             $this->setProperty('adianti_target_container', $container);
             $this->{'class'} = 'container-part';
-            $this->{'page_name'} = $this->getClassName();
         }
         else
         {
             unset($this->{'adianti_target_container'});
             unset($this->{'class'});
-            unset($this->{'page_name'});
         }
     }
     
