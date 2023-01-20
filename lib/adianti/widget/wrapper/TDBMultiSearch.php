@@ -15,7 +15,7 @@ use Exception;
 /**
  * Database Multisearch Widget
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage wrapper
  * @author     Pablo Dall'Oglio
@@ -309,7 +309,7 @@ class TDBMultiSearch extends TMultiSearch
         $method = $callback[1];
         $id_search_string = $this->idSearch ? '1' : '0';
         $search_word = AdiantiCoreTranslator::translate('Search');
-        $url = "engine.php?class={$class}&method={$method}&static=1&database={$this->database}&key={$this->key}&column={$this->column}&model={$this->model}&orderColumn={$orderColumn}&criteria={$criteria}&operator={$this->operator}&mask={$this->mask}&idsearch={$id_search_string}";
+        $url = "engine.php?class={$class}&method={$method}&static=1&database={$this->database}&key={$this->key}&column={$this->column}&model={$this->model}&orderColumn={$orderColumn}&criteria={$criteria}&operator={$this->operator}&mask={$this->mask}&idsearch={$id_search_string}&minlength={$length}";
         $change_action = 'function() {}';
         
         if (isset($this->changeAction))

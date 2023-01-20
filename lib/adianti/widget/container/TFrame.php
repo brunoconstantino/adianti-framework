@@ -8,7 +8,7 @@ use Adianti\Widget\Form\TLabel;
 /**
  * Frame Widget: creates a bordered area with a title located at its top-left corner
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio

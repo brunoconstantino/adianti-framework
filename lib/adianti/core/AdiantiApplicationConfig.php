@@ -4,7 +4,7 @@ namespace Adianti\Core;
 /**
  * Application config
  *
- * @version    5.6
+ * @version    5.7
  * @package    core
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)

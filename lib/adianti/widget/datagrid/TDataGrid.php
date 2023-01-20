@@ -15,7 +15,7 @@ use Exception;
 /**
  * DataGrid Widget: Allows to create datagrids with rows, columns and actions
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage datagrid
  * @author     Pablo Dall'Oglio
@@ -659,12 +659,13 @@ class TDataGrid extends TTable
                     }
                     
                     $data = is_null($content) ? '' : $content;
+                    $cell = new TElement('td');
                     
                     // verify if there's a transformer function
                     if ($function)
                     {
                         // apply the transformer functions over the data
-                        $data = call_user_func($function, $data, $object, $row);
+                        $data = call_user_func($function, $data, $object, $row, $cell);
                     }
                     
                     if ($editaction = $column->getEditAction())
@@ -678,7 +679,7 @@ class TDataGrid extends TTable
                         $div->{'key'}    = isset($object->{$editaction_field}) ? $object->{$editaction_field} : NULL;
                         $div->{'pkey'}   = $editaction_field;
                         $div->add($data);
-                        $cell = new TElement('td');
+                        
                         $row->add($cell);
                         $cell->add($div);
                         $cell->{'class'} = 'tdatagrid_cell';
@@ -686,7 +687,6 @@ class TDataGrid extends TTable
                     else
                     {
                         // add the cell to the row
-                        $cell = new TElement('td');
                         $row->add($cell);
                         $cell->add($data);
                         $cell->{'class'} = 'tdatagrid_cell';

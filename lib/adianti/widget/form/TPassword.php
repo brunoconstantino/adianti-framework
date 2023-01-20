@@ -12,7 +12,7 @@ use Exception;
 /**
  * Password Widget
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio

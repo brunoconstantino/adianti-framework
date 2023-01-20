@@ -10,7 +10,7 @@ use Closure;
 /**
  * Manage Database transactions
  *
- * @version    5.6
+ * @version    5.7
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)

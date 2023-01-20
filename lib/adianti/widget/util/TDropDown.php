@@ -9,7 +9,7 @@ use Adianti\Widget\Util\TImage;
 /**
  * TDropDown Widget
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage util
  * @author     Pablo Dall'Oglio
@@ -109,7 +109,7 @@ class TDropDown extends TElement
      * @param $action Action (TAction or string Javascript action)
      * @param $icon   Icon
      */
-    public function addAction($title, $action, $icon = NULL)
+    public function addAction($title, $action, $icon = NULL, $popover = '', $add = true)
     {
         $li = new TElement('li');
         $link = new TElement('a');
@@ -124,6 +124,11 @@ class TDropDown extends TElement
         }
         $link->{'style'} = 'cursor: pointer';
         
+        if ($popover)
+        {
+            $link->{'title'} = $popover;
+        }
+        
         if ($icon)
         {
             $image = is_object($icon) ? clone $icon : new TImage($icon);
@@ -136,8 +141,46 @@ class TDropDown extends TElement
         $link->add($span);
         $li->add($link);
         
-        $this->elements->add($li);
+        if ($add)
+        {
+            $this->elements->add($li);
+        }
         return $li;
+    }
+    
+    /**
+     * Add an action group
+     */
+    public function addActionGroup($title, $actions, $icon)
+    {
+        $li = new TElement('li');
+        $li->{'class'} = "dropdown-submenu";
+        $link = new TElement('a');
+        $span = new TElement('span');
+        
+        if ($icon)
+        {
+            $image = is_object($icon) ? clone $icon : new TImage($icon);
+            $image->{'style'} .= ';padding: 4px';
+            $link->add($image);
+        }
+        
+        $span->add($title);
+        $link->add($span);
+        $li->add($link);
+        
+        $ul = new TElement('ul');
+        $ul->{'class'} = "dropdown-menu";
+        $li->add($ul);
+        if ($actions)
+        {
+            foreach ($actions as $action)
+            {
+                $ul->add( $this->addAction( $action[0], $action[1], $action[2], '', false ) );
+            }
+        }
+        
+        $this->elements->add($li);
     }
     
     /**

@@ -6,7 +6,7 @@ use Adianti\Control\TPage;
 /**
  * StyleSheet Manager
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage base
  * @author     Pablo Dall'Oglio

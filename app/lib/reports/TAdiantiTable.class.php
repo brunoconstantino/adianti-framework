@@ -2,7 +2,7 @@
 /**
  * Table
  *
- * @version    5.6
+ * @version    5.7
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
  * @license    http://www.adianti.com.br/framework-license

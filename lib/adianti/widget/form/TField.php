@@ -13,7 +13,7 @@ use ReflectionClass;
 /**
  * Base class to construct all the widgets
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage form
  * @author     Pablo Dall'Oglio

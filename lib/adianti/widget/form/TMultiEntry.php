@@ -13,7 +13,7 @@ use Exception;
 /**
  * Multi Entry Widget
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage form
  * @author     Matheus Agnes Dias

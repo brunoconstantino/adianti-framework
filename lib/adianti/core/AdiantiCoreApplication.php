@@ -13,7 +13,7 @@ use Adianti\Widget\Util\TExceptionView;
 /**
  * Basic structure to run a web application
  *
- * @version    5.6
+ * @version    5.7
  * @package    core
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -31,6 +31,8 @@ class AdiantiCoreApplication
         
         $content = '';
         set_error_handler(array('AdiantiCoreApplication', 'errorHandler'));
+        
+        self::filterInput();
         
         if (in_array(strtolower($class), array_map('strtolower', AdiantiClassMap::getInternalClasses()) ))
         {
@@ -96,6 +98,43 @@ class AdiantiCoreApplication
         echo TPage::getLoadedJS();
         
         echo $content;
+    }
+    
+    /**
+     * Filter specific framework commands
+     */
+    public static function filterInput()
+    {
+        if ($_REQUEST)
+        {
+            foreach ($_REQUEST as $key => $value)
+            {
+                if (is_scalar($value))
+                {
+                    if ( (substr(strtoupper($value),0,7) == '(SELECT') OR (substr(strtoupper($value),0,6) == 'NOESC:'))
+                    {
+                        $_REQUEST[$key] = '';
+                        $_GET[$key]     = '';
+                        $_POST[$key]    = '';
+                    }
+                }
+                else if (is_array($value))
+                {
+                    foreach ($value as $sub_key => $sub_value)
+                    {
+                        if (is_scalar($sub_value))
+                        {
+                            if ( (substr(strtoupper($sub_value),0,7) == '(SELECT') OR (substr(strtoupper($sub_value),0,6) == 'NOESC:'))
+                            {
+                                $_REQUEST[$key][$sub_key] = '';
+                                $_GET[$key][$sub_key]     = '';
+                                $_POST[$key][$sub_key]    = '';
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     
     /**

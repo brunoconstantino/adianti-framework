@@ -8,7 +8,7 @@ use Adianti\Widget\Base\TElement;
 /**
  * Bootstrap native panel for Adianti Framework
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage container
  * @author     Pablo Dall'Oglio

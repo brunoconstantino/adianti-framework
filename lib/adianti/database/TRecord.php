@@ -18,7 +18,7 @@ use Exception;
 /**
  * Base class for Active Records
  *
- * @version    5.6
+ * @version    5.7
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -1133,9 +1133,24 @@ abstract class TRecord
     /**
      * Returns all objects
      */
-    public static function all()
+    public static function all($indexed = false)
     {
-        return self::getObjects(NULL, FALSE);
+        $objects = self::getObjects(NULL, FALSE);
+        
+        if ($indexed)
+        {
+            $list = [];
+            foreach ($objects as $object)
+            {
+                $pk = $object->getPrimaryKey();
+                $list[ $object->$pk ] = $object;
+            }
+            return $list;
+        }
+        else
+        {
+            return $objects;
+        }
     }
     
     /**

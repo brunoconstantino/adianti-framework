@@ -10,7 +10,7 @@ use Math\Parser;
 /**
  * Html Renderer
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage template
  * @author     Pablo Dall'Oglio
@@ -208,7 +208,7 @@ class THtmlRenderer
             }
         }
         
-        preg_match_all('/evaluate\(([-+\/\d\s\(\))*]*)\)/', $content, $matches3);
+        preg_match_all('/evaluate\(([-+\/\d\.\s\(\))*]*)\)/', $content, $matches3);
         
         if (count($matches3)>0)
         {

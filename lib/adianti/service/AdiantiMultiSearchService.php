@@ -14,7 +14,7 @@ use Exception;
 /**
  * MultiSearch backend
  *
- * @version    5.6
+ * @version    5.7
  * @package    service
  * @author     Pablo Dall'Oglio
  * @author     Matheus Agnes Dias
@@ -92,7 +92,7 @@ class AdiantiMultiSearchService
                 
                 $items = array();
                 
-                if (!empty($param['value']))
+                if (!empty($param['value']) || $param['minlength'] == '0')
                 {
                     $collection = $repository->load($criteria, FALSE);
                     

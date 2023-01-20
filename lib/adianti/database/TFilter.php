@@ -7,7 +7,7 @@ use Adianti\Database\TSqlStatement;
 /**
  * Provides an interface to define filters to be used inside a criteria
  *
- * @version    5.6
+ * @version    5.7
  * @package    database
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)
@@ -100,11 +100,13 @@ class TFilter extends TExpression
         // if the value is a subselect (must not be escaped as string)
         else if (substr(strtoupper($value),0,7) == '(SELECT')
         {
-            $result = "$value";
+            $value  = str_replace(['#', '--', '/*'], ['', '', ''], $value);
+            $result = $value;
         }
         // if the value must not be escaped (NOESC in front)
         else if (substr($value,0,6) == 'NOESC:')
         {
+            $value  = str_replace(['#', '--', '/*'], ['', '', ''], $value);
             $result = substr($value,6);
         }
         // if the value is a string

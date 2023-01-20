@@ -9,7 +9,7 @@ use SimpleXMLElement;
 /**
  * Menu Widget
  *
- * @version    5.6
+ * @version    5.7
  * @package    widget
  * @subpackage menu
  * @author     Pablo Dall'Oglio
@@ -95,7 +95,7 @@ class TMenu extends TElement
             // just child nodes have actions
             if ( $action )
             {
-                if ( !empty($action) AND $permission_callback )
+                if ( !empty($action) AND $permission_callback AND (substr($action,0,7) !== 'http://') AND (substr($action,0,8) !== 'https://'))
                 {
                     // check permission
                     $parts = explode('#', $action);
