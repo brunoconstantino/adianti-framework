@@ -1,21 +1,376 @@
 [
     {
-        "name": "phpmailer/phpmailer",
-        "version": "v6.0.1",
-        "version_normalized": "6.0.1.0",
+        "name": "bacon/bacon-qr-code",
+        "version": "1.0.3",
+        "version_normalized": "1.0.3.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/PHPMailer/PHPMailer.git",
-            "reference": "992392437c2e2784e0dc41446024fe411d293c96"
+            "url": "https://github.com/Bacon/BaconQrCode.git",
+            "reference": "5a91b62b9d37cee635bbf8d553f4546057250bee"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/992392437c2e2784e0dc41446024fe411d293c96",
-            "reference": "992392437c2e2784e0dc41446024fe411d293c96",
+            "url": "https://api.github.com/repos/Bacon/BaconQrCode/zipball/5a91b62b9d37cee635bbf8d553f4546057250bee",
+            "reference": "5a91b62b9d37cee635bbf8d553f4546057250bee",
+            "shasum": ""
+        },
+        "require": {
+            "ext-iconv": "*",
+            "php": "^5.4|^7.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^4.8"
+        },
+        "suggest": {
+            "ext-gd": "to generate QR code images"
+        },
+        "time": "2017-10-17T09:59:25+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "BaconQrCode": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-2-Clause"
+        ],
+        "authors": [
+            {
+                "name": "Ben Scholzen 'DASPRiD'",
+                "email": "mail@dasprids.de",
+                "homepage": "http://www.dasprids.de",
+                "role": "Developer"
+            }
+        ],
+        "description": "BaconQrCode is a QR code generator for PHP.",
+        "homepage": "https://github.com/Bacon/BaconQrCode"
+    },
+    {
+        "name": "dompdf/dompdf",
+        "version": "v0.8.2",
+        "version_normalized": "0.8.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/dompdf/dompdf.git",
+            "reference": "5113accd9ae5d466077cce5208dcf3fb871bf8f6"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/dompdf/dompdf/zipball/5113accd9ae5d466077cce5208dcf3fb871bf8f6",
+            "reference": "5113accd9ae5d466077cce5208dcf3fb871bf8f6",
+            "shasum": ""
+        },
+        "require": {
+            "ext-dom": "*",
+            "ext-gd": "*",
+            "ext-mbstring": "*",
+            "phenx/php-font-lib": "0.5.*",
+            "phenx/php-svg-lib": "0.3.*",
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.8.*",
+            "squizlabs/php_codesniffer": "2.*"
+        },
+        "time": "2017-11-26T14:49:08+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-develop": "0.7-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Dompdf\\": "src/"
+            },
+            "classmap": [
+                "lib/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "LGPL-2.1"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Ménager",
+                "email": "fabien.menager@gmail.com"
+            },
+            {
+                "name": "Brian Sweeney",
+                "email": "eclecticgeek@gmail.com"
+            },
+            {
+                "name": "Gabriel Bull",
+                "email": "me@gabrielbull.com"
+            }
+        ],
+        "description": "DOMPDF is a CSS 2.1 compliant HTML to PDF converter",
+        "homepage": "https://github.com/dompdf/dompdf"
+    },
+    {
+        "name": "firebase/php-jwt",
+        "version": "v5.0.0",
+        "version_normalized": "5.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/firebase/php-jwt.git",
+            "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/firebase/php-jwt/zipball/9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
+            "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": " 4.8.35"
+        },
+        "time": "2017-06-27T22:17:23+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Firebase\\JWT\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "authors": [
+            {
+                "name": "Neuman Vong",
+                "email": "neuman+pear@twilio.com",
+                "role": "Developer"
+            },
+            {
+                "name": "Anant Narayanan",
+                "email": "anant@php.net",
+                "role": "Developer"
+            }
+        ],
+        "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
+        "homepage": "https://github.com/firebase/php-jwt"
+    },
+    {
+        "name": "pablodalloglio/ole",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/pablodalloglio/ole.git",
+            "reference": "b5698257fc21f3a8734c63c9224df9c48cba8d6f"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/pablodalloglio/ole/zipball/b5698257fc21f3a8734c63c9224df9c48cba8d6f",
+            "reference": "b5698257fc21f3a8734c63c9224df9c48cba8d6f",
+            "shasum": ""
+        },
+        "time": "2018-04-26T14:25:39+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-0": {
+                "OLE": "./"
+            }
+        },
+        "include-path": [
+            "./"
+        ],
+        "license": [
+            "PHP"
+        ],
+        "authors": [
+            {
+                "email": "schmidt@php.net",
+                "name": "Christian Schmidt",
+                "role": "Lead"
+            },
+            {
+                "email": "xnoguer@php.net",
+                "name": "Xavier Noguer",
+                "role": "Lead"
+            }
+        ],
+        "description": "More info available on: http://pear.php.net/package/OLE",
+        "support": {
+            "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=OLE",
+            "source": "https://github.com/pablodalloglio/OLE"
+        }
+    },
+    {
+        "name": "pablodalloglio/spreadsheet_excel_writer",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/pablodalloglio/spreadsheet_excel_writer.git",
+            "reference": "84e5c1a4aa9b93ba1750c33ece6ae25eb19d2851"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/pablodalloglio/spreadsheet_excel_writer/zipball/84e5c1a4aa9b93ba1750c33ece6ae25eb19d2851",
+            "reference": "84e5c1a4aa9b93ba1750c33ece6ae25eb19d2851",
+            "shasum": ""
+        },
+        "require": {
+            "pablodalloglio/ole": "*",
+            "php": ">=5.3.3"
+        },
+        "time": "2018-04-26T14:06:36+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-0": {
+                "Spreadsheet": ""
+            }
+        },
+        "autoload-dev": {
+            "psr-0": {
+                "Test": "test"
+            }
+        },
+        "include-path": [
+            "./"
+        ],
+        "license": [
+            "LGPL"
+        ],
+        "authors": [
+            {
+                "email": "cschmitz@limesurvey.org",
+                "name": "Carsten Schmitz",
+                "role": "Lead"
+            },
+            {
+                "email": "xnoguer@php.net",
+                "name": "Xavier Noguer",
+                "role": "Lead"
+            },
+            {
+                "email": "progi1984@gmail.com",
+                "name": "Franck Lefevre",
+                "role": "Developer"
+            },
+            {
+                "email": "tuupola@appelsiini.net",
+                "name": "Mika Tuupola",
+                "role": "Developer"
+            }
+        ],
+        "description": "More info available on: http://pear.php.net/package/Spreadsheet_Excel_Writer",
+        "support": {
+            "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Spreadsheet_Excel_Writer",
+            "source": "https://github.com/pear/Spreadsheet_Excel_Writer"
+        }
+    },
+    {
+        "name": "phenx/php-font-lib",
+        "version": "0.5.1",
+        "version_normalized": "0.5.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/PhenX/php-font-lib.git",
+            "reference": "760148820110a1ae0936e5cc35851e25a938bc97"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/PhenX/php-font-lib/zipball/760148820110a1ae0936e5cc35851e25a938bc97",
+            "reference": "760148820110a1ae0936e5cc35851e25a938bc97",
+            "shasum": ""
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^4.8"
+        },
+        "time": "2017-09-13T16:14:37+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "FontLib\\": "src/FontLib"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "LGPL-3.0"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Ménager",
+                "email": "fabien.menager@gmail.com"
+            }
+        ],
+        "description": "A library to read, parse, export and make subsets of different types of font files.",
+        "homepage": "https://github.com/PhenX/php-font-lib"
+    },
+    {
+        "name": "phenx/php-svg-lib",
+        "version": "v0.3",
+        "version_normalized": "0.3.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/PhenX/php-svg-lib.git",
+            "reference": "a85f7fe9fe08d093a4a8583cdd306b553ff918aa"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/PhenX/php-svg-lib/zipball/a85f7fe9fe08d093a4a8583cdd306b553ff918aa",
+            "reference": "a85f7fe9fe08d093a4a8583cdd306b553ff918aa",
+            "shasum": ""
+        },
+        "require": {
+            "sabberworm/php-css-parser": "8.1.*"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~5.0"
+        },
+        "time": "2017-05-24T10:07:27+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Svg\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "LGPL-3.0"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Ménager",
+                "email": "fabien.menager@gmail.com"
+            }
+        ],
+        "description": "A library to read, parse and export to PDF SVG files.",
+        "homepage": "https://github.com/PhenX/php-svg-lib"
+    },
+    {
+        "name": "phpmailer/phpmailer",
+        "version": "v6.0.5",
+        "version_normalized": "6.0.5.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/PHPMailer/PHPMailer.git",
+            "reference": "cb3ea134d4d3729e7857737d5f320cce9caf4d32"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/cb3ea134d4d3729e7857737d5f320cce9caf4d32",
+            "reference": "cb3ea134d4d3729e7857737d5f320cce9caf4d32",
             "shasum": ""
         },
         "require": {
             "ext-ctype": "*",
+            "ext-filter": "*",
             "php": ">=5.5.0"
         },
         "require-dev": {
@@ -35,7 +390,7 @@
             "stevenmaguire/oauth2-microsoft": "Needed for Microsoft XOAUTH2 authentication",
             "symfony/polyfill-mbstring": "To support UTF-8 if the Mbstring PHP extension is not enabled (^1.2)"
         },
-        "time": "2017-09-14 16:47:12",
+        "time": "2018-03-27T13:49:45+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -67,58 +422,39 @@
         "description": "PHPMailer is a full-featured email creation and transfer class for PHP"
     },
     {
-        "name": "tburry/pquery",
-        "version": "v1.1.1",
-        "version_normalized": "1.1.1.0",
+        "name": "phprtflite/phprtflite",
+        "version": "v1.3.3",
+        "version_normalized": "1.3.3.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/tburry/pquery.git",
-            "reference": "872339ffd38d261c4417ea1855428b1b4ff9abf1"
+            "url": "https://github.com/phprtflite/PHPRtfLite.git",
+            "reference": "eef76d965fc7a0cb4c7342f229f67ad4793c61c2"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tburry/pquery/zipball/872339ffd38d261c4417ea1855428b1b4ff9abf1",
-            "reference": "872339ffd38d261c4417ea1855428b1b4ff9abf1",
+            "url": "https://api.github.com/repos/phprtflite/PHPRtfLite/zipball/eef76d965fc7a0cb4c7342f229f67ad4793c61c2",
+            "reference": "eef76d965fc7a0cb4c7342f229f67ad4793c61c2",
             "shasum": ""
         },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "require-dev": {
-            "htmlawed/htmlawed": "dev-master"
-        },
-        "time": "2016-01-14 20:55:00",
+        "time": "2014-07-04T19:43:18+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
-            "classmap": [
-                "IQuery.php",
-                "gan_formatter.php",
-                "gan_node_html.php",
-                "gan_parser_html.php",
-                "gan_selector_html.php",
-                "gan_tokenizer.php",
-                "gan_xml2array.php",
-                "pQuery.php"
-            ]
+            "psr-0": {
+                "PHPRtfLite": "lib/"
+            }
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "LGPL-2.1"
+            "GPL-3.0"
         ],
         "authors": [
             {
-                "name": "Todd Burry",
-                "email": "todd@vanillaforums.com",
-                "role": "developer"
+                "name": "Steffen Zeidler",
+                "email": "sigma_z@sigma-scripts.de"
             }
         ],
-        "description": "A jQuery like html dom parser written in php.",
-        "keywords": [
-            "dom",
-            "ganon",
-            "php"
-        ]
+        "description": "PHPRtfLite is an API enabling developers to create rtf documents with php."
     },
     {
         "name": "picqer/php-barcode-generator",
@@ -141,7 +477,7 @@
         "require-dev": {
             "phpunit/phpunit": "^5.3"
         },
-        "time": "2017-09-28 19:23:19",
+        "time": "2017-09-28T19:23:19+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -212,7 +548,7 @@
         "require-dev": {
             "phpunit/phpunit": "*"
         },
-        "time": "2016-07-19 19:14:21",
+        "time": "2016-07-19T19:14:21+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -238,127 +574,39 @@
         ]
     },
     {
-        "name": "phenx/php-svg-lib",
-        "version": "v0.3",
-        "version_normalized": "0.3.0.0",
+        "name": "tburry/pquery",
+        "version": "v1.1.1",
+        "version_normalized": "1.1.1.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/PhenX/php-svg-lib.git",
-            "reference": "a85f7fe9fe08d093a4a8583cdd306b553ff918aa"
+            "url": "https://github.com/tburry/pquery.git",
+            "reference": "872339ffd38d261c4417ea1855428b1b4ff9abf1"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/PhenX/php-svg-lib/zipball/a85f7fe9fe08d093a4a8583cdd306b553ff918aa",
-            "reference": "a85f7fe9fe08d093a4a8583cdd306b553ff918aa",
+            "url": "https://api.github.com/repos/tburry/pquery/zipball/872339ffd38d261c4417ea1855428b1b4ff9abf1",
+            "reference": "872339ffd38d261c4417ea1855428b1b4ff9abf1",
             "shasum": ""
         },
         "require": {
-            "sabberworm/php-css-parser": "8.1.*"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "~5.0"
-        },
-        "time": "2017-05-24 10:07:27",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Svg\\": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "LGPL-3.0"
-        ],
-        "authors": [
-            {
-                "name": "Fabien Ménager",
-                "email": "fabien.menager@gmail.com"
-            }
-        ],
-        "description": "A library to read, parse and export to PDF SVG files.",
-        "homepage": "https://github.com/PhenX/php-svg-lib"
-    },
-    {
-        "name": "phenx/php-font-lib",
-        "version": "0.5.1",
-        "version_normalized": "0.5.1.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/PhenX/php-font-lib.git",
-            "reference": "760148820110a1ae0936e5cc35851e25a938bc97"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/PhenX/php-font-lib/zipball/760148820110a1ae0936e5cc35851e25a938bc97",
-            "reference": "760148820110a1ae0936e5cc35851e25a938bc97",
-            "shasum": ""
-        },
-        "require-dev": {
-            "phpunit/phpunit": "^4.8"
-        },
-        "time": "2017-09-13 16:14:37",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "FontLib\\": "src/FontLib"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "LGPL-3.0"
-        ],
-        "authors": [
-            {
-                "name": "Fabien Ménager",
-                "email": "fabien.menager@gmail.com"
-            }
-        ],
-        "description": "A library to read, parse, export and make subsets of different types of font files.",
-        "homepage": "https://github.com/PhenX/php-font-lib"
-    },
-    {
-        "name": "dompdf/dompdf",
-        "version": "v0.8.1",
-        "version_normalized": "0.8.1.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/dompdf/dompdf.git",
-            "reference": "9ea852c4bdc74fac5def165e6cd52353f7ca3b3f"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/dompdf/dompdf/zipball/9ea852c4bdc74fac5def165e6cd52353f7ca3b3f",
-            "reference": "9ea852c4bdc74fac5def165e6cd52353f7ca3b3f",
-            "shasum": ""
-        },
-        "require": {
-            "ext-dom": "*",
-            "ext-gd": "*",
-            "ext-mbstring": "*",
-            "phenx/php-font-lib": "0.5.*",
-            "phenx/php-svg-lib": "0.3.*",
             "php": ">=5.3.0"
         },
         "require-dev": {
-            "phpunit/phpunit": "4.8.*",
-            "squizlabs/php_codesniffer": "2.*"
+            "htmlawed/htmlawed": "dev-master"
         },
-        "time": "2017-09-14 01:36:24",
+        "time": "2016-01-14T20:55:00+00:00",
         "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-develop": "0.7-dev"
-            }
-        },
         "installation-source": "dist",
         "autoload": {
-            "psr-4": {
-                "Dompdf\\": "src/"
-            },
             "classmap": [
-                "lib/"
+                "IQuery.php",
+                "gan_formatter.php",
+                "gan_node_html.php",
+                "gan_parser_html.php",
+                "gan_selector_html.php",
+                "gan_tokenizer.php",
+                "gan_xml2array.php",
+                "pQuery.php"
             ]
         },
         "notification-url": "https://packagist.org/downloads/",
@@ -367,98 +615,16 @@
         ],
         "authors": [
             {
-                "name": "Fabien Ménager",
-                "email": "fabien.menager@gmail.com"
-            },
-            {
-                "name": "Brian Sweeney",
-                "email": "eclecticgeek@gmail.com"
-            },
-            {
-                "name": "Gabriel Bull",
-                "email": "me@gabrielbull.com"
+                "name": "Todd Burry",
+                "email": "todd@vanillaforums.com",
+                "role": "developer"
             }
         ],
-        "description": "DOMPDF is a CSS 2.1 compliant HTML to PDF converter",
-        "homepage": "https://github.com/dompdf/dompdf"
-    },
-    {
-        "name": "bacon/bacon-qr-code",
-        "version": "1.0.1",
-        "version_normalized": "1.0.1.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/Bacon/BaconQrCode.git",
-            "reference": "031a2ce68c5794064b49d11775b2daf45c96e21c"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/Bacon/BaconQrCode/zipball/031a2ce68c5794064b49d11775b2daf45c96e21c",
-            "reference": "031a2ce68c5794064b49d11775b2daf45c96e21c",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.3"
-        },
-        "suggest": {
-            "ext-gd": "to generate QR code images"
-        },
-        "time": "2016-01-09 22:55:35",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "BaconQrCode": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "BSD-2-Clause"
-        ],
-        "authors": [
-            {
-                "name": "Ben Scholzen 'DASPRiD'",
-                "email": "mail@dasprids.de",
-                "homepage": "http://www.dasprids.de",
-                "role": "Developer"
-            }
-        ],
-        "description": "BaconQrCode is a QR code generator for PHP.",
-        "homepage": "https://github.com/Bacon/BaconQrCode"
-    },
-    {
-        "name": "phprtflite/phprtflite",
-        "version": "v1.3.3",
-        "version_normalized": "1.3.3.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/phprtflite/PHPRtfLite.git",
-            "reference": "eef76d965fc7a0cb4c7342f229f67ad4793c61c2"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/phprtflite/PHPRtfLite/zipball/eef76d965fc7a0cb4c7342f229f67ad4793c61c2",
-            "reference": "eef76d965fc7a0cb4c7342f229f67ad4793c61c2",
-            "shasum": ""
-        },
-        "time": "2014-07-04 19:43:18",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "PHPRtfLite": "lib/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "GPL-3.0"
-        ],
-        "authors": [
-            {
-                "name": "Steffen Zeidler",
-                "email": "sigma_z@sigma-scripts.de"
-            }
-        ],
-        "description": "PHPRtfLite is an API enabling developers to create rtf documents with php."
+        "description": "A jQuery like html dom parser written in php.",
+        "keywords": [
+            "dom",
+            "ganon",
+            "php"
+        ]
     }
 ]

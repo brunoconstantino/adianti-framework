@@ -2,7 +2,7 @@
 /**
  * ApplicationTranslator
  *
- * @version    5.0
+ * @version    5.5
  * @package    util
  * @author     Pablo Dall'Oglio
  * @copyright  Copyright (c) 2006 Adianti Solutions Ltd. (http://www.adianti.com.br)

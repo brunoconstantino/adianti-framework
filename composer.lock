@@ -4,25 +4,28 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "0d194e312591083170753bb0813247d3",
-    "content-hash": "3707f5d5d3982048459a8dd0ce521576",
+    "content-hash": "9017bfd2a8d5306f343d79a1f7b76b62",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
-            "version": "1.0.1",
+            "version": "1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Bacon/BaconQrCode.git",
-                "reference": "031a2ce68c5794064b49d11775b2daf45c96e21c"
+                "reference": "5a91b62b9d37cee635bbf8d553f4546057250bee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Bacon/BaconQrCode/zipball/031a2ce68c5794064b49d11775b2daf45c96e21c",
-                "reference": "031a2ce68c5794064b49d11775b2daf45c96e21c",
+                "url": "https://api.github.com/repos/Bacon/BaconQrCode/zipball/5a91b62b9d37cee635bbf8d553f4546057250bee",
+                "reference": "5a91b62b9d37cee635bbf8d553f4546057250bee",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.3"
+                "ext-iconv": "*",
+                "php": "^5.4|^7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8"
             },
             "suggest": {
                 "ext-gd": "to generate QR code images"
@@ -47,20 +50,20 @@
             ],
             "description": "BaconQrCode is a QR code generator for PHP.",
             "homepage": "https://github.com/Bacon/BaconQrCode",
-            "time": "2016-01-09 22:55:35"
+            "time": "2017-10-17T09:59:25+00:00"
         },
         {
             "name": "dompdf/dompdf",
-            "version": "v0.8.1",
+            "version": "v0.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dompdf/dompdf.git",
-                "reference": "9ea852c4bdc74fac5def165e6cd52353f7ca3b3f"
+                "reference": "5113accd9ae5d466077cce5208dcf3fb871bf8f6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dompdf/dompdf/zipball/9ea852c4bdc74fac5def165e6cd52353f7ca3b3f",
-                "reference": "9ea852c4bdc74fac5def165e6cd52353f7ca3b3f",
+                "url": "https://api.github.com/repos/dompdf/dompdf/zipball/5113accd9ae5d466077cce5208dcf3fb871bf8f6",
+                "reference": "5113accd9ae5d466077cce5208dcf3fb871bf8f6",
                 "shasum": ""
             },
             "require": {
@@ -69,7 +72,7 @@
                 "ext-mbstring": "*",
                 "phenx/php-font-lib": "0.5.*",
                 "phenx/php-svg-lib": "0.3.*",
-                "php": ">=5.3.0"
+                "php": ">=5.4.0"
             },
             "require-dev": {
                 "phpunit/phpunit": "4.8.*",
@@ -109,7 +112,162 @@
             ],
             "description": "DOMPDF is a CSS 2.1 compliant HTML to PDF converter",
             "homepage": "https://github.com/dompdf/dompdf",
-            "time": "2017-09-14 01:36:24"
+            "time": "2017-11-26T14:49:08+00:00"
+        },
+        {
+            "name": "firebase/php-jwt",
+            "version": "v5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/firebase/php-jwt.git",
+                "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
+                "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": " 4.8.35"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Firebase\\JWT\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Neuman Vong",
+                    "email": "neuman+pear@twilio.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Anant Narayanan",
+                    "email": "anant@php.net",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
+            "homepage": "https://github.com/firebase/php-jwt",
+            "time": "2017-06-27T22:17:23+00:00"
+        },
+        {
+            "name": "pablodalloglio/ole",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pablodalloglio/ole.git",
+                "reference": "b5698257fc21f3a8734c63c9224df9c48cba8d6f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pablodalloglio/ole/zipball/b5698257fc21f3a8734c63c9224df9c48cba8d6f",
+                "reference": "b5698257fc21f3a8734c63c9224df9c48cba8d6f",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "OLE": "./"
+                }
+            },
+            "include-path": [
+                "./"
+            ],
+            "license": [
+                "PHP"
+            ],
+            "authors": [
+                {
+                    "email": "schmidt@php.net",
+                    "name": "Christian Schmidt",
+                    "role": "Lead"
+                },
+                {
+                    "email": "xnoguer@php.net",
+                    "name": "Xavier Noguer",
+                    "role": "Lead"
+                }
+            ],
+            "description": "More info available on: http://pear.php.net/package/OLE",
+            "support": {
+                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=OLE",
+                "source": "https://github.com/pablodalloglio/OLE"
+            },
+            "time": "2018-04-26T14:25:39+00:00"
+        },
+        {
+            "name": "pablodalloglio/spreadsheet_excel_writer",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pablodalloglio/spreadsheet_excel_writer.git",
+                "reference": "84e5c1a4aa9b93ba1750c33ece6ae25eb19d2851"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pablodalloglio/spreadsheet_excel_writer/zipball/84e5c1a4aa9b93ba1750c33ece6ae25eb19d2851",
+                "reference": "84e5c1a4aa9b93ba1750c33ece6ae25eb19d2851",
+                "shasum": ""
+            },
+            "require": {
+                "pablodalloglio/ole": "*",
+                "php": ">=5.3.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Spreadsheet": ""
+                }
+            },
+            "autoload-dev": {
+                "psr-0": {
+                    "Test": "test"
+                }
+            },
+            "include-path": [
+                "./"
+            ],
+            "license": [
+                "LGPL"
+            ],
+            "authors": [
+                {
+                    "email": "cschmitz@limesurvey.org",
+                    "name": "Carsten Schmitz",
+                    "role": "Lead"
+                },
+                {
+                    "email": "xnoguer@php.net",
+                    "name": "Xavier Noguer",
+                    "role": "Lead"
+                },
+                {
+                    "email": "progi1984@gmail.com",
+                    "name": "Franck Lefevre",
+                    "role": "Developer"
+                },
+                {
+                    "email": "tuupola@appelsiini.net",
+                    "name": "Mika Tuupola",
+                    "role": "Developer"
+                }
+            ],
+            "description": "More info available on: http://pear.php.net/package/Spreadsheet_Excel_Writer",
+            "support": {
+                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Spreadsheet_Excel_Writer",
+                "source": "https://github.com/pear/Spreadsheet_Excel_Writer"
+            },
+            "time": "2018-04-26T14:06:36+00:00"
         },
         {
             "name": "phenx/php-font-lib",
@@ -146,7 +304,7 @@
             ],
             "description": "A library to read, parse, export and make subsets of different types of font files.",
             "homepage": "https://github.com/PhenX/php-font-lib",
-            "time": "2017-09-13 16:14:37"
+            "time": "2017-09-13T16:14:37+00:00"
         },
         {
             "name": "phenx/php-svg-lib",
@@ -186,24 +344,25 @@
             ],
             "description": "A library to read, parse and export to PDF SVG files.",
             "homepage": "https://github.com/PhenX/php-svg-lib",
-            "time": "2017-05-24 10:07:27"
+            "time": "2017-05-24T10:07:27+00:00"
         },
         {
             "name": "phpmailer/phpmailer",
-            "version": "v6.0.1",
+            "version": "v6.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPMailer/PHPMailer.git",
-                "reference": "992392437c2e2784e0dc41446024fe411d293c96"
+                "reference": "cb3ea134d4d3729e7857737d5f320cce9caf4d32"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/992392437c2e2784e0dc41446024fe411d293c96",
-                "reference": "992392437c2e2784e0dc41446024fe411d293c96",
+                "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/cb3ea134d4d3729e7857737d5f320cce9caf4d32",
+                "reference": "cb3ea134d4d3729e7857737d5f320cce9caf4d32",
                 "shasum": ""
             },
             "require": {
                 "ext-ctype": "*",
+                "ext-filter": "*",
                 "php": ">=5.5.0"
             },
             "require-dev": {
@@ -251,7 +410,7 @@
                 }
             ],
             "description": "PHPMailer is a full-featured email creation and transfer class for PHP",
-            "time": "2017-09-14 16:47:12"
+            "time": "2018-03-27T13:49:45+00:00"
         },
         {
             "name": "phprtflite/phprtflite",
@@ -284,7 +443,7 @@
                 }
             ],
             "description": "PHPRtfLite is an API enabling developers to create rtf documents with php.",
-            "time": "2014-07-04 19:43:18"
+            "time": "2014-07-04T19:43:18+00:00"
         },
         {
             "name": "picqer/php-barcode-generator",
@@ -353,7 +512,7 @@
                 "svg",
                 "upc"
             ],
-            "time": "2017-09-28 19:23:19"
+            "time": "2017-09-28T19:23:19+00:00"
         },
         {
             "name": "sabberworm/php-css-parser",
@@ -397,7 +556,7 @@
                 "parser",
                 "stylesheet"
             ],
-            "time": "2016-07-19 19:14:21"
+            "time": "2016-07-19T19:14:21+00:00"
         },
         {
             "name": "tburry/pquery",
@@ -449,13 +608,16 @@
                 "ganon",
                 "php"
             ],
-            "time": "2016-01-14 20:55:00"
+            "time": "2016-01-14T20:55:00+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "pablodalloglio/ole": 20,
+        "pablodalloglio/spreadsheet_excel_writer": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

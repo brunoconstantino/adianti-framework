@@ -68,6 +68,8 @@ class FPDF
     protected $PDFVersion;         // PDF version number
     protected $headerCallback;
     protected $footerCallback;
+    protected $headerCallbackContext;
+    protected $footerCallbackContext;
     
     /*******************************************************************************
      *                               Public methods                                *
@@ -363,21 +365,24 @@ class FPDF
         $this->ColorFlag = $cf;
     }
     
-    function setHeaderCallback($cb)
+    function setHeaderCallback($cb, $context = null)
     {
         $this->headerCallback = $cb;
+        $this->headerCallbackContext = $context;
     }
     
-    function setFooterCallback($cb)
+    function setFooterCallback($cb, $context = null)
     {
         $this->footerCallback = $cb;
+        $this->footerCallbackContext = $context;
     }
     
     function Header()
     {
         if (is_callable($this->headerCallback))
         {
-            call_user_func( $this->headerCallback, $this );
+            call_user_func( $this->headerCallback, $this->headerCallbackContext ? $this->headerCallbackContext : $this );
+            $this->headerCallbackContext->addRow();
         }
         //To be implemented in your own inherited class
     }
@@ -386,7 +391,7 @@ class FPDF
     {
         if (is_callable($this->footerCallback))
         {
-            call_user_func( $this->footerCallback, $this );
+            call_user_func( $this->footerCallback, $this->footerCallbackContext ? $this->footerCallbackContext : $this );
         }
         //To be implemented in your own inherited class
     }
