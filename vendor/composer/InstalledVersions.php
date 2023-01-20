@@ -1,5 +1,15 @@
 <?php
 
+
+
+
+
+
+
+
+
+
+
 namespace Composer;
 
 use Composer\Semver\VersionParser;
@@ -19,7 +29,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '5998eb524542c73576ee17ef19940edd3a79c165',
+    'reference' => '785e3c83a0aea5e934252886a508d3457e759ff2',
     'name' => '__root__',
   ),
   'versions' => 
@@ -31,7 +41,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '5998eb524542c73576ee17ef19940edd3a79c165',
+      'reference' => '785e3c83a0aea5e934252886a508d3457e759ff2',
     ),
     'adianti/pdfdesigner' => 
     array (
@@ -41,7 +51,7 @@ private static $installed = array (
       array (
         0 => '9999999-dev',
       ),
-      'reference' => '8f8980c844caa24010ebdbb8009252402f3a8dd3',
+      'reference' => '76a371e28bfa05e31aaa9075a21b68a96032c5b0',
     ),
     'adianti/plugins' => 
     array (
@@ -64,30 +74,30 @@ private static $installed = array (
     ),
     'dompdf/dompdf' => 
     array (
-      'pretty_version' => 'v0.8.6',
-      'version' => '0.8.6.0',
+      'pretty_version' => 'v1.1.1',
+      'version' => '1.1.1.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'db91d81866c69a42dad1d2926f61515a1e3f42c5',
+      'reference' => 'de4aad040737a89fae2129cdeb0f79c45513128d',
     ),
     'firebase/php-jwt' => 
     array (
-      'pretty_version' => 'v5.2.0',
-      'version' => '5.2.0.0',
+      'pretty_version' => 'v5.5.1',
+      'version' => '5.5.1.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'feb0e820b8436873675fd3aca04f3728eb2185cb',
+      'reference' => '83b609028194aa042ea33b5af2d41a7427de80e6',
     ),
     'linfo/linfo' => 
     array (
-      'pretty_version' => 'v4.0.4',
-      'version' => '4.0.4.0',
+      'pretty_version' => 'v4.0.6',
+      'version' => '4.0.6.0',
       'aliases' => 
       array (
       ),
-      'reference' => '2cd1edf906b9ee4dbecfac7a4829d45ce9d585c0',
+      'reference' => 'aea87565d4fd1124e637581b66a41c8b86ee22bb',
     ),
     'pablodalloglio/fpdf' => 
     array (
@@ -97,7 +107,7 @@ private static $installed = array (
       array (
         0 => '9999999-dev',
       ),
-      'reference' => '0339a0c546c66f975a1ac26431a62410a0a49c76',
+      'reference' => 'e1c7233cdc7c8854aa3b134762e1d349633b602a',
     ),
     'pablodalloglio/ole' => 
     array (
@@ -107,7 +117,7 @@ private static $installed = array (
       array (
         0 => '9999999-dev',
       ),
-      'reference' => 'f2c9e55125889d4106bee23ab2ecdffe29f7c0e5',
+      'reference' => 'ba03f4bd294fe5202b3e18092c1a79e67a8024ec',
     ),
     'pablodalloglio/spreadsheet_excel_writer' => 
     array (
@@ -117,7 +127,7 @@ private static $installed = array (
       array (
         0 => '9999999-dev',
       ),
-      'reference' => '4c7138aadc6a4dc3865c1aa24911cb0ddc5ea8a4',
+      'reference' => 'c7ad7feeb4fb5586fd3d35ab812ace1f1168e9ef',
     ),
     'phenx/php-font-lib' => 
     array (
@@ -139,12 +149,12 @@ private static $installed = array (
     ),
     'phpmailer/phpmailer' => 
     array (
-      'pretty_version' => 'v6.1.8',
-      'version' => '6.1.8.0',
+      'pretty_version' => 'v6.5.3',
+      'version' => '6.5.3.0',
       'aliases' => 
       array (
       ),
-      'reference' => '917ab212fa00dc6eacbb26e8bc387ebe40993bc1',
+      'reference' => 'baeb7cde6b60b1286912690ab0693c7789a31e71',
     ),
     'phprtflite/phprtflite' => 
     array (
@@ -157,12 +167,12 @@ private static $installed = array (
     ),
     'picqer/php-barcode-generator' => 
     array (
-      'pretty_version' => 'v0.2.2',
-      'version' => '0.2.2.0',
+      'pretty_version' => 'v2.0.1',
+      'version' => '2.0.1.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'f754cbd592f3131af144dfcc6a3090fd0f6d1793',
+      'reference' => '16c51a795454198500cdfb4f82de288945af3960',
     ),
     'sabberworm/php-css-parser' => 
     array (

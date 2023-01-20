@@ -28,3 +28,5 @@ define('LANG', $ini['general']['language']);
 
 // custom session name
 session_name('PHPSESSID_'.$ini['general']['application']);
+
+setlocale(LC_ALL, 'C');
